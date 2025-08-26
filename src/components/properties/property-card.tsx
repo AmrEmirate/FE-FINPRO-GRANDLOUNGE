@@ -1,9 +1,9 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Card, CardContent } from "@/src/components/ui/card"
-import { Badge } from "@/src/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Star, MapPin, Users, Wifi, Car, Coffee } from "lucide-react"
-import type { Property } from "@/src/lib/types"
+import type { Property } from "@/lib/types"
 
 interface PropertyCardProps {
   property: Property

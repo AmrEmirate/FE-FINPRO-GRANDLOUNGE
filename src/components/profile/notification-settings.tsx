@@ -1,8 +1,8 @@
 "use client"
 
-import { Button } from "@/src/components/ui/button"
-import { Label } from "@/src/components/ui/label"
-import { Switch } from "@/src/components/ui/switch"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 
 interface Notifications {
   emailUpdates: boolean

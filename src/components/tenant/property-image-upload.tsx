@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from "@/src/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Upload } from "lucide-react"
 
 export function PropertyImageUpload() {

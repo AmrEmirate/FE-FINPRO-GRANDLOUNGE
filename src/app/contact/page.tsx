@@ -1,7 +1,7 @@
-import { ContactHero } from "@/src/components/contact/contact-hero"
-import { ContactInfo } from "@/src/components/contact/contact-info"
-import { ContactForm } from "@/src/components/contact/contact-form"
-import { ContactFAQ } from "@/src/components/contact/contact-faq"
+import { ContactHero } from "@/components/contact/contact-hero"
+import { ContactInfo } from "@/components/contact/contact-info"
+import { ContactForm } from "@/components/contact/contact-form"
+import { ContactFAQ } from "@/components/contact/contact-faq"
 
 export default function ContactPage() {
   return (

@@ -1,6 +1,6 @@
 "use client"
 
-import { Badge } from "@/src/components/ui/badge"
+import { Badge } from "@/components/ui/badge"
 import { Users } from "lucide-react"
 
 interface Room {

@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { HelpHero } from "@/src/components/help/help-hero"
-import { HelpActions } from "@/src/components/help/help-actions"
-import { HelpCategories } from "@/src/components/help/help-categories"
-import { HelpFAQ } from "@/src/components/help/help-faq"
-import { HelpSupport } from "@/src/components/help/help-support"
+import { HelpHero } from "@/components/help/help-hero"
+import { HelpActions } from "@/components/help/help-actions"
+import { HelpCategories } from "@/components/help/help-categories"
+import { HelpFAQ } from "@/components/help/help-faq"
+import { HelpSupport } from "@/components/help/help-support"
 
 const faqs = [
   {

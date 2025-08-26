@@ -1,7 +1,7 @@
-import { HeroSection } from '@/src/components/home/hero-section'
-import { SearchForm } from '@/src/components/home/search-form'
-import { FeaturedProperties } from '@/src/components/home/featured-properties'
-import { Footer } from '@/src/components/layout/footer'
+import { HeroSection } from '@/components/home/hero-section'
+import { SearchForm } from '@/components/home/search-form'
+import { FeaturedProperties } from '@/components/home/featured-properties'
+import { Footer } from '@/components/layout/footer'
 
 export default function HomePage() {
   return (

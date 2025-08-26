@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Button } from "@/src/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Heart, Share2 } from "lucide-react"
 
 interface PropertyImageGalleryProps {

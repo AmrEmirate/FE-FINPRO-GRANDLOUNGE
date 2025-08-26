@@ -2,9 +2,9 @@
 
 import type React from "react"
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Separator } from "@/src/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { ProfileHeader } from "./profile-header"
 import { ProfileForm } from "./profile-form"
 import { SecurityForm } from "./security-form"

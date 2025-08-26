@@ -1,8 +1,8 @@
 "use client"
 
 import { PropertyCard } from "./property-card"
-import { Button } from "@/src/components/ui/button"
-import type { Property } from "@/src/lib/types"
+import { Button } from "@/components/ui/button"
+import type { Property } from "@/lib/types"
 
 interface PropertiesGridProps {
   properties: Property[]

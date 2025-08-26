@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardStats } from "@/src/components/tenant/dashboard-stats"
-import { RecentProperties } from "@/src/components/tenant/recent-properties"
+import { DashboardStats } from "@/components/tenant/dashboard-stats"
+import { RecentProperties } from "@/components/tenant/recent-properties"
 
 export default function TenantDashboardPage() {
   const [stats] = useState({

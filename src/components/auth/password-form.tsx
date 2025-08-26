@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { Button } from "@/src/components/ui/button"
-import { Input } from "@/src/components/ui/input"
-import { Label } from "@/src/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Lock, Eye, EyeOff } from "lucide-react"
 
 interface PasswordFormProps {

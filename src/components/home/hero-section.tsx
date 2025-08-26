@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/src/components/ui/button"
-import { heroSlides } from "@/src/lib/constants/hero-data"
+import { Button } from "@/components/ui/button"
+import { heroSlides } from "@/lib/constants/hero-data"
 
 export function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0)

@@ -1,17 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/src/components/ui/button'
-import { Label } from '@/src/components/ui/label'
-import { Checkbox } from '@/src/components/ui/checkbox'
-import { Slider } from '@/src/components/ui/slider'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Slider } from '@/components/ui/slider'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/src/components/ui/select'
+} from '@/components/ui/select'
 
 interface PropertyFiltersProps {
   onFilter: (filters: any) => void

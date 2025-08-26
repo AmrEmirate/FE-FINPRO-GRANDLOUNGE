@@ -1,4 +1,4 @@
-import { BedOption, RoomCategory } from "@/src/lib/types"
+import { BedOption, RoomCategory } from "@/lib/types"
 
 export const BED_OPTION_LABELS: Record<BedOption, string> = {
   [BedOption.SINGLE]: "Single Bed",

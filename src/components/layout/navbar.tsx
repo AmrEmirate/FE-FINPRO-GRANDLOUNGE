@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/src/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { NavbarLogo } from "./navbar-logo"
 import { DesktopNavigation } from "./desktop-navigation"

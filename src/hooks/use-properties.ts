@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react"
 import type { ReadonlyURLSearchParams } from "next/navigation"
-import { mockProperties } from "@/src/lib/constants/mock-data"
-import type { Property, PropertyFilters } from "@/src/lib/types"
+import { mockProperties } from "@/lib/constants/mock-data"
+import type { Property, PropertyFilters } from "@/lib/types"
 
 export function useProperties(searchParams: ReadonlyURLSearchParams) {
   const [properties, setProperties] = useState<Property[]>([])

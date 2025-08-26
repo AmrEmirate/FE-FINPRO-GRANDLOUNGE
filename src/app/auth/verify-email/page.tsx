@@ -4,10 +4,10 @@ import type React from "react"
 import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2 } from "lucide-react"
-import { PasswordForm } from "@/src/components/auth/password-form"
-import { EmailVerificationStatus } from "@/src/components/auth/email-verification-status"
+import { PasswordForm } from "@/components/auth/password-form"
+import { EmailVerificationStatus } from "@/components/auth/email-verification-status"
 
 function VerifyEmailContent() {
   const router = useRouter()

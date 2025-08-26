@@ -1,11 +1,11 @@
 "use client"
 import { Users, Building2, Star, Award, Shield, Heart } from "lucide-react"
-import { AboutHero } from "@/src/components/about/about-hero"
-import { AboutStats } from "@/src/components/about/about-stats"
-import { AboutStory } from "@/src/components/about/about-story"
-import { AboutValues } from "@/src/components/about/about-values"
-import { AboutTeam } from "@/src/components/about/about-team"
-import { AboutMission } from "@/src/components/about/about-mission"
+import { AboutHero } from "@/components/about/about-hero"
+import { AboutStats } from "@/components/about/about-stats"
+import { AboutStory } from "@/components/about/about-story"
+import { AboutValues } from "@/components/about/about-values"
+import { AboutTeam } from "@/components/about/about-team"
+import { AboutMission } from "@/components/about/about-mission"
 
 const stats = [
   { label: "Properties Listed", value: "10,000+", icon: Building2 },

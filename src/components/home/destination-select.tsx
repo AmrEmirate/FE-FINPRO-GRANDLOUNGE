@@ -1,7 +1,7 @@
 "use client"
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select"
-import { cities } from "@/src/lib/constants/cities"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { cities } from "@/lib/constants/cities"
 
 interface DestinationSelectProps {
   value: string

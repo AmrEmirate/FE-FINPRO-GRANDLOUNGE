@@ -1,10 +1,10 @@
 "use client"
 import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { PropertyFilters } from "@/src/components/properties/property-filters"
-import { SearchHeader } from "@/src/components/properties/search-header"
-import { PropertiesGrid } from "@/src/components/properties/properties-grid"
-import { useProperties } from "@/src/hooks/use-properties"
+import { PropertyFilters } from "@/components/properties/property-filters"
+import { SearchHeader } from "@/components/properties/search-header"
+import { PropertiesGrid } from "@/components/properties/properties-grid"
+import { useProperties } from "@/hooks/use-properties"
 
 function PropertiesContent() {
   const searchParams = useSearchParams()

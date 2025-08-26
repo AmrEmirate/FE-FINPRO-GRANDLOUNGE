@@ -4,10 +4,10 @@ import type React from "react"
 import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2 } from "lucide-react"
-import { RegisterForm } from "@/src/components/auth/register-form"
-import { SocialLogin } from "@/src/components/auth/social-login"
+import { RegisterForm } from "@/components/auth/register-form"
+import { SocialLogin } from "@/components/auth/social-login"
 
 function RegisterContent() {
   const router = useRouter()

@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/src/components/ui/select'
+} from '@/components/ui/select'
 
 interface PropertySortProps {
   onSort: (sortBy: string, order: 'asc' | 'desc') => void

@@ -1,8 +1,8 @@
 "use client"
 
-import { PropertiesHeader } from "@/src/components/tenant/properties-header"
-import { PropertiesGrid } from "@/src/components/tenant/properties-grid"
-import { useTenantProperties } from "@/src/hooks/use-tenant-properties"
+import { PropertiesHeader } from "@/components/tenant/properties-header"
+import { PropertiesGrid } from "@/components/tenant/properties-grid"
+import { useTenantProperties } from "@/hooks/use-tenant-properties"
 
 export default function TenantPropertiesPage() {
   const {

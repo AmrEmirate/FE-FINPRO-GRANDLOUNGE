@@ -1,7 +1,7 @@
 "use client"
 
-import { Button } from "@/src/components/ui/button"
-import { Separator } from "@/src/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 
 interface SocialLoginProps {
   type?: "login" | "register"

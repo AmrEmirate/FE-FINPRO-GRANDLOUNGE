@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
-import { ProfileTabs } from "@/src/components/profile/profile-tabs"
-import { useProfile } from "@/src/hooks/use-profile"
+import { ProfileTabs } from "@/components/profile/profile-tabs"
+import { useProfile } from "@/hooks/use-profile"
 
 export default function ProfilePage() {
   const [user] = useState({

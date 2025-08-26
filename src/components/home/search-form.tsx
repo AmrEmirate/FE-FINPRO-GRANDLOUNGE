@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/src/components/ui/button"
-import { Label } from "@/src/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 import { CalendarIcon, MapPin, Users } from "lucide-react"
 import { format } from "date-fns"
 import { DestinationSelect } from "./destination-select"

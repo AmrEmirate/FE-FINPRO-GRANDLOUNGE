@@ -1,5 +1,5 @@
-import { Badge } from "@/src/components/ui/badge"
-import { Separator } from "@/src/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { Star, MapPin, Wifi, Car, Coffee, PocketIcon as Pool, Dumbbell } from "lucide-react"
 import Image from "next/image"
 import { format } from "date-fns"

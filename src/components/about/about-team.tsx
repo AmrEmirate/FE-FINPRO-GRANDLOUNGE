@@ -1,6 +1,6 @@
 import Image from "next/image"
-import { Card, CardContent } from "@/src/components/ui/card"
-import { Badge } from "@/src/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export function AboutTeam() {
   const team = [

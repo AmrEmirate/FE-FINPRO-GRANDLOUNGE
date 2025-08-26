@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Button } from "@/src/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { PropertyBasicInfo } from "@/src/components/tenant/property-basic-info"
-import { PropertyLocationInfo } from "@/src/components/tenant/property-location-info"
-import { PropertyImageUpload } from "@/src/components/tenant/property-image-upload"
+import { PropertyBasicInfo } from "@/components/tenant/property-basic-info"
+import { PropertyLocationInfo } from "@/components/tenant/property-location-info"
+import { PropertyImageUpload } from "@/components/tenant/property-image-upload"
 
 export default function NewPropertyPage() {
   const router = useRouter()

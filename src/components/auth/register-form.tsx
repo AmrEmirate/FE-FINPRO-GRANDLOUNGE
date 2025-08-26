@@ -2,10 +2,10 @@
 
 import type React from "react"
 
-import { Button } from "@/src/components/ui/button"
-import { Input } from "@/src/components/ui/input"
-import { Label } from "@/src/components/ui/label"
-import { Separator } from "@/src/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
 import { User, Mail, Building, MapPin, Phone } from "lucide-react"
 
 interface RegisterFormProps {

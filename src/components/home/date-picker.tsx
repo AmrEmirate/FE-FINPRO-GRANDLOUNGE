@@ -1,10 +1,10 @@
 "use client"
 
-import { Button } from "@/src/components/ui/button"
-import { Calendar } from "@/src/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
-import { cn } from "@/src/lib/utils"
+import { cn } from "@/lib/utils"
 
 interface DatePickerProps {
   selected: Date | undefined
