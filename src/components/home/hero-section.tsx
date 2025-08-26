@@ -74,6 +74,7 @@ export function HeroSection() {
           <button
             key={index}
             className={`w-3 h-3 rounded-full transition-colors ${index === currentSlide ? "bg-white" : "bg-white/50"}`}
+            aria-label={`Go to slide ${index + 1}`}
             onClick={() => setCurrentSlide(index)}
           />
         ))}

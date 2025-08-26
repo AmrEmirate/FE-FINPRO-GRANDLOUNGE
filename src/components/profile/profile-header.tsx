@@ -38,7 +38,7 @@ export function ProfileHeader({ user, onAvatarUpload }: ProfileHeaderProps) {
           <div className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-lg transition-colors">
             <Camera className="h-4 w-4" />
           </div>
-          <input id="avatar-upload" type="file" accept="image/*" onChange={onAvatarUpload} className="hidden" />
+          <input id="avatar-upload" type="file" accept="image/*" onChange={onAvatarUpload} className="hidden" aria-label="Upload new profile picture" />
         </label>
       </div>
       <div>

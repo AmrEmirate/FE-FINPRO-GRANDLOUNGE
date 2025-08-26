@@ -62,8 +62,9 @@ export function PropertyImageGallery({ images, propertyName }: PropertyImageGall
             key={index}
             onClick={() => setCurrentImageIndex(index)}
             className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 ${
-              index === currentImageIndex ? "ring-2 ring-blue-500" : ""
+ index === currentImageIndex ? "ring-2 ring-blue-500" : ""
             }`}
+            aria-label={`View image ${index + 1}`}
           >
             <Image
               src={image || "/placeholder.svg"}

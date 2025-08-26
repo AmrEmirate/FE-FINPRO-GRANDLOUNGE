@@ -26,7 +26,7 @@ export default function TenantPropertiesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <PropertiesHeader
           searchTerm={searchTerm}
-          statusFilter={statusFilter}
+          filter={statusFilter}
           sortBy={sortBy}
           onSearchChange={setSearchTerm}
           onStatusFilterChange={setStatusFilter}
