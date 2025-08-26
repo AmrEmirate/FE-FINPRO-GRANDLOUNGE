@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import { DashboardStats } from "@/components/tenant/dashboard-stats" 
-import { Property } from "@/components/tenant/recent-properties"
-import { RecentProperties } from "@/components/tenant/recent-properties"
+import { Property, RecentProperties } from "@/components/tenant/recent-properties"
 
 export default function TenantDashboardPage() {
   const [stats] = useState({
