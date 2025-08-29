@@ -1,8 +1,8 @@
+// src/app/auth/login/page.tsx
 "use client"
 
 import type React from "react"
-import { Suspense } from "react"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -11,11 +11,14 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { SocialLogin } from "@/components/auth/social-login"
+import api from "@/lib/apiHelper" // Import instance Axios
+import { useToast } from "@/hooks/use-toast" // Import useToast
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const userType = searchParams.get("type") || "user"
+  const { toast } = useToast()
 
   const [formData, setFormData] = useState({
     email: "",
@@ -29,27 +32,44 @@ function LoginContent() {
     setIsLoading(true)
 
     try {
-      // Simple form validation
       if (!formData.email || !formData.password) {
-        alert("Please fill in all fields")
+        toast({
+          variant: "destructive",
+          title: "Input Tidak Lengkap",
+          description: "Mohon isi email dan password.",
+        })
         setIsLoading(false)
         return
       }
 
-      // TODO: Implement actual login logic
-      console.log("Login attempt:", { ...formData, userType })
+      const response = await api.post("/auth/login", formData)
+      
+      const { token, user } = response.data.data;
+      
+      // Simpan token di localStorage untuk digunakan di permintaan selanjutnya
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(user));
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Redirect based on user type
-      if (userType === "tenant") {
+      toast({
+        title: "Login Berhasil",
+        description: "Selamat datang kembali!",
+      })
+      
+      // Arahkan berdasarkan peran pengguna
+      if (user.role === "TENANT") {
         router.push("/tenant/dashboard")
       } else {
         router.push("/dashboard")
       }
-    } catch (error) {
+
+    } catch (error: any) {
       console.error("Login error:", error)
+      const errorMessage = error.response?.data?.message || "Terjadi kesalahan saat login."
+      toast({
+        variant: "destructive",
+        title: "Login Gagal",
+        description: errorMessage,
+      })
     } finally {
       setIsLoading(false)
     }

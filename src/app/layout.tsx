@@ -1,8 +1,10 @@
+// src/app/layout.tsx
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import Navbar from '@/components/Navbar'
+import { AuthProvider } from '@/context/AuthContext' // 1. Impor AuthProvider
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,9 +26,11 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={inter.className}>
-        <Navbar />
-        <main>{children}</main>
-        <Toaster />
+        <AuthProvider> {/* 2. Bungkus komponen dengan AuthProvider */}
+          <Navbar />
+          <main>{children}</main>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   )

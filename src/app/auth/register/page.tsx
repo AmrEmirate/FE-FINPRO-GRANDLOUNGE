@@ -1,3 +1,4 @@
+// src/app/auth/register/page.tsx
 "use client"
 
 import type React from "react"
@@ -8,11 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Building2 } from "lucide-react"
 import { RegisterForm } from "@/components/auth/register-form"
 import { SocialLogin } from "@/components/auth/social-login"
+import api from "@/lib/apiHelper" // Import instance Axios
+import { useToast } from "@/hooks/use-toast" // Import useToast
 
 function RegisterContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const userType = searchParams.get("type") || "user"
+  const { toast } = useToast()
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -28,11 +32,33 @@ function RegisterContent() {
     setIsLoading(true)
 
     try {
-      console.log("Registration attempt:", { ...formData, userType })
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/auth/verify-email")
-    } catch (error) {
+      const endpoint = userType === "tenant" ? "/auth/register/tenant" : "/auth/register/user"
+      const payload =
+        userType === "tenant"
+          ? formData
+          : {
+              fullName: formData.fullName,
+              email: formData.email,
+            }
+
+      const response = await api.post(endpoint, payload)
+      
+      toast({
+        title: "Registrasi Berhasil",
+        description: response.data.message,
+      })
+
+      // Arahkan ke halaman verifikasi atau halaman lain yang sesuai
+      router.push("/auth/verify-email") 
+
+    } catch (error: any) {
       console.error("Registration error:", error)
+      const errorMessage = error.response?.data?.message || "Terjadi kesalahan saat registrasi."
+      toast({
+        variant: "destructive",
+        title: "Registrasi Gagal",
+        description: errorMessage,
+      })
     } finally {
       setIsLoading(false)
     }
@@ -70,7 +96,6 @@ function RegisterContent() {
           </CardHeader>
           <CardContent>
             <SocialLogin type="register" />
-
             <RegisterForm
               userType={userType}
               formData={formData}
@@ -78,7 +103,6 @@ function RegisterContent() {
               onSubmit={handleSubmit}
               onChange={handleInputChange}
             />
-
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
