@@ -3,22 +3,15 @@
 import type React from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Camera } from "lucide-react"
-
-interface User {
-  id: number
-  fullName: string
-  email: string
-  profilePicture?: string
-  verified: boolean
-  createdAt: Date
-}
+import { useAuth } from "@/context/AuthContext" // Menggunakan user dari context
 
 interface ProfileHeaderProps {
-  user: User
   onAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-export function ProfileHeader({ user, onAvatarUpload }: ProfileHeaderProps) {
+export function ProfileHeader({ onAvatarUpload }: ProfileHeaderProps) {
+  const { user } = useAuth(); // Mengambil user dari context
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -27,11 +20,15 @@ export function ProfileHeader({ user, onAvatarUpload }: ProfileHeaderProps) {
       .toUpperCase()
   }
 
+  if (!user) {
+    return null; // atau tampilkan skeleton loader
+  }
+
   return (
     <div className="flex items-center space-x-6">
       <div className="relative">
         <Avatar className="h-24 w-24">
-          <AvatarImage src={user.profilePicture || "/placeholder.svg"} alt={user.fullName} />
+          <AvatarImage src={user.profilePicture || "/placeholder-user.jpg"} alt={user.fullName} />
           <AvatarFallback className="text-lg">{getInitials(user.fullName)}</AvatarFallback>
         </Avatar>
         <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 cursor-pointer">
@@ -44,7 +41,7 @@ export function ProfileHeader({ user, onAvatarUpload }: ProfileHeaderProps) {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">{user.fullName}</h2>
         <p className="text-gray-600">{user.email}</p>
-        <p className="text-sm text-gray-500">Member since {user.createdAt.toLocaleDateString()}</p>
+        <p className="text-sm text-gray-500">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
       </div>
     </div>
   )

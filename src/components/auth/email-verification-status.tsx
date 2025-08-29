@@ -6,7 +6,8 @@ import { Building2, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-reac
 import Link from "next/link"
 
 interface EmailVerificationStatusProps {
-  status: "success" | "expired" | "invalid"
+  // PERUBAHAN DI SINI: Menambahkan "pending" ke dalam tipe data status
+  status: "pending" | "success" | "expired" | "invalid"
   onResendVerification: () => void
   isLoading: boolean
 }
@@ -38,6 +39,7 @@ export function EmailVerificationStatus({ status, onResendVerification, isLoadin
           description: "This verification link is invalid or has already been used.",
           message: "Please check your email for the correct link or request a new one.",
         }
+      // Case "pending" akan ditangani oleh "default"
       default:
         return {
           icon: AlertCircle,

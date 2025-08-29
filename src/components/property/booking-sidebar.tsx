@@ -1,10 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { useAuth } from "@/context/AuthContext" // 1. Impor useAuth
+import { useToast } from "@/hooks/use-toast"   // 2. Impor useToast
 
 interface BookingSidebarProps {
   selectedRoom: {
@@ -14,19 +17,68 @@ interface BookingSidebarProps {
     description: string
     available: boolean
   }
-  onBooking: () => void
 }
 
-export function BookingSidebar({ selectedRoom, onBooking }: BookingSidebarProps) {
+// Komponen ini tidak lagi menerima onBooking, karena logikanya ditangani di sini
+export function BookingSidebar({ selectedRoom }: BookingSidebarProps) {
   const [selectedDate, setSelectedDate] = useState<Date>()
+  const { isAuthenticated, user } = useAuth(); // 3. Dapatkan status auth & data user
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleBookingClick = () => {
+    // 4. Validasi berlapis sebelum booking
+    if (!isAuthenticated) {
+      toast({
+        variant: "destructive",
+        title: "Anda Belum Login",
+        description: "Silakan masuk untuk melanjutkan pemesanan.",
+      })
+      router.push("/auth/login?type=user");
+      return;
+    }
+
+    if (!user?.verified) {
+      toast({
+        variant: "destructive",
+        title: "Akun Belum Terverifikasi",
+        description: "Silakan verifikasi email Anda terlebih dahulu.",
+      })
+      return;
+    }
+
     if (!selectedDate) {
-      alert("Please select a check-in date")
+      toast({
+          variant: "destructive",
+          title: "Tanggal Belum Dipilih",
+          description: "Silakan pilih tanggal check-in.",
+      });
       return
     }
-    onBooking()
+
+    // Jika semua validasi lolos, lanjutkan ke proses booking
+    console.log("Proceeding to booking page...");
+    // Di sini Anda bisa arahkan ke halaman pembayaran
+    // router.push(`/payment?roomId=${selectedRoom.id}&date=${selectedDate}`);
+    toast({
+        title: "Redirecting to Booking Page",
+        description: "Fitur booking selanjutnya belum diimplementasikan.",
+    });
   }
+  
+  // 5. Tentukan pesan dan status disabled untuk tombol
+  let buttonText = "Book Now";
+  let isDisabled = !selectedRoom.available;
+
+  if (!isAuthenticated) {
+    buttonText = "Login to Book";
+  } else if (!user?.verified) {
+    buttonText = "Verify Email to Book";
+    isDisabled = true;
+  } else if (!selectedRoom.available) {
+    buttonText = "Not Available";
+  }
+
 
   return (
     <Card className="sticky top-24">
@@ -66,8 +118,8 @@ export function BookingSidebar({ selectedRoom, onBooking }: BookingSidebarProps)
           )}
         </div>
 
-        <Button onClick={handleBookingClick} className="w-full" size="lg" disabled={!selectedRoom.available}>
-          {selectedRoom.available ? "Book Now" : "Not Available"}
+        <Button onClick={handleBookingClick} className="w-full" size="lg" disabled={isDisabled}>
+            {buttonText}
         </Button>
 
         <div className="text-xs text-gray-500 text-center">You won't be charged yet</div>

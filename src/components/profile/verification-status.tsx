@@ -3,23 +3,20 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, Mail } from "lucide-react"
-
-interface User {
-  id: number
-  fullName: string
-  email: string
-  profilePicture?: string
-  verified: boolean
-  createdAt: Date
-}
+import { useAuth } from "@/context/AuthContext" // Menggunakan user dari context
 
 interface VerificationStatusProps {
-  user: User
   isLoading: boolean
   onEmailVerification: () => void
 }
 
-export function VerificationStatus({ user, isLoading, onEmailVerification }: VerificationStatusProps) {
+export function VerificationStatus({ isLoading, onEmailVerification }: VerificationStatusProps) {
+  const { user } = useAuth(); // Mengambil user dari context
+
+  if (!user) {
+      return null; // atau skeleton loader
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -66,7 +63,7 @@ export function VerificationStatus({ user, isLoading, onEmailVerification }: Ver
 
       <div className="text-sm text-gray-600">
         <h4 className="font-medium mb-2">Verification Benefits:</h4>
-        <ul className="space-y-1">
+        <ul className="list-disc list-inside mt-1 space-y-1">
           <li>• Enhanced account security</li>
           <li>• Access to all platform features</li>
           <li>• Priority customer support</li>

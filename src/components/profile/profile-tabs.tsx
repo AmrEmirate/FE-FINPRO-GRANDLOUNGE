@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -10,59 +9,51 @@ import { ProfileForm } from "./profile-form"
 import { SecurityForm } from "./security-form"
 import { NotificationSettings } from "./notification-settings"
 import { VerificationStatus } from "./verification-status"
+import { useAuth } from "@/context/AuthContext"
 
-interface User {
-  id: number
-  fullName: string
-  email: string
-  profilePicture?: string
-  verified: boolean
-  createdAt: Date
-}
-
+// Tipe data ini tetap di sini karena spesifik untuk form
 interface ProfileData {
-  fullName: string
-  email: string
+  fullName: string;
+  email: string;
 }
 
 interface PasswordData {
-  currentPassword: string
-  newPassword: string
-  confirmPassword: string
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 interface ShowPasswords {
-  current: boolean
-  new: boolean
-  confirm: boolean
+  current: boolean;
+  new: boolean;
+  confirm: boolean;
 }
 
 interface Notifications {
-  emailUpdates: boolean
-  emailPromotions: boolean
-  pushNotifications: boolean
+  emailUpdates: boolean;
+  emailPromotions: boolean;
+  pushNotifications: boolean;
 }
 
+// PERUBAHAN DI SINI: prop `user` dihapus
 interface ProfileTabsProps {
-  user: User
-  profileData: ProfileData
-  passwordData: PasswordData
-  showPasswords: ShowPasswords
-  notifications: Notifications
-  isLoading: boolean
-  onProfileUpdate: (e: React.FormEvent) => void
-  onPasswordChange: (e: React.FormEvent) => void
-  onAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onEmailVerification: () => void
-  onNotificationSave: () => void
-  onProfileDataChange: (data: ProfileData) => void
-  onPasswordDataChange: (data: PasswordData) => void
-  onNotificationsChange: (notifications: Notifications) => void
-  onTogglePassword: (field: "current" | "new" | "confirm") => void
+  profileData: ProfileData;
+  passwordData: PasswordData;
+  showPasswords: ShowPasswords;
+  notifications: Notifications;
+  isLoading: boolean;
+  onProfileUpdate: (e: React.FormEvent) => void;
+  onPasswordChange: (e: React.FormEvent) => void;
+  onAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onEmailVerification: () => void;
+  onNotificationSave: () => void;
+  onProfileDataChange: (data: ProfileData) => void;
+  onPasswordDataChange: (data: PasswordData) => void;
+  onNotificationsChange: (notifications: Notifications) => void;
+  onTogglePassword: (field: "current" | "new" | "confirm") => void;
 }
 
 export function ProfileTabs({
-  user,
   profileData,
   passwordData,
   showPasswords,
@@ -78,6 +69,11 @@ export function ProfileTabs({
   onNotificationsChange,
   onTogglePassword,
 }: ProfileTabsProps) {
+
+  const { user } = useAuth();
+
+  if (!user) return null;
+
   return (
     <Tabs defaultValue="profile" className="space-y-6">
       <TabsList className="grid w-full grid-cols-4">
@@ -94,7 +90,8 @@ export function ProfileTabs({
             <CardDescription>Update your personal information and profile picture</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <ProfileHeader user={user} onAvatarUpload={onAvatarUpload} />
+            {/* PERUBAHAN DI SINI: tidak lagi meneruskan prop `user` */}
+            <ProfileHeader onAvatarUpload={onAvatarUpload} />
             <Separator />
             <ProfileForm
               profileData={profileData}
@@ -149,10 +146,11 @@ export function ProfileTabs({
             <CardDescription>Verify your email for enhanced security</CardDescription>
           </CardHeader>
           <CardContent>
-            <VerificationStatus user={user} isLoading={isLoading} onEmailVerification={onEmailVerification} />
+            {/* PERUBAHAN DI SINI: tidak lagi meneruskan prop `user` */}
+            <VerificationStatus isLoading={isLoading} onEmailVerification={onEmailVerification} />
           </CardContent>
         </Card>
       </TabsContent>
     </Tabs>
-  )
+  );
 }

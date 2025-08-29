@@ -1,17 +1,23 @@
+// src/app/auth/verify-email/page.tsx
 "use client"
 
 import type React from "react"
-import { Suspense, useState } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2 } from "lucide-react"
 import { PasswordForm } from "@/components/auth/password-form"
 import { EmailVerificationStatus } from "@/components/auth/email-verification-status"
+import apiHelper from "@/lib/apiHelper" // Ganti nama impor
+import { useToast } from "@/hooks/use-toast"
 
 function VerifyEmailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
+  
+  // Ambil token dari URL
   const token = searchParams.get("token")
 
   const [formData, setFormData] = useState({
@@ -23,32 +29,52 @@ function VerifyEmailContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [verificationStatus, setVerificationStatus] = useState<"pending" | "success" | "expired" | "invalid">("pending")
 
+  // Cek apakah ada token saat komponen dimuat
+  useEffect(() => {
+    if (!token) {
+      setVerificationStatus("invalid");
+    }
+  }, [token]);
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match")
+      toast({ variant: "destructive", title: "Error", description: "Passwords do not match." });
       return
     }
-
     if (formData.password.length < 8) {
-      alert("Password must be at least 8 characters long")
+      toast({ variant: "destructive", title: "Error", description: "Password must be at least 8 characters long." });
       return
     }
 
     setIsLoading(true)
 
     try {
-      console.log("Email verification and password setup:", { token, password: formData.password })
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setVerificationStatus("success")
+      // Panggil API backend untuk verifikasi
+      await apiHelper.post("/auth/verify", {
+        token: token,
+        password: formData.password,
+      })
 
+      setVerificationStatus("success")
+      toast({ title: "Success", description: "Account verified successfully! Redirecting to login..." });
+
+      // Arahkan ke login setelah 2 detik [cite: 119]
       setTimeout(() => {
         router.push("/auth/login")
       }, 2000)
-    } catch (error) {
+
+    } catch (error: any) {
       console.error("Verification error:", error)
-      setVerificationStatus("invalid")
+      const message = error.response?.data?.message || "Invalid or expired token."
+      toast({ variant: "destructive", title: "Verification Failed", description: message });
+      if (message.toLowerCase().includes("expired")) {
+        setVerificationStatus("expired");
+      } else {
+        setVerificationStatus("invalid");
+      }
     } finally {
       setIsLoading(false)
     }
@@ -70,19 +96,13 @@ function VerifyEmailContent() {
   }
 
   const handleResendVerification = async () => {
-    setIsLoading(true)
-    try {
-      console.log("Resending verification email")
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      alert("Verification email sent!")
-    } catch (error) {
-      console.error("Resend verification error:", error)
-    } finally {
-      setIsLoading(false)
-    }
+    // Logika untuk mengirim ulang email verifikasi bisa ditambahkan di sini
+    // Memerlukan input email dari pengguna
+    toast({ title: "Info", description: "Resend verification feature needs to be implemented." });
   }
 
-  if (verificationStatus !== "pending") {
+  // Jika status bukan lagi "pending", tampilkan hasilnya
+  if (verificationStatus !== "pending" || !token) {
     return (
       <EmailVerificationStatus
         status={verificationStatus}
@@ -91,7 +111,8 @@ function VerifyEmailContent() {
       />
     )
   }
-
+  
+  // Tampilan form utama
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -119,7 +140,6 @@ function VerifyEmailContent() {
               onChange={handleInputChange}
               onTogglePassword={handleTogglePassword}
             />
-
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
@@ -137,13 +157,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      }
-    >
+    <Suspense fallback={<div>Loading...</div>}>
       <VerifyEmailContent />
     </Suspense>
   )
