@@ -5,125 +5,118 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
-import { useAuth } from "@/context/AuthContext" // 1. Impor useAuth
-import { useToast } from "@/hooks/use-toast"   // 2. Impor useToast
+import { useAuth } from "@/context/AuthContext"
+import { useToast } from "@/hooks/use-toast"
+import type { Room } from "@/lib/types" // Impor tipe Room dari types
 
+// Definisikan props untuk komponen
 interface BookingSidebarProps {
-  selectedRoom: {
-    id: number
-    type: string
-    price: number
-    description: string
-    available: boolean
-  }
+  rooms: Room[];
+  selectedRoom: Room | null;
 }
 
-// Komponen ini tidak lagi menerima onBooking, karena logikanya ditangani di sini
-export function BookingSidebar({ selectedRoom }: BookingSidebarProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>()
-  const { isAuthenticated, user } = useAuth(); // 3. Dapatkan status auth & data user
-  const { toast } = useToast();
+export function BookingSidebar({ rooms, selectedRoom }: BookingSidebarProps) {
+  // State untuk menyimpan tanggal check-in yang dipilih
+  const [checkInDate, setCheckInDate] = useState<Date | undefined>(undefined);
+  
+  // Hooks untuk navigasi, autentikasi, dan notifikasi
   const router = useRouter();
+  const { isAuthenticated, user } = useAuth();
+  const { toast } = useToast();
 
+  // Logika untuk menangani klik tombol booking
   const handleBookingClick = () => {
-    // 4. Validasi berlapis sebelum booking
+    // 1. Cek apakah pengguna sudah login
     if (!isAuthenticated) {
       toast({
         variant: "destructive",
-        title: "Anda Belum Login",
-        description: "Silakan masuk untuk melanjutkan pemesanan.",
-      })
-      router.push("/auth/login?type=user");
+        title: "Login Required",
+        description: "Please log in to book a room.",
+      });
+      router.push("/auth/login");
       return;
     }
 
-    if (!user?.verified) {
+    // 2. Cek apakah kamar dan tanggal sudah dipilih
+    if (!selectedRoom) {
       toast({
         variant: "destructive",
-        title: "Akun Belum Terverifikasi",
-        description: "Silakan verifikasi email Anda terlebih dahulu.",
-      })
+        title: "No Room Selected",
+        description: "Please select a room from the list.",
+      });
       return;
     }
-
-    if (!selectedDate) {
-      toast({
+    if (!checkInDate) {
+        toast({
           variant: "destructive",
-          title: "Tanggal Belum Dipilih",
-          description: "Silakan pilih tanggal check-in.",
-      });
-      return
-    }
-
-    // Jika semua validasi lolos, lanjutkan ke proses booking
-    console.log("Proceeding to booking page...");
-    // Di sini Anda bisa arahkan ke halaman pembayaran
-    // router.push(`/payment?roomId=${selectedRoom.id}&date=${selectedDate}`);
+          title: "No Date Selected",
+          description: "Please select a check-in date.",
+        });
+        return;
+      }
+    
+    // 3. Lanjutkan ke proses booking (misalnya, ke halaman pembayaran)
+    // Untuk saat ini, kita hanya menampilkan notifikasi sukses
     toast({
-        title: "Redirecting to Booking Page",
-        description: "Fitur booking selanjutnya belum diimplementasikan.",
+      title: "Booking Initiated",
+      description: `Proceeding to book ${selectedRoom.name} for ${checkInDate.toLocaleDateString()}.`,
     });
-  }
-  
-  // 5. Tentukan pesan dan status disabled untuk tombol
-  let buttonText = "Book Now";
-  let isDisabled = !selectedRoom.available;
+    
+    // TODO: Arahkan ke halaman checkout atau panggil API booking
+    // router.push(`/checkout?roomId=${selectedRoom.id}&date=${checkInDate.toISOString()}`);
+  };
 
-  if (!isAuthenticated) {
-    buttonText = "Login to Book";
-  } else if (!user?.verified) {
-    buttonText = "Verify Email to Book";
-    isDisabled = true;
-  } else if (!selectedRoom.available) {
-    buttonText = "Not Available";
-  }
-
+  // Tentukan harga dan detail kamar yang akan ditampilkan
+  // Jika ada kamar yang dipilih, gunakan itu. Jika tidak, gunakan kamar pertama sebagai default.
+  const displayRoom = selectedRoom || rooms[0];
+  const price = displayRoom?.basePrice || 0;
+  const roomName = displayRoom?.name || "Please select a room";
+  const roomDescription = displayRoom?.description || "Select a room from the list to see details.";
 
   return (
-    <Card className="sticky top-24">
+    <Card className="sticky top-24 shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Book Your Stay</span>
           <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">Rp {selectedRoom.price.toLocaleString("id-ID")}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              Rp {price.toLocaleString("id-ID")}
+            </div>
             <div className="text-sm text-gray-600">/night</div>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <h4 className="font-medium mb-2">Selected Room</h4>
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <div className="font-medium">{selectedRoom.type}</div>
-            <div className="text-sm text-gray-600">{selectedRoom.description}</div>
+          <h4 className="font-medium mb-2 text-gray-800">Selected Room</h4>
+          <div className="p-3 bg-gray-50 rounded-lg border">
+            <div className="font-semibold text-gray-900">{roomName}</div>
+            <p className="text-xs text-gray-600 mt-1">{roomDescription}</p>
           </div>
         </div>
 
         <div>
-          <h4 className="font-medium mb-2">Select Check-in Date</h4>
+          <h4 className="font-medium mb-2 text-gray-800">Select Check-in Date</h4>
           <Calendar
             mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            disabled={(date) => date < new Date()}
+            selected={checkInDate}
+            onSelect={setCheckInDate}
+            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} // Nonaktifkan tanggal kemarin
             className="rounded-md border"
           />
-
-          {selectedDate && (
-            <div className="mt-2 p-2 bg-blue-50 rounded text-sm">
-              <div className="font-medium">{format(selectedDate, "EEEE, MMMM d, yyyy")}</div>
-              <div className="text-blue-600">Price: Rp {selectedRoom.price.toLocaleString("id-ID")}/night</div>
-            </div>
-          )}
         </div>
 
-        <Button onClick={handleBookingClick} className="w-full" size="lg" disabled={isDisabled}>
-            {buttonText}
+        <Button 
+          onClick={handleBookingClick} 
+          className="w-full" 
+          size="lg" 
+          disabled={!selectedRoom || !checkInDate}
+        >
+          {isAuthenticated ? "Book Now" : "Login to Book"}
         </Button>
 
         <div className="text-xs text-gray-500 text-center">You won't be charged yet</div>
       </CardContent>
     </Card>
-  )
+  );
 }

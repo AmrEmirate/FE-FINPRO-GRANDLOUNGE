@@ -6,25 +6,28 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Lock, Eye, EyeOff } from "lucide-react"
 
+// Tipe data untuk state password
 interface PasswordData {
-  currentPassword: string
-  newPassword: string
-  confirmPassword: string
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
 }
 
-interface ShowPasswords {
-  current: boolean
-  new: boolean
-  confirm: boolean
+// Tipe data untuk state visibilitas password
+interface ShowPasswordsState {
+  current: boolean;
+  new: boolean;
+  confirm: boolean;
 }
 
+// Definisikan props yang diterima komponen
 interface SecurityFormProps {
-  passwordData: PasswordData
-  showPasswords: ShowPasswords
-  isLoading: boolean
-  onSubmit: (e: React.FormEvent) => void
-  onChange: (data: PasswordData) => void
-  onTogglePassword: (field: "current" | "new" | "confirm") => void
+  passwordData: PasswordData;
+  showPasswords: ShowPasswordsState;
+  isLoading: boolean;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onChange: (data: PasswordData) => void;
+  onTogglePassword: (field: keyof ShowPasswordsState) => void;
 }
 
 export function SecurityForm({
@@ -35,12 +38,14 @@ export function SecurityForm({
   onChange,
   onTogglePassword,
 }: SecurityFormProps) {
+  // Fungsi untuk menangani perubahan pada input field
   const handleInputChange = (field: keyof PasswordData, value: string) => {
     onChange({ ...passwordData, [field]: value })
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
+      {/* Input untuk Current Password */}
       <div>
         <Label htmlFor="currentPassword">Current Password</Label>
         <div className="relative mt-1">
@@ -48,13 +53,15 @@ export function SecurityForm({
           <Input
             id="currentPassword"
             type={showPasswords.current ? "text" : "password"}
-            value={passwordData.currentPassword}
+            value={passwordData.currentPassword || ""}
             onChange={(e) => handleInputChange("currentPassword", e.target.value)}
             className="pl-10 pr-10"
             placeholder="Enter current password"
+            required
           />
           <button
             type="button"
+            title={showPasswords.current ? "Hide password" : "Show password"} // Perbaikan aksesibilitas
             onClick={() => onTogglePassword("current")}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
@@ -63,6 +70,7 @@ export function SecurityForm({
         </div>
       </div>
 
+      {/* Input untuk New Password */}
       <div>
         <Label htmlFor="newPassword">New Password</Label>
         <div className="relative mt-1">
@@ -70,14 +78,16 @@ export function SecurityForm({
           <Input
             id="newPassword"
             type={showPasswords.new ? "text" : "password"}
-            value={passwordData.newPassword}
+            value={passwordData.newPassword || ""}
             onChange={(e) => handleInputChange("newPassword", e.target.value)}
             className="pl-10 pr-10"
             placeholder="Enter new password"
             minLength={8}
+            required
           />
           <button
             type="button"
+            title={showPasswords.new ? "Hide password" : "Show password"} // Perbaikan aksesibilitas
             onClick={() => onTogglePassword("new")}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
@@ -86,6 +96,7 @@ export function SecurityForm({
         </div>
       </div>
 
+      {/* Input untuk Confirm New Password */}
       <div>
         <Label htmlFor="confirmPassword">Confirm New Password</Label>
         <div className="relative mt-1">
@@ -93,14 +104,16 @@ export function SecurityForm({
           <Input
             id="confirmPassword"
             type={showPasswords.confirm ? "text" : "password"}
-            value={passwordData.confirmPassword}
+            value={passwordData.confirmPassword || ""}
             onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
             className="pl-10 pr-10"
             placeholder="Confirm new password"
             minLength={8}
+            required
           />
           <button
             type="button"
+            title={showPasswords.confirm ? "Hide password" : "Show password"} // Perbaikan aksesibilitas
             onClick={() => onTogglePassword("confirm")}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
@@ -109,18 +122,12 @@ export function SecurityForm({
         </div>
       </div>
 
-      <div className="text-sm text-gray-600">
-        <p>Password requirements:</p>
-        <ul className="list-disc list-inside mt-1 space-y-1">
-          <li>At least 8 characters long</li>
-          <li>Include uppercase and lowercase letters</li>
-          <li>Include at least one number</li>
-        </ul>
+      {/* Tombol Submit */}
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Updating..." : "Change Password"}
+        </Button>
       </div>
-
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Updating..." : "Change Password"}
-      </Button>
     </form>
   )
 }

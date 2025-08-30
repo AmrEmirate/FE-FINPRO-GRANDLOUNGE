@@ -4,20 +4,28 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { mockCategories } from "@/lib/constants/mock-data"
 
-interface FormData {
-  name: string
-  categoryId: string
-  description: string
+// Tipe data untuk kategori (dari API)
+interface Category {
+  id: string;
+  name: string;
 }
 
+// Tipe data untuk bagian form ini
+interface BasicInfoData {
+  name: string;
+  categoryId: string;
+  description: string;
+}
+
+// Definisikan props yang diterima komponen
 interface PropertyBasicInfoProps {
-  formData: FormData
-  onChange: (field: string, value: string) => void
+  formData: BasicInfoData;
+  updateFormData: (updates: Partial<BasicInfoData>) => void;
+  categories: Category[];
 }
 
-export function PropertyBasicInfo({ formData, onChange }: PropertyBasicInfoProps) {
+export function PropertyBasicInfo({ formData, updateFormData, categories }: PropertyBasicInfoProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -25,7 +33,7 @@ export function PropertyBasicInfo({ formData, onChange }: PropertyBasicInfoProps
         <Input
           id="name"
           value={formData.name}
-          onChange={(e) => onChange("name", e.target.value)}
+          onChange={(e) => updateFormData({ name: e.target.value })}
           required
           placeholder="Enter property name"
         />
@@ -33,13 +41,16 @@ export function PropertyBasicInfo({ formData, onChange }: PropertyBasicInfoProps
 
       <div>
         <Label htmlFor="category">Category *</Label>
-        <Select value={formData.categoryId} onValueChange={(value) => onChange("categoryId", value)}>
+        <Select
+          value={formData.categoryId}
+          onValueChange={(value) => updateFormData({ categoryId: value })}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select property category" />
           </SelectTrigger>
           <SelectContent>
-            {mockCategories.map((category) => (
-              <SelectItem key={category.id} value={category.id.toString()}>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
                 {category.name}
               </SelectItem>
             ))}
@@ -52,7 +63,7 @@ export function PropertyBasicInfo({ formData, onChange }: PropertyBasicInfoProps
         <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => onChange("description", e.target.value)}
+          onChange={(e) => updateFormData({ description: e.target.value })}
           required
           placeholder="Describe your property..."
           rows={4}

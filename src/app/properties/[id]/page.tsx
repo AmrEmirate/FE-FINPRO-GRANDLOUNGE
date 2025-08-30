@@ -1,105 +1,93 @@
-"use client"
+// src/app/properties/[id]/page.tsx
 
-import { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { PropertyImageGallery } from "@/components/property/property-image-gallery"
-import { PropertyInfo } from "@/components/property/property-info"
-import { RoomSelection } from "@/components/property/room-selection"
-import { BookingSidebar } from "@/components/property/booking-sidebar"
+"use client" // JADIKAN CLIENT COMPONENT KARENA ADA STATE
 
-// Mock property data
-const mockProperty = {
-  id: 1,
-  name: "Grand Lodge Downtown",
-  location: "Jakarta Pusat, Jakarta",
-  description: "Experience luxury and comfort in the heart of Jakarta.",
-  fullDescription:
-    "Located in the bustling heart of Jakarta, Grand Lodge Downtown offers an unparalleled blend of luxury, comfort, and convenience.",
-  rating: 4.8,
-  reviews: 124,
-  category: "Hotel",
-  images: ["/luxury-hotel-room.png", "/elegant-hotel-lobby.png", "/hotel-restaurant.png", "/hotel-pool.png"],
-  amenities: ["WiFi", "Parking", "Pool", "Gym", "Restaurant", "Spa"],
-  rooms: [
-    {
-      id: 1,
-      type: "Standard Room",
-      price: 850000,
-      maxGuests: 2,
-      description: "Comfortable room with city view",
-      available: true,
-    },
-    {
-      id: 2,
-      type: "Deluxe Room",
-      price: 1200000,
-      maxGuests: 3,
-      description: "Spacious room with premium amenities",
-      available: true,
-    },
-  ],
-  host: {
-    name: "Grand Lodge Management",
-    avatar: "/hotel-manager.png",
-    joinedDate: "2020-01-15",
-    responseRate: 98,
-    responseTime: "1 hour",
-  },
-  policies: {
-    checkIn: "15:00",
-    checkOut: "12:00",
-    cancellation: "Free cancellation up to 24 hours before check-in",
-  },
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { PropertyImageGallery } from "@/components/property/property-image-gallery";
+import { PropertyInfo } from "@/components/property/property-info";
+import { RoomSelection } from "@/components/property/room-selection";
+import { BookingSidebar } from "@/components/property/booking-sidebar";
+import type { Property, Room } from "@/lib/types"; // Impor tipe
+
+// Fungsi untuk mengambil data properti, sekarang di sisi client
+async function getProperty(id: string): Promise<Property | null> {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/properties/${id}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.data;
+    } catch (error) {
+        console.error("Failed to fetch property:", error);
+        return null;
+    }
 }
 
-export default function PropertyDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { toast } = useToast()
+// Komponen utama menjadi Client Component
+export default function PropertyDetailPage({ params }: { params: { id: string } }) {
+  const [property, setProperty] = useState<Property | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
-  const [property] = useState(mockProperty)
-  const [selectedRoom, setSelectedRoom] = useState(property.rooms[0])
+  useEffect(() => {
+    const fetchProperty = async () => {
+      setIsLoading(true);
+      const data = await getProperty(params.id);
+      setProperty(data);
+      if (data && data.rooms && data.rooms.length > 0) {
+        setSelectedRoom(data.rooms[0]); // Set kamar pertama sebagai default
+      }
+      setIsLoading(false);
+    };
+    fetchProperty();
+  }, [params.id]);
 
-  const handleBooking = () => {
-    const isAuthenticated = false
-
-    if (!isAuthenticated) {
-      router.push("/auth/login?type=user")
-      return
-    }
-
-    const bookingData = {
-      propertyId: property.id,
-      roomId: selectedRoom.id,
-      price: selectedRoom.price,
-    }
-
-    router.push(`/booking?${new URLSearchParams(bookingData).toString()}`)
+  if (isLoading) {
+    return <div>Loading property details...</div>; // Tampilkan loading state
   }
+
+  if (!property) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold">Property Not Found</h1>
+        <Link href="/properties"><Button>Back to Properties</Button></Link>
+      </div>
+    );
+  }
+
+  const galleryImages = [
+    property.mainImage,
+    ...(property.images?.map(img => img.imageUrl) || [])
+  ].filter(Boolean) as string[];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button variant="ghost" onClick={() => router.back()} className="mb-6">
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Back to Properties
-        </Button>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <PropertyImageGallery images={property.images} propertyName={property.name} />
+        <Link href="/properties">
+          <Button variant="ghost" className="mb-6">
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to Properties
+          </Button>
+        </Link>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 space-y-8">
+            <PropertyImageGallery images={galleryImages} propertyName={property.name} />
             <PropertyInfo property={property} />
-            <RoomSelection rooms={property.rooms} selectedRoom={selectedRoom} onRoomSelect={setSelectedRoom} />
+            <RoomSelection 
+              rooms={property.rooms || []} 
+              selectedRoomId={selectedRoom?.id || null} 
+              onRoomSelect={setSelectedRoom} 
+            />
           </div>
 
-          <div className="lg:col-span-1">
-            <BookingSidebar selectedRoom={selectedRoom} onBooking={handleBooking} />
+          <div className="lg:col-span-1 sticky top-24">
+            <BookingSidebar rooms={property.rooms || []} selectedRoom={selectedRoom} />
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,4 +1,9 @@
-// Enums from Prisma schema
+// src/lib/types/index.ts
+
+// =============================================
+// ENUMS (Sesuai dengan Prisma Schema di Backend)
+// =============================================
+
 export enum UserRole {
   TENANT = "TENANT",
   USER = "USER",
@@ -6,7 +11,7 @@ export enum UserRole {
 
 export enum BedOption {
   SINGLE = "SINGLE",
-  DOUBLE = "DOUBLE",  
+  DOUBLE = "DOUBLE",
   TWIN = "TWIN",
 }
 
@@ -21,9 +26,9 @@ export enum TokenPurpose {
   PASSWORD_RESET = "PASSWORD_RESET",
 }
 
-// --- PERUBAHAN UTAMA ADA DI SINI ---
-// Semua 'id' diubah menjadi 'string' untuk UUID
-// Relasi seperti 'category' dan 'city' diubah menjadi objek
+// =============================================
+// INTERFACES (Sesuai dengan Respons API)
+// =============================================
 
 export interface Category {
   id: string;
@@ -31,30 +36,46 @@ export interface Category {
 }
 
 export interface City {
-    id: string;
-    name: string;
-    provinsi: string;
+  id: string;
+  name: string;
+  provinsi: string;
+}
+
+export interface PropertyImage {
+  id: string;
+  imageUrl: string;
 }
 
 export interface Room {
   id: string;
   propertyId: string;
-  name: string;
+  name: string; // Menggantikan 'type' dari mock data
   category: RoomCategory;
   description: string;
   bedOption: BedOption;
-  capacity: number;
-  basePrice: number;
+  capacity: number; // Menggantikan 'maxGuests'
+  basePrice: number; // Menggantikan 'price'
+  // Properti 'available' tidak ada langsung dari API, penanganan ketersediaan
+  // akan dilakukan melalui logika booking atau state terpisah.
 }
 
 export interface Review {
-    id: string;
-    rating: number;
-    comment?: string;
-    user: {
-        fullName: string;
-        profilePicture?: string;
-    }
+  id: string;
+  rating: number;
+  comment?: string;
+  user: {
+    fullName: string;
+    profilePicture?: string;
+  };
+}
+
+// Interface untuk data Tenant yang di-embed di dalam Property
+export interface TenantInfo {
+  user: {
+    fullName: string;
+    profilePicture?: string;
+  };
+  createdAt: string;
 }
 
 export interface Property {
@@ -64,27 +85,26 @@ export interface Property {
   description: string;
   mainImage?: string;
   deletedAt?: string;
-  location: string; // Ini akan kita gabungkan dari city.name
-  provinsi: string; // Ini akan kita gabungkan dari city.provinsi
+  createdAt: string; // Tambahkan createdAt untuk sorting atau info
   
-  // Relasi sebagai objek
-  category: Category; 
+  // Relasi sebagai objek/array objek
+  category: Category;
   city: City;
+  tenant: TenantInfo;
   rooms?: Room[];
   reviews?: Review[];
+  images?: PropertyImage[];
 }
 
-// Tipe data lain yang tidak perlu diubah
+// Tipe data untuk User yang sedang login
 export interface User {
-  id: string
-  role: UserRole
-  fullName: string
-  email: string
-  password?: string
-  profilePicture?: string
-  provider?: string
-  providerId?: string
-  verified: boolean
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  role: UserRole;
+  fullName: string;
+  email: string;
+  profilePicture?: string;
+  provider?: string;
+  verified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
