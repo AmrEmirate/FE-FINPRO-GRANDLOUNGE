@@ -1,151 +1,82 @@
 'use client'
 
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Slider } from '@/components/ui/slider'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useEffect, useState } from 'react'
+import apiHelper from '@/lib/apiHelper'
 
-interface PropertyFiltersProps {
-  onFilter: (filters: any) => void
+interface Category {
+  id: string;
+  name: string;
 }
 
-export function PropertyFilters({ onFilter }: PropertyFiltersProps) {
-  const [priceRange, setPriceRange] = useState([0, 5000000])
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
-  const [guestCount, setGuestCount] = useState('any')
+// Pastikan komponen ini diekspor sebagai named export
+export function PropertyFilters() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [categories, setCategories] = useState<Category[]>([]);
+  
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await apiHelper.get('/categories');
+        setCategories(response.data.data);
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  const categories = ['Hotel', 'Villa', 'Lodge', 'Apartment', 'Resort']
-  const amenities = ['WiFi', 'Parking', 'Pool', 'Gym', 'Restaurant', 'Spa', 'Pet Friendly']
-
-  const handleCategoryChange = (category: string, checked: boolean) => {
-    if (checked) {
-      setSelectedCategories([...selectedCategories, category])
+  const handleFilterChange = (key: string, value: string) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    
+    if (!value) {
+      current.delete(key);
     } else {
-      setSelectedCategories(selectedCategories.filter(c => c !== category))
+      current.set(key, value);
     }
-  }
-
-  const handleAmenityChange = (amenity: string, checked: boolean) => {
-    if (checked) {
-      setSelectedAmenities([...selectedAmenities, amenity])
-    } else {
-      setSelectedAmenities(selectedAmenities.filter(a => a !== amenity))
-    }
-  }
-
-  const applyFilters = () => {
-    const filters = {
-      priceRange,
-      categories: selectedCategories,
-      amenities: selectedAmenities,
-      guestCount,
-    }
-    onFilter(filters)
-  }
+    
+    current.set('page', '1'); // Selalu reset ke halaman pertama saat filter diubah
+    const search = current.toString();
+    const query = search ? `?${search}` : "";
+    router.push(`/properties${query}`);
+  };
 
   const clearFilters = () => {
-    setPriceRange([0, 5000000])
-    setSelectedCategories([])
-    setSelectedAmenities([])
-    setGuestCount('any')
-    onFilter({})
+    router.push('/properties');
   }
 
   return (
     <div className="space-y-6">
-      {/* Price Range */}
       <div>
-        <Label className="text-base font-medium mb-3 block">Price Range</Label>
-        <div className="px-2">
-          <Slider
-            value={priceRange}
-            onValueChange={setPriceRange}
-            max={5000000}
-            min={0}
-            step={100000}
-            className="mb-2"
-          />
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Rp {priceRange[0].toLocaleString('id-ID')}</span>
-            <span>Rp {priceRange[1].toLocaleString('id-ID')}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Guest Count */}
-      <div>
-        <Label className="text-base font-medium mb-3 block">Number of Guests</Label>
-        <Select value={guestCount} onValueChange={setGuestCount}>
+        <Label className="text-base font-medium mb-3 block">Property Type</Label>
+        <Select 
+          value={searchParams.get('category') || ''} 
+          onValueChange={(value) => handleFilterChange('category', value)}
+        >
           <SelectTrigger>
-            <SelectValue placeholder="Any" />
+            <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="any">Any</SelectItem>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-              <SelectItem key={num} value={num.toString()}>
-                {num} {num === 1 ? 'Guest' : 'Guests'}
+            <SelectItem value="">All Categories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Property Categories */}
-      <div>
-        <Label className="text-base font-medium mb-3 block">Property Type</Label>
-        <div className="space-y-2">
-          {categories.map((category) => (
-            <div key={category} className="flex items-center space-x-2">
-              <Checkbox
-                id={category}
-                checked={selectedCategories.includes(category)}
-                onCheckedChange={(checked) => handleCategoryChange(category, checked as boolean)}
-              />
-              <Label htmlFor={category} className="text-sm font-normal">
-                {category}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Amenities */}
-      <div>
-        <Label className="text-base font-medium mb-3 block">Amenities</Label>
-        <div className="space-y-2">
-          {amenities.map((amenity) => (
-            <div key={amenity} className="flex items-center space-x-2">
-              <Checkbox
-                id={amenity}
-                checked={selectedAmenities.includes(amenity)}
-                onCheckedChange={(checked) => handleAmenityChange(amenity, checked as boolean)}
-              />
-              <Label htmlFor={amenity} className="text-sm font-normal">
-                {amenity}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Action Buttons */}
       <div className="space-y-2 pt-4 border-t">
-        <Button onClick={applyFilters} className="w-full">
-          Apply Filters
-        </Button>
         <Button onClick={clearFilters} variant="outline" className="w-full">
-          Clear All
+          Clear All Filters
         </Button>
       </div>
     </div>
   )
 }
+

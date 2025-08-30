@@ -1,37 +1,33 @@
 "use client"
 
+import { useSearchParams, useRouter } from "next/navigation"
 import { PropertyCard } from "./property-card"
 import { Button } from "@/components/ui/button"
 import type { Property } from "@/lib/types"
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+
 
 interface PropertiesGridProps {
   properties: Property[]
-  isLoading: boolean
   currentPage: number
-  onPageChange: (page: number) => void
+  totalPages: number
 }
 
-export function PropertiesGrid({ properties, isLoading, currentPage, onPageChange }: PropertiesGridProps) {
-  if (isLoading) {
-    return (
-      <div className="flex-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 9 }).map((_, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden animate-pulse">
-              <div className="h-48 bg-gray-200"></div>
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+export function PropertiesGrid({ properties, currentPage, totalPages }: PropertiesGridProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    current.set('page', String(newPage));
+    const search = current.toString();
+    const query = search ? `?${search}` : "";
+    router.push(`/properties${query}`);
   }
 
-  if (!properties || properties.length === 0) {
+  if (properties.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center py-12">
         <div className="text-center">
@@ -50,18 +46,31 @@ export function PropertiesGrid({ properties, isLoading, currentPage, onPageChang
         ))}
       </div>
 
-      {/* Pagination */}
-      <div className="flex justify-center items-center space-x-2">
-        <Button variant="outline" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage <= 1}>
-          Previous
-        </Button>
-
-        <span className="px-4 py-2 text-sm text-gray-700">Page {currentPage}</span>
-
-        <Button variant="outline" onClick={() => onPageChange(currentPage + 1)}>
-          Next
-        </Button>
-      </div>
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage <= 1}
+            >
+              Previous
+            </Button>
+          </PaginationItem>
+          <PaginationItem>
+             <span className="px-4 py-2 text-sm text-gray-700">Page {currentPage} of {totalPages}</span>
+          </PaginationItem>
+          <PaginationItem>
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+            >
+              Next
+            </Button>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   )
 }

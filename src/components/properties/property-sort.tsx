@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Select,
   SelectContent,
@@ -8,18 +9,31 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-interface PropertySortProps {
-  onSort: (sortBy: string, order: 'asc' | 'desc') => void
-}
+export function PropertySort() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-export function PropertySort({ onSort }: PropertySortProps) {
   const handleSortChange = (value: string) => {
-    const [sortBy, order] = value.split('-')
-    onSort(sortBy, order as 'asc' | 'desc')
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    const [sort, order] = value.split('-');
+
+    if (!value) {
+        current.delete('sort');
+        current.delete('order');
+    } else {
+        current.set('sort', sort);
+        current.set('order', order);
+    }
+    
+    const search = current.toString();
+    const query = search ? `?${search}` : "";
+    router.push(`/properties${query}`);
   }
+  
+  const currentSort = `${searchParams.get('sort') || 'name'}-${searchParams.get('order') || 'asc'}`;
 
   return (
-    <Select onValueChange={handleSortChange} defaultValue="">
+    <Select onValueChange={handleSortChange} value={currentSort}>
       <SelectTrigger className="w-48">
         <SelectValue placeholder="Sort by" />
       </SelectTrigger>
@@ -28,8 +42,6 @@ export function PropertySort({ onSort }: PropertySortProps) {
         <SelectItem value="price-desc">Price: High to Low</SelectItem>
         <SelectItem value="name-asc">Name: A to Z</SelectItem>
         <SelectItem value="name-desc">Name: Z to A</SelectItem>
-        <SelectItem value="rating-desc">Rating: High to Low</SelectItem>
-        <SelectItem value="rating-asc">Rating: Low to High</SelectItem>
       </SelectContent>
     </Select>
   )

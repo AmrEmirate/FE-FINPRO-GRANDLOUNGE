@@ -6,7 +6,7 @@ export enum UserRole {
 
 export enum BedOption {
   SINGLE = "SINGLE",
-  DOUBLE = "DOUBLE",
+  DOUBLE = "DOUBLE",  
   TWIN = "TWIN",
 }
 
@@ -21,9 +21,62 @@ export enum TokenPurpose {
   PASSWORD_RESET = "PASSWORD_RESET",
 }
 
-// Base interfaces matching Prisma models
+// --- PERUBAHAN UTAMA ADA DI SINI ---
+// Semua 'id' diubah menjadi 'string' untuk UUID
+// Relasi seperti 'category' dan 'city' diubah menjadi objek
+
+export interface Category {
+  id: string;
+  name: string;
+}
+
+export interface City {
+    id: string;
+    name: string;
+    provinsi: string;
+}
+
+export interface Room {
+  id: string;
+  propertyId: string;
+  name: string;
+  category: RoomCategory;
+  description: string;
+  bedOption: BedOption;
+  capacity: number;
+  basePrice: number;
+}
+
+export interface Review {
+    id: string;
+    rating: number;
+    comment?: string;
+    user: {
+        fullName: string;
+        profilePicture?: string;
+    }
+}
+
+export interface Property {
+  id: string;
+  tenantId: string;
+  name: string;
+  description: string;
+  mainImage?: string;
+  deletedAt?: string;
+  location: string; // Ini akan kita gabungkan dari city.name
+  provinsi: string; // Ini akan kita gabungkan dari city.provinsi
+  
+  // Relasi sebagai objek
+  category: Category; 
+  city: City;
+  rooms?: Room[];
+  reviews?: Review[];
+}
+
+// Tipe data lain yang tidak perlu diubah
 export interface User {
-  id: number
+  id: string
   role: UserRole
   fullName: string
   email: string
@@ -34,127 +87,4 @@ export interface User {
   verified: boolean
   createdAt: Date
   updatedAt: Date
-  tenant?: Tenant
-  tokens?: Token[]
-}
-
-export interface Tenant {
-  id: number
-  userId: number
-  companyName: string
-  addressCompany: string
-  phoneNumberCompany: string
-  createdAt: Date
-  updatedAt: Date
-  user: User
-  properties?: Property[]
-}
-
-export interface Category {
-  id: number
-  name: string
-  properties?: Property[]
-}
-
-export interface Property {
-  id: number
-  tenantId: number
-  name: string
-  categoryId: number
-  description: string
-  location: string
-  latitude?: number
-  longitude?: number
-  provinsi: string
-  zipCode: string
-  mainImage?: string
-  deletedAt?: Date
-  createdAt: Date
-  updatedAt: Date
-  tenant: Tenant
-  category: Category
-  images?: PropertyImage[]
-  rooms?: Room[]
-}
-
-export interface PropertyImage {
-  id: number
-  propertyId: number
-  imageUrl: string
-  property: Property
-}
-
-export interface Room {
-  id: number
-  propertyId: number
-  name: string
-  category: RoomCategory
-  description: string
-  bedOption: BedOption
-  imageRoom?: string
-  capacity: number
-  basePrice: number
-  createdAt: Date
-  updatedAt: Date
-  property: Property
-  images?: RoomImage[]
-  availabilities?: RoomAvailability[]
-}
-
-export interface RoomImage {
-  id: number
-  roomId: number
-  imageUrl: string
-  room: Room
-}
-
-export interface RoomAvailability {
-  id: number
-  roomId: number
-  isAvailable: boolean
-  date: Date
-  price: number
-  createdAt: Date
-  updatedAt: Date
-  room: Room
-}
-
-export interface Token {
-  id: number
-  token: string
-  purpose: TokenPurpose
-  expiresAt: Date
-  userId: number
-  createdAt: Date
-  user: User
-}
-
-// Frontend-specific types
-export interface PropertySearchParams {
-  destination?: string
-  checkIn?: string
-  checkOut?: string
-  guests?: string
-  category?: string
-  minPrice?: string
-  maxPrice?: string
-}
-
-export interface PropertyFilters {
-  priceRange: [number, number]
-  categories: string[]
-  amenities: string[]
-  guestCount: string
-  bedOptions: BedOption[]
-  roomCategories: RoomCategory[]
-}
-
-export interface AuthFormData {
-  fullName?: string
-  email: string
-  password?: string
-  role?: UserRole
-  companyName?: string
-  addressCompany?: string
-  phoneNumberCompany?: string
 }
