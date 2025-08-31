@@ -5,24 +5,28 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Search, Menu, X, User as UserIcon, LogOut } from "lucide-react";
+import { Search, Menu, X, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
     const { isAuthenticated, user, logout } = useAuth();
 
-    // Daftar placeholder
+    // Placeholder untuk search bar
     const placeholders = ["Cari Hotel...", "Cari Villa...", "Cari Apartemen..."];
     const [index, setIndex] = useState(0);
-
-    // State untuk search bar
     const [isFocused, setIsFocused] = useState(false);
     const [value, setValue] = useState("");
 
-    // Ganti placeholder tiap 5 detik
     useEffect(() => {
         const interval = setInterval(() => {
             setIndex((prev) => (prev + 1) % placeholders.length);
@@ -30,16 +34,7 @@ export default function Navbar() {
         return () => clearInterval(interval);
     }, []);
 
-    // Sembunyikan navbar di halaman auth
-    if (pathname.startsWith("/auth")) {
-        return null;
-    }
-
-    const navLinks = [
-        { name: "Hotel", href: "/properties?category=Hotel" },
-        { name: "Villa", href: "/properties?category=Villa" },
-        { name: "Apartemen", href: "/properties?category=Apartment" },
-    ];
+    if (pathname.startsWith("/auth")) return null;
 
     return (
         <nav className="absolute top-0 left-0 w-full bg-transparent flex items-center h-20 px-6 lg:px-12 z-50 gap-6">
@@ -51,7 +46,6 @@ export default function Navbar() {
             {/* Search Bar */}
             <div className="flex items-center mx-4 flex-1 max-w-md relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-
                 <Input
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
@@ -59,7 +53,6 @@ export default function Navbar() {
                     onBlur={() => setIsFocused(false)}
                     className="pl-12 pr-4 h-12 rounded-full w-full bg-white text-black shadow-md !border-0 focus:!border-0 focus:!ring-0 focus:!outline-none"
                 />
-
                 {!isFocused && !value && (
                     <div className="absolute left-12 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                         <AnimatePresence mode="wait">
@@ -78,41 +71,52 @@ export default function Navbar() {
                 )}
             </div>
 
-            {/* Navigation Links (Desktop) */}
-            <ul className="hidden lg:flex items-center gap-6 text-white font-medium">
-                {navLinks.map((link) => (
-                    <li key={link.name}>
-                        <Link href={link.href} className="hover:text-black transition">
-                            {link.name}
-                        </Link>
-                    </li>
-                ))}
-            </ul>
+            {/* MENU (Desktop) */}
+            <div className="hidden lg:flex gap-6 text-white">
+                <Link href="/hotel">Hotel</Link>
+                <Link href="/villa">Villa</Link>
+                <Link href="/apartemen">Apartemen</Link>
+            </div>
 
-            {/* Auth Buttons (Desktop) */}
-            <div className="ml-auto hidden lg:flex gap-3">
+            {/* Auth Section (Desktop) */}
+            <div className="ml-auto hidden lg:flex gap-3 items-center">
                 {isAuthenticated ? (
-                    <>
-                        <Link
-                            href={user?.role === "TENANT" ? "/tenant/dashboard" : "/dashboard"}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer flex items-center justify-center text-black font-bold">
+                                {user?.fullName?.charAt(0).toUpperCase()}
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            align="end"
+                            sideOffset={8}
+                            className="w-64 p-3 rounded-2xl shadow-xl cursor-pointer"
                         >
-                            <Button
-                                variant="ghost"
-                                className="text-white hover:bg-white/20 hover:text-white"
+
+                            {/* Menu Items */}
+                            {[
+                                { label: "Akun", href: "/dashboard/akun_user/profile" },
+                                { label: "Your Orders", href: "/dashboard/akun_user/orders" },
+                                { label: "Metode Pembayaran", href: "/dashboard/akun_user/metode_pembayaran" },
+                                { label: "My Review", href: "/dashboard/akun_user/reviews" },
+                                { label: "Pengaturan", href: "/dashboard/akun_user/settings" },
+                            ].map((item) => (
+                                <DropdownMenuItem asChild key={item.href}>
+                                    <Link href={item.href}>{item.label}</Link>
+                                </DropdownMenuItem>
+                            ))}
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem
+                                onClick={logout}
+                                className="text-red-500 cursor-pointer"
                             >
-                                <UserIcon className="mr-2 h-4 w-4" />
-                                {user?.fullName}
-                            </Button>
-                        </Link>
-                        <Button
-                            onClick={logout}
-                            variant="ghost"
-                            className="text-white hover:bg-white/20 hover:text-white"
-                        >
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Logout
-                        </Button>
-                    </>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Keluar
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 ) : (
                     <>
                         <Link href="/auth/login">
@@ -140,58 +144,61 @@ export default function Navbar() {
                 </button>
             </div>
 
-            {/* Mobile dropdown menu */}
-            {isOpen && (
-                <div className="absolute top-20 left-0 w-full bg-black/30 backdrop-blur-md flex flex-col items-center gap-6 py-6 lg:hidden text-white">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.name}
-                            href={link.href}
-                            onClick={() => setIsOpen(false)}
-                        >
-                            {link.name}
-                        </Link>
-                    ))}
-                    <div className="flex gap-4 pt-4">
+            {/* Mobile Menu Content */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute top-20 left-0 w-full bg-white cursor-pointer shadow-md p-6 flex flex-col gap-4 lg:hidden"
+                    >
+                        {/* Auth / User Menu Mobile */}
                         {isAuthenticated ? (
-                            <>
-                                <Link
-                                    href={
-                                        user?.role === "TENANT" ? "/tenant/dashboard" : "/dashboard"
-                                    }
-                                    onClick={() => setIsOpen(false)}
-                                >
-                                    <Button className="px-6 py-2 rounded-lg bg-white text-black font-medium shadow hover:bg-gray-100 transition">
-                                        {user?.fullName}
-                                    </Button>
-                                </Link>
-                                <Button
+                            <div className="mt-4">
+                                {/* Menu Items */}
+                                {[
+                                    { label: "Akun", href: "/dashboard/akun_user/profile" },
+                                    { label: "Your Orders", href: "/orders" },
+                                    { label: "Metode Pembayaran", href: "/payment-methods" },
+                                    { label: "My Review", href: "/reviews" },
+                                    { label: "Pengaturan", href: "/settings" },
+                                ].map((item) => (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className="block py-2 text-gray-700"
+                                        onClick={() => setIsOpen(false)}
+                                    >
+                                        {item.label}
+                                    </Link>
+                                ))}
+
+                                <button
                                     onClick={() => {
                                         logout();
                                         setIsOpen(false);
                                     }}
-                                    className="px-6 py-2 rounded-lg bg-black text-white font-medium shadow hover:bg-gray-500 transition"
+                                    className="text-red-500 mt-3"
                                 >
-                                    Logout
-                                </Button>
-                            </>
+                                    Keluar
+                                </button>
+                            </div>
                         ) : (
-                            <>
-                                <Link href="/auth/login" onClick={() => setIsOpen(false)}>
-                                    <Button className="px-6 py-2 rounded-lg bg-white text-black font-medium shadow hover:bg-gray-100 transition">
-                                        Masuk
-                                    </Button>
+                            <div className="flex flex-col gap-2">
+                                <Link href="/auth/login">
+                                    <Button className="w-full">Masuk</Button>
                                 </Link>
-                                <Link href="/auth/register" onClick={() => setIsOpen(false)}>
-                                    <Button className="px-6 py-2 rounded-lg bg-black text-white font-medium shadow hover:bg-gray-500 transition">
-                                        Daftar
-                                    </Button>
+                                <Link href="/auth/register">
+                                    <Button className="w-full bg-black text-white">Daftar</Button>
                                 </Link>
-                            </>
+                            </div>
                         )}
-                    </div>
-                </div>
-            )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </nav>
     );
 }
