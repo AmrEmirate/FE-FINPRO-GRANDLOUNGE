@@ -15,8 +15,6 @@ export default function TenantRoomsPage() {
   const {
     rooms,
     isLoading,
-    isDialogOpen,
-    setIsDialogOpen,
     propertyName,
     handleCreate,
     handleUpdate,
@@ -36,10 +34,7 @@ export default function TenantRoomsPage() {
                     <h1 className="text-3xl font-bold text-gray-900">Manage Rooms</h1>
                     <p className="text-gray-600 mt-1">Property: {propertyName || "Loading..."}</p>
                 </div>
-                <Button onClick={() => setIsDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Room
-                </Button>
+                {/* Tombol Add Room sekarang akan ditangani di dalam RoomsTable */}
             </div>
         </div>
 
@@ -49,14 +44,13 @@ export default function TenantRoomsPage() {
             <CardDescription>A list of all rooms in this property.</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Hapus isDialogOpen dan setIsDialogOpen dari sini */}
             <RoomsTable
-              propertyId={propertyId} // <-- TAMBAHKAN BARIS INI
+              propertyId={propertyId}
               rooms={rooms}
               isLoading={isLoading}
               onEdit={handleUpdate}
               onDelete={handleDelete}
-              isDialogOpen={isDialogOpen}
-              setIsDialogOpen={setIsDialogOpen}
               onCreate={handleCreate}
             />
           </CardContent>
