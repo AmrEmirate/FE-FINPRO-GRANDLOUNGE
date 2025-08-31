@@ -6,7 +6,6 @@ import { Plus, Search } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-// Perbarui props untuk menerima state dan fungsi sorting
 interface PropertiesHeaderProps {
   searchTerm: string
   onSearchChange: (term: string) => void
@@ -26,19 +25,21 @@ export function PropertiesHeader({
 }: PropertiesHeaderProps) {
   return (
     <div>
+      {/* Bagian Judul dan Tombol Add Property */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Properties</h1>
           <p className="text-gray-600 mt-1">Manage your property listings</p>
         </div>
-        <Link href="/tenant/properties/new">
-          <Button>
+        <Link href="/tenant/properties/new" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Property
           </Button>
         </Link>
       </div>
 
+      {/* Bagian Filter: Search dan Sort */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Input Pencarian */}
         <div className="relative w-full md:max-w-md">

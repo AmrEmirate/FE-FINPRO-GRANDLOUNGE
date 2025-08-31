@@ -2,7 +2,10 @@
 
 import { useState } from "react"
 import { DashboardStats } from "@/components/tenant/dashboard-stats" 
-import { Property, RecentProperties } from "@/components/tenant/recent-properties"
+import { RecentProperties } from "@/components/tenant/recent-properties"
+// 1. Impor tipe data yang diperlukan, termasuk enum
+import type { Property } from "@/lib/types" 
+import { RoomCategory, BedOption } from "@/lib/types"
 
 export default function TenantDashboardPage() {
   const [stats] = useState({
@@ -15,42 +18,51 @@ export default function TenantDashboardPage() {
     monthlyViews: 5000,
   })
 
+  // 2. Gunakan enum saat mendefinisikan data mock
   const [recentProperties] = useState<Property[]>([
     {
-      id: 1,
+      id: "1",
       name: "Luxury Downtown Hotel",
-      location: "Jakarta",
-      status: "active",
-      bookings: 8,
-      revenue: 25000,
-      image: "/luxury-downtown-hotel.png",
-      rooms: 100,
-      views: 1000,
-      createdAt: "2023-01-01",
+      mainImage: "/luxury-downtown-hotel.png",
+      createdAt: "2023-01-01T00:00:00.000Z",
+      city: { id: "1", name: "Jakarta", provinsi: "DKI Jakarta" },
+      category: { id: "1", name: "Hotel" },
+      rooms: [{ 
+        id: "1", 
+        basePrice: 1200000, 
+        capacity: 2, 
+        name: "Deluxe", 
+        category: RoomCategory.DELUXE, // Gunakan enum
+        bedOption: BedOption.DOUBLE,    // Gunakan enum
+        description: "", 
+        propertyId: "1" 
+      }],
+      tenantId: "1",
+      description: "",
+      deletedAt: undefined,
+      tenant: { user: { fullName: "" }, createdAt: "" },
     },
     {
-      id: 2,
+      id: "2",
       name: "Seaside Villa Resort",
-      location: "Bali",
-      status: "active",
-      bookings: 12,
-      revenue: 45000,
-      image: "/seaside-villa-resort.png",
-      rooms: 50,
-      views: 2000,
-      createdAt: "2023-02-15",
-    },
-    {
-      id: 3,
-      name: "Mountain View Lodge",
-      location: "Bandung",
-      status: "maintenance",
-      bookings: 5,
-      revenue: 15000,
-      image: "/mountain-view-lodge.png",
-      rooms: 20,
-      views: 500,
-      createdAt: "2023-03-10",
+      mainImage: "/seaside-villa-resort.png",
+      createdAt: "2023-02-15T00:00:00.000Z",
+      city: { id: "2", name: "Bali", provinsi: "Bali" },
+      category: { id: "2", name: "Villa" },
+      rooms: [{ 
+        id: "2", 
+        basePrice: 2500000, 
+        capacity: 4, 
+        name: "Private Villa", 
+        category: RoomCategory.SUITE, // Gunakan enum
+        bedOption: BedOption.DOUBLE,   // Gunakan enum
+        description: "", 
+        propertyId: "2" 
+      }],
+      tenantId: "2",
+      description: "",
+      deletedAt: undefined,
+      tenant: { user: { fullName: "" }, createdAt: "" },
     },
   ])
 

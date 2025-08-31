@@ -3,7 +3,8 @@
 import { useTenantProperties } from "@/hooks/use-tenant-properties"
 import { PropertiesHeader } from "@/components/tenant/properties-header"
 import { PropertiesGrid } from "@/components/tenant/properties-grid"
-import { PaginationControls } from "@/components/tenant/pagination-controls" 
+import { PaginationControls } from "@/components/tenant/pagination-controls"
+import { PropertiesGridSkeleton } from "@/components/tenant/properties-grid-skeleton" // 1. Impor komponen skeleton
 
 export default function TenantPropertiesPage() {
   const {
@@ -33,8 +34,9 @@ export default function TenantPropertiesPage() {
           onSortOrderChange={setSortOrder}
         />
         <div className="mt-8">
+          {/* 2. Ganti logika loading */}
           {isLoading ? (
-            <p>Loading properties...</p> // Tampilan loading
+            <PropertiesGridSkeleton />
           ) : (
             <PropertiesGrid
               properties={properties}
@@ -44,7 +46,6 @@ export default function TenantPropertiesPage() {
           )}
         </div>
 
-        {/* Tambahkan Kontrol Pagination di sini */}
         <PaginationControls
           page={page}
           totalPages={totalPages}

@@ -12,7 +12,6 @@ interface Category {
   name: string;
 }
 
-// Pastikan komponen ini diekspor sebagai named export
 export function PropertyFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,13 +32,15 @@ export function PropertyFilters() {
   const handleFilterChange = (key: string, value: string) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()));
     
+    // Jika user memilih placeholder, value akan menjadi string kosong
+    // dan kita hapus parameter filter dari URL
     if (!value) {
       current.delete(key);
     } else {
       current.set(key, value);
     }
     
-    current.set('page', '1'); // Selalu reset ke halaman pertama saat filter diubah
+    current.set('page', '1');
     const search = current.toString();
     const query = search ? `?${search}` : "";
     router.push(`/properties${query}`);
@@ -58,10 +59,11 @@ export function PropertyFilters() {
           onValueChange={(value) => handleFilterChange('category', value)}
         >
           <SelectTrigger>
+            {/* Placeholder ini akan ditampilkan saat value adalah string kosong */}
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            {/* Hapus <SelectItem> dengan value kosong */}
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.name}
@@ -79,4 +81,3 @@ export function PropertyFilters() {
     </div>
   )
 }
-
