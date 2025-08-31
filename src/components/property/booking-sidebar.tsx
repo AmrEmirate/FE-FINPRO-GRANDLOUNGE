@@ -1,122 +1,108 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { differenceInDays, format } from "date-fns"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar } from "@/components/ui/calendar"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/AuthContext"
 import { useToast } from "@/hooks/use-toast"
-import type { Room } from "@/lib/types" // Impor tipe Room dari types
+import type { Room } from "@/lib/types"
+import type { DateRange } from "react-day-picker"
 
-// Definisikan props untuk komponen
+// Definisikan props yang baru
 interface BookingSidebarProps {
-  rooms: Room[];
-  selectedRoom: Room | null;
+  selectedRoom: Room | null
+  selectedRange: DateRange | undefined
 }
 
-export function BookingSidebar({ rooms, selectedRoom }: BookingSidebarProps) {
-  // State untuk menyimpan tanggal check-in yang dipilih
-  const [checkInDate, setCheckInDate] = useState<Date | undefined>(undefined);
-  
-  // Hooks untuk navigasi, autentikasi, dan notifikasi
-  const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
-  const { toast } = useToast();
+export function BookingSidebar({ selectedRoom, selectedRange }: BookingSidebarProps) {
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
+  const { toast } = useToast()
 
-  // Logika untuk menangani klik tombol booking
   const handleBookingClick = () => {
-    // 1. Cek apakah pengguna sudah login
     if (!isAuthenticated) {
       toast({
         variant: "destructive",
         title: "Login Required",
         description: "Please log in to book a room.",
-      });
-      router.push("/auth/login");
-      return;
+      })
+      router.push("/auth/login")
+      return
     }
 
-    // 2. Cek apakah kamar dan tanggal sudah dipilih
-    if (!selectedRoom) {
+    // Validasi berdasarkan rentang tanggal
+    if (!selectedRoom || !selectedRange?.from || !selectedRange?.to) {
       toast({
         variant: "destructive",
-        title: "No Room Selected",
-        description: "Please select a room from the list.",
-      });
-      return;
+        title: "Incomplete Selection",
+        description: "Please select a room and a complete date range.",
+      })
+      return
     }
-    if (!checkInDate) {
-        toast({
-          variant: "destructive",
-          title: "No Date Selected",
-          description: "Please select a check-in date.",
-        });
-        return;
-      }
     
-    // 3. Lanjutkan ke proses booking (misalnya, ke halaman pembayaran)
-    // Untuk saat ini, kita hanya menampilkan notifikasi sukses
     toast({
       title: "Booking Initiated",
-      description: `Proceeding to book ${selectedRoom.name} for ${checkInDate.toLocaleDateString()}.`,
-    });
+      description: `Proceeding to book ${selectedRoom.name}.`,
+    })
     
-    // TODO: Arahkan ke halaman checkout atau panggil API booking
-    // router.push(`/checkout?roomId=${selectedRoom.id}&date=${checkInDate.toISOString()}`);
-  };
+    // TODO: Arahkan ke halaman checkout
+  }
 
-  // Tentukan harga dan detail kamar yang akan ditampilkan
-  // Jika ada kamar yang dipilih, gunakan itu. Jika tidak, gunakan kamar pertama sebagai default.
-  const displayRoom = selectedRoom || rooms[0];
-  const price = displayRoom?.basePrice || 0;
-  const roomName = displayRoom?.name || "Please select a room";
-  const roomDescription = displayRoom?.description || "Select a room from the list to see details.";
+  // Kalkulasi harga berdasarkan tanggal yang dipilih
+  const price = selectedRoom?.basePrice || 0
+  const checkIn = selectedRange?.from
+  const checkOut = selectedRange?.to
+  const numberOfNights = checkIn && checkOut ? differenceInDays(checkOut, checkIn) : 0
+  const totalPrice = price * numberOfNights
 
   return (
     <Card className="sticky top-24 shadow-md">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Book Your Stay</span>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">
-              Rp {price.toLocaleString("id-ID")}
-            </div>
-            <div className="text-sm text-gray-600">/night</div>
-          </div>
+        <CardTitle>
+          {selectedRoom ? `Rp ${price.toLocaleString("id-ID")} / night` : "Select a Room"}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <h4 className="font-medium mb-2 text-gray-800">Selected Room</h4>
-          <div className="p-3 bg-gray-50 rounded-lg border">
-            <div className="font-semibold text-gray-900">{roomName}</div>
-            <p className="text-xs text-gray-600 mt-1">{roomDescription}</p>
-          </div>
+        {/* Tampilkan tanggal yang dipilih, bukan kalender */}
+        <div className="grid grid-cols-2 gap-4 border p-3 rounded-md">
+            <div>
+                <Label className="text-sm font-semibold text-gray-600">Check-in</Label>
+                <p className="font-medium">{checkIn ? format(checkIn, "dd MMM yyyy") : "Select date"}</p>
+            </div>
+             <div>
+                <Label className="text-sm font-semibold text-gray-600">Check-out</Label>
+                <p className="font-medium">{checkOut ? format(checkOut, "dd MMM yyyy") : "Select date"}</p>
+            </div>
         </div>
-
-        <div>
-          <h4 className="font-medium mb-2 text-gray-800">Select Check-in Date</h4>
-          <Calendar
-            mode="single"
-            selected={checkInDate}
-            onSelect={setCheckInDate}
-            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} // Nonaktifkan tanggal kemarin
-            className="rounded-md border"
-          />
-        </div>
-
+        
+        {/* Tampilkan rincian biaya jika tanggal sudah dipilih */}
+        {numberOfNights > 0 && selectedRoom && (
+            <div className="pt-4 border-t space-y-2">
+                <div className="flex justify-between items-center text-sm text-gray-700">
+                    <p>Rp {price.toLocaleString("id-ID")} x {numberOfNights} night(s)</p>
+                    <p>Rp {totalPrice.toLocaleString("id-ID")}</p>
+                </div>
+                 <div className="flex justify-between items-center font-bold text-lg text-gray-900">
+                    <p>Total Price</p>
+                    <p>Rp {totalPrice.toLocaleString("id-ID")}</p>
+                </div>
+            </div>
+        )}
+        
+      </CardContent>
+      <CardFooter className="flex-col items-stretch gap-2">
         <Button 
           onClick={handleBookingClick} 
           className="w-full" 
           size="lg" 
-          disabled={!selectedRoom || !checkInDate}
+          disabled={!selectedRoom || !selectedRange?.from || !selectedRange?.to}
         >
           {isAuthenticated ? "Book Now" : "Login to Book"}
         </Button>
-
-        <div className="text-xs text-gray-500 text-center">You won't be charged yet</div>
-      </CardContent>
+        <p className="text-xs text-gray-500 text-center">You won't be charged yet</p>
+      </CardFooter>
     </Card>
-  );
+  )
 }

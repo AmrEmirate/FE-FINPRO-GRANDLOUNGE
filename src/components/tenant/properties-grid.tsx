@@ -6,9 +6,19 @@ import { Button } from "@/components/ui/button"
 import { Building2, Eye, Edit, Trash2, MapPin, BedDouble, Plus } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import type { Property } from "@/lib/types" // Impor tipe data Property dari types
+import type { Property } from "@/lib/types"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
-// Definisikan props untuk komponen
 interface PropertiesGridProps {
   properties: Property[];
   searchTerm: string;
@@ -16,14 +26,12 @@ interface PropertiesGridProps {
 }
 
 export function PropertiesGrid({ properties, searchTerm, onDeleteProperty }: PropertiesGridProps) {
-  // Logika untuk memfilter properti berdasarkan input pencarian
   const filteredProperties = properties.filter(
     (property) =>
       property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.city.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // Tampilan jika tidak ada properti yang ditemukan
   if (filteredProperties.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg">
@@ -47,14 +55,13 @@ export function PropertiesGrid({ properties, searchTerm, onDeleteProperty }: Pro
           <div className="relative">
             <Link href={`/tenant/properties/${property.id}/rooms`}>
                 <Image
-                    src={property.mainImage || "/placeholder.svg"} // Gunakan gambar asli atau placeholder
+                    src={property.mainImage || "/placeholder.svg"}
                     alt={property.name}
                     width={400}
                     height={200}
                     className="w-full h-48 object-cover"
                 />
             </Link>
-            {/* Tampilkan badge kategori dan status secara dinamis */}
             <Badge className="absolute top-3 left-3 bg-blue-600 text-white">{property.category.name}</Badge>
             <Badge variant={!property.deletedAt ? "default" : "destructive"} className="absolute top-3 right-3">
               {!property.deletedAt ? "Active" : "Archived"}
@@ -65,7 +72,6 @@ export function PropertiesGrid({ properties, searchTerm, onDeleteProperty }: Pro
             <CardTitle className="text-lg truncate">{property.name}</CardTitle>
             <div className="flex items-center text-gray-600 text-sm">
               <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-              {/* Tampilkan lokasi dari data API */}
               <span className="truncate">{property.city.name}, {property.city.provinsi}</span>
             </div>
           </CardHeader>
@@ -73,13 +79,11 @@ export function PropertiesGrid({ properties, searchTerm, onDeleteProperty }: Pro
           <CardContent className="pt-0">
             <div className="flex items-center text-sm text-gray-600 mb-4">
               <BedDouble className="h-4 w-4 mr-1" />
-              {/* Tampilkan jumlah kamar dari data API */}
               {property.rooms?.length || 0} rooms
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                {/* Arahkan link ke halaman detail dan edit yang benar */}
                 <Link href={`/properties/${property.id}`} target="_blank">
                   <Button variant="outline" size="sm" title="View Property (Public)">
                     <Eye className="h-4 w-4" />
@@ -90,15 +94,40 @@ export function PropertiesGrid({ properties, searchTerm, onDeleteProperty }: Pro
                     <Edit className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => onDeleteProperty(property.id)} 
-                    title="Delete Property"
-                    className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+
+                {/* --- BAGIAN YANG DITAMBAHKAN --- */}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        title="Delete Property"
+                        className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete your
+                        property and all associated data (including rooms and bookings).
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onDeleteProperty(property.id)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                {/* ------------------------------------ */}
+
               </div>
               <div className="text-xs text-gray-500">
                 Added {new Date(property.createdAt).toLocaleDateString()}
