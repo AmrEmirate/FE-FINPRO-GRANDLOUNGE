@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { BedOption, RoomCategory } from "@/lib/types"
 
-// Skema validasi (sama seperti sebelumnya)
+// Skema validasi sudah benar, tidak perlu diubah
 const roomFormSchema = z.object({
   name: z.string().min(3, { message: "Room name must be at least 3 characters." }),
   category: z.nativeEnum(RoomCategory, { required_error: "Please select a room category." }),
@@ -75,7 +75,7 @@ export function RoomFormDialog({ isOpen, onClose, editingRoom, onSave }: RoomFor
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <FormField control={form.control} name="name" render={({ field }) => (
-                <FormItem><FormLabel>Room Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Room Name</FormLabel><FormControl><Input placeholder="e.g., Deluxe Room with View" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="category" render={({ field }) => (
                 <FormItem><FormLabel>Category</FormLabel>
@@ -85,7 +85,25 @@ export function RoomFormDialog({ isOpen, onClose, editingRoom, onSave }: RoomFor
                   </Select><FormMessage />
                 </FormItem>
               )} />
-               {/* ... Tambahkan sisa FormField lainnya di sini ... */}
+              <FormField control={form.control} name="description" render={({ field }) => (
+                <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe the room..." {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="bedOption" render={({ field }) => (
+                  <FormItem><FormLabel>Bed Option</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select bed type" /></SelectTrigger></FormControl>
+                      <SelectContent>{Object.values(BedOption).map(opt => (<SelectItem key={opt} value={opt}>{opt}</SelectItem>))}</SelectContent>
+                    </Select><FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="capacity" render={({ field }) => (
+                  <FormItem><FormLabel>Capacity</FormLabel><FormControl><Input type="number" placeholder="e.g., 2" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="basePrice" render={({ field }) => (
+                <FormItem><FormLabel>Base Price (IDR)</FormLabel><FormControl><Input type="number" placeholder="e.g., 500000" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
