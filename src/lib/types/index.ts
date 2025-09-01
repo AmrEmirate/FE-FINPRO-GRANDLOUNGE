@@ -86,7 +86,7 @@ export interface Property {
   mainImage?: string;
   deletedAt?: string;
   createdAt: string; // Tambahkan createdAt untuk sorting atau info
-  
+
   // Relasi sebagai objek/array objek
   category: Category;
   city: City;
@@ -107,4 +107,27 @@ export interface User {
   verified: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface UserOrder {
+  id: string;
+  orderId: string;
+  property: { name: string };
+  checkIn: string;
+  checkOut: string;
+  total: number;
+  status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
+}
+
+export interface TenantTransaction {
+  id: string;
+  orderId: string;
+  user: {
+    name: string;
+  };
+  property: {
+    name: string;
+  };
+  status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
+  paymentProof?: string; 
 }

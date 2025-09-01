@@ -9,16 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import UploadPaymentDialog from '@/components/orders/upload-payment-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-
-interface UserOrder {
-    id: string;
-    orderId: string;
-    property: { name: string };
-    checkIn: string;
-    checkOut: string;
-    total: number;
-    status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
-}
+import { UserOrder } from '@/lib/types';
 
 export default function UserOrdersPage() {
     const [orders, setOrders] = useState<UserOrder[]>([]);
@@ -93,7 +84,6 @@ export default function UserOrdersPage() {
                                     {order.status === 'Menunggu Pembayaran' && (
                                         <div className="flex justify-end space-x-2">
                                             <UploadPaymentDialog orderId={order.id} onUploadSuccess={fetchOrders} />
-
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
                                                     <Button variant="destructive" size="sm">Batalkan</Button>
@@ -111,7 +101,6 @@ export default function UserOrdersPage() {
                                                     </AlertDialogFooter>
                                                 </AlertDialogContent>
                                             </AlertDialog>
-
                                         </div>
                                     )}
                                 </TableCell>
