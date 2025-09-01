@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   title: 'Grand Lodge - Premium Property Rentals',
   description: 'Find and book premium accommodations for your perfect stay',
   keywords: 'hotel, accommodation, booking, rental, property, lodge',
-  generator: 'v0.app'
 }
 
 export default function RootLayout({
