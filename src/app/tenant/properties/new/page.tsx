@@ -1,3 +1,4 @@
+// src/app/tenant/properties/new/page.tsx
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -20,13 +21,14 @@ import { Loader2 } from "lucide-react"
 interface Category { id: string; name: string; }
 interface City { id: string; name: string; }
 
-// Skema validasi menggunakan Zod
+// --- PERBAIKAN 1: Tambahkan zipCode ke skema validasi ---
 const propertyFormSchema = z.object({
   name: z.string().min(5, { message: "Property name must be at least 5 characters." }),
   description: z.string().min(20, { message: "Description must be at least 20 characters." }),
   categoryId: z.string({ required_error: "Please select a category." }),
   cityId: z.string({ required_error: "Please select a city." }),
-  mainImage: z.string().url({ message: "Please enter a valid image URL." }),
+  zipCode: z.string().min(5, { message: "Zip code must be 5 characters." }).max(5, { message: "Zip code must be 5 characters." }),
+  mainImage: z.string().url({ message: "Please enter a valid image URL." }).optional(), // Dibuat opsional untuk sementara
 })
 
 export default function NewPropertyPage() {
@@ -36,7 +38,6 @@ export default function NewPropertyPage() {
   const [cities, setCities] = useState<City[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
-  // Ambil data untuk dropdown
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -53,7 +54,6 @@ export default function NewPropertyPage() {
     fetchData();
   }, [toast]);
 
-  // Inisialisasi react-hook-form
   const form = useForm<z.infer<typeof propertyFormSchema>>({
     resolver: zodResolver(propertyFormSchema),
     defaultValues: {
@@ -61,25 +61,28 @@ export default function NewPropertyPage() {
       description: "",
       categoryId: "",
       cityId: "",
+      zipCode: "",
       mainImage: "",
     },
   })
 
-  // Fungsi yang dijalankan setelah validasi berhasil
+  // --- PERBAIKAN 2: Ubah endpoint API dan pesan error ---
   async function onSubmit(values: z.infer<typeof propertyFormSchema>) {
     setIsLoading(true)
     try {
-      await apiHelper.post("/properties/my-properties", values)
+      // Endpoint yang benar untuk membuat properti adalah '/properties'
+      await apiHelper.post("/properties", values)
       toast({
         title: "Success!",
         description: "Your property has been created successfully.",
       })
-      router.push("/tenant/properties")
+      router.push("/tenant/properties") // Arahkan ke daftar properti
     } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Something went wrong. Please try again.";
       toast({
         variant: "destructive",
         title: "Submission Failed",
-        description: error.response?.data?.message || "Something went wrong.",
+        description: errorMessage,
       })
     } finally {
       setIsLoading(false)
@@ -158,7 +161,7 @@ export default function NewPropertyPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                           {cities.map(city => (
+                          {cities.map(city => (
                             <SelectItem key={city.id} value={city.id}>{city.name}</SelectItem>
                           ))}
                         </SelectContent>
@@ -168,7 +171,22 @@ export default function NewPropertyPage() {
                   )}
                 />
               </div>
-               <FormField
+
+              {/* --- PERBAIKAN 3: Tambahkan input untuk zipCode --- */}
+              <FormField
+                control={form.control}
+                name="zipCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zip Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 12345" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
                 control={form.control}
                 name="mainImage"
                 render={({ field }) => (

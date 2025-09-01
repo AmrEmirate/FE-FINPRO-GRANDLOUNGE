@@ -9,7 +9,7 @@ export function useTenantProperties() {
   const { toast } = useToast()
   const [properties, setProperties] = useState<Property[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  
+
   // State untuk pagination, sorting, dan filtering
   const [searchTerm, setSearchTerm] = useState("")
   const [page, setPage] = useState(1)
@@ -29,11 +29,18 @@ export function useTenantProperties() {
         sortBy,
         sortOrder,
       })
-      
-      const response = await apiHelper.get(`/properties/my-properties?${params.toString()}`)
-      
+
+      // --- PERBAIKAN DI SINI ---
+      // Endpoint yang benar adalah /properties/my-properties/all
+      const response = await apiHelper.get(`/properties/my-properties/all?${params.toString()}`)
+
       setProperties(response.data.data)
-      setTotalPages(response.data.pagination.totalPages) // Ambil total halaman dari respons API
+      // Cek jika ada data pagination, jika tidak, set default
+      if (response.data.pagination) {
+        setTotalPages(response.data.pagination.totalPages)
+      } else {
+        setTotalPages(1)
+      }
     } catch (error) {
       console.error("Failed to fetch tenant properties:", error)
       toast({
@@ -52,6 +59,7 @@ export function useTenantProperties() {
 
   const handleDeleteProperty = async (propertyId: string) => {
     try {
+      // Endpoint untuk delete sudah benar
       await apiHelper.delete(`/properties/my-properties/${propertyId}`)
       toast({
         title: "Success",
@@ -59,7 +67,7 @@ export function useTenantProperties() {
       })
       fetchProperties() // Muat ulang data setelah berhasil menghapus
     } catch (error) {
-       toast({
+      toast({
         variant: "destructive",
         title: "Error",
         description: "Failed to delete property.",

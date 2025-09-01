@@ -1,108 +1,169 @@
-"use client"
+// src/components/property/booking-sidebar.tsx
+'use client';
 
-import { useRouter } from "next/navigation"
-import { differenceInDays, format } from "date-fns"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/AuthContext"
-import { useToast } from "@/hooks/use-toast"
-import type { Room } from "@/lib/types"
-import type { DateRange } from "react-day-picker"
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { DateRange } from 'react-day-picker';
+import { addDays, differenceInDays } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
+import { Room } from '@/lib/types';
 
-// Definisikan props yang baru
 interface BookingSidebarProps {
-  selectedRoom: Room | null
-  selectedRange: DateRange | undefined
+  propertyId: string;
+  rooms: Room[];
+  pricePerNight: number;
 }
 
-export function BookingSidebar({ selectedRoom, selectedRange }: BookingSidebarProps) {
-  const router = useRouter()
-  const { isAuthenticated } = useAuth()
-  const { toast } = useToast()
+export function BookingSidebar({
+  propertyId,
+  rooms,
+}: BookingSidebarProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 1),
+  });
+  const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>(
+    undefined
+  );
 
-  const handleBookingClick = () => {
-    if (!isAuthenticated) {
+  useEffect(() => {
+    if (rooms && rooms.length > 0 && !selectedRoomId) {
+      setSelectedRoomId(rooms[0].id);
+    }
+  }, [rooms, selectedRoomId]);
+
+  const nights = useMemo(() => {
+    if (date?.from && date?.to) {
+      const diff = differenceInDays(date.to, date.from);
+      return diff > 0 ? diff : 0;
+    }
+    return 0;
+  }, [date]);
+
+  const totalCost = useMemo(() => {
+    // === PERBAIKAN DI SINI ===
+    // Tambahkan pengecekan ini untuk memastikan 'rooms' tidak undefined
+    if (!rooms || rooms.length === 0) return 0;
+
+    const selectedRoom = rooms.find((room) => room.id === selectedRoomId);
+    if (!selectedRoom) return 0;
+    const roomPrice = selectedRoom.basePrice;
+    return nights > 0 ? nights * roomPrice : 0;
+  }, [nights, selectedRoomId, rooms]);
+
+  const handleReserve = () => {
+    if (!date?.from || !date?.to || !selectedRoomId || nights <= 0) {
       toast({
-        variant: "destructive",
-        title: "Login Required",
-        description: "Please log in to book a room.",
-      })
-      router.push("/auth/login")
-      return
+        title: 'Input tidak lengkap',
+        description:
+          'Silakan pilih tanggal check-in, check-out, dan jenis kamar.',
+        variant: 'destructive',
+      });
+      return;
     }
 
-    // Validasi berdasarkan rentang tanggal
-    if (!selectedRoom || !selectedRange?.from || !selectedRange?.to) {
-      toast({
-        variant: "destructive",
-        title: "Incomplete Selection",
-        description: "Please select a room and a complete date range.",
-      })
-      return
-    }
-    
-    toast({
-      title: "Booking Initiated",
-      description: `Proceeding to book ${selectedRoom.name}.`,
-    })
-    
-    // TODO: Arahkan ke halaman checkout
+    const queryParams = new URLSearchParams({
+      propertyId,
+      roomId: selectedRoomId,
+      checkIn: date.from.toISOString(),
+      checkOut: date.to.toISOString(),
+      nights: nights.toString(),
+      totalCost: totalCost.toString(),
+    });
+
+    router.push(`/room_reservation?${queryParams.toString()}`);
+  };
+
+  const selectedRoomPrice = useMemo(() => {
+    // === PERBAIKAN DI SINI JUGA ===
+    // Tambahkan pengecekan ini untuk keamanan
+    if (!rooms || rooms.length === 0) return 0;
+
+    const room = rooms.find((r) => r.id === selectedRoomId);
+    return room ? room.basePrice : 0;
+  }, [selectedRoomId, rooms]);
+
+  if (!rooms || rooms.length === 0) {
+    return (
+      <aside className="sticky top-24 col-span-4 rounded-xl border p-6 shadow-lg">
+        <h2 className="text-xl font-bold">Tidak ada kamar tersedia</h2>
+        <p className="text-gray-500 mt-2">
+          Tenant belum menambahkan kamar untuk properti ini.
+        </p>
+      </aside>
+    );
   }
 
-  // Kalkulasi harga berdasarkan tanggal yang dipilih
-  const price = selectedRoom?.basePrice || 0
-  const checkIn = selectedRange?.from
-  const checkOut = selectedRange?.to
-  const numberOfNights = checkIn && checkOut ? differenceInDays(checkOut, checkIn) : 0
-  const totalPrice = price * numberOfNights
-
   return (
-    <Card className="sticky top-24 shadow-md">
-      <CardHeader>
-        <CardTitle>
-          {selectedRoom ? `Rp ${price.toLocaleString("id-ID")} / night` : "Select a Room"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Tampilkan tanggal yang dipilih, bukan kalender */}
-        <div className="grid grid-cols-2 gap-4 border p-3 rounded-md">
-            <div>
-                <Label className="text-sm font-semibold text-gray-600">Check-in</Label>
-                <p className="font-medium">{checkIn ? format(checkIn, "dd MMM yyyy") : "Select date"}</p>
-            </div>
-             <div>
-                <Label className="text-sm font-semibold text-gray-600">Check-out</Label>
-                <p className="font-medium">{checkOut ? format(checkOut, "dd MMM yyyy") : "Select date"}</p>
-            </div>
+    <aside className="sticky top-24 col-span-4 rounded-xl border p-6 shadow-lg">
+      <h2 className="text-2xl font-bold">
+        Rp {selectedRoomPrice.toLocaleString('id-ID')}
+        <span className="text-base font-normal"> / malam</span>
+      </h2>
+      <div className="mt-4">
+        <div className="rounded-lg border">
+          <Calendar
+            mode="range"
+            selected={date}
+            onSelect={setDate}
+            numberOfMonths={1}
+            disabled={{ before: new Date() }}
+          />
         </div>
-        
-        {/* Tampilkan rincian biaya jika tanggal sudah dipilih */}
-        {numberOfNights > 0 && selectedRoom && (
-            <div className="pt-4 border-t space-y-2">
-                <div className="flex justify-between items-center text-sm text-gray-700">
-                    <p>Rp {price.toLocaleString("id-ID")} x {numberOfNights} night(s)</p>
-                    <p>Rp {totalPrice.toLocaleString("id-ID")}</p>
-                </div>
-                 <div className="flex justify-between items-center font-bold text-lg text-gray-900">
-                    <p>Total Price</p>
-                    <p>Rp {totalPrice.toLocaleString("id-ID")}</p>
-                </div>
-            </div>
-        )}
-        
-      </CardContent>
-      <CardFooter className="flex-col items-stretch gap-2">
-        <Button 
-          onClick={handleBookingClick} 
-          className="w-full" 
-          size="lg" 
-          disabled={!selectedRoom || !selectedRange?.from || !selectedRange?.to}
-        >
-          {isAuthenticated ? "Book Now" : "Login to Book"}
-        </Button>
-        <p className="text-xs text-gray-500 text-center">You won't be charged yet</p>
-      </CardFooter>
-    </Card>
-  )
+      </div>
+      <div className="mt-4">
+        <label htmlFor="room-select" className="mb-2 block font-medium">
+          Pilih Kamar
+        </label>
+        <Select onValueChange={setSelectedRoomId} value={selectedRoomId}>
+          <SelectTrigger id="room-select">
+            <SelectValue placeholder="Pilih jenis kamar" />
+          </SelectTrigger>
+          <SelectContent>
+            {rooms.map((room) => (
+              <SelectItem key={room.id} value={room.id}>
+                {room.name} - Rp {room.basePrice.toLocaleString('id-ID')}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button
+        className="mt-6 w-full"
+        size="lg"
+        onClick={handleReserve}
+        disabled={nights <= 0 || !selectedRoomId}
+      >
+        Reserve
+      </Button>
+      <div className="mt-4 space-y-2">
+        <div className="flex justify-between">
+          <span>
+            Rp {selectedRoomPrice.toLocaleString('id-ID')} x {nights} malam
+          </span>
+          <span>Rp {totalCost.toLocaleString('id-ID')}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Biaya layanan</span>
+          <span>Rp 0</span>
+        </div>
+        <hr />
+        <div className="flex justify-between font-bold">
+          <span>Total</span>
+          <span>Rp {totalCost.toLocaleString('id-ID')}</span>
+        </div>
+      </div>
+    </aside>
+  );
 }
