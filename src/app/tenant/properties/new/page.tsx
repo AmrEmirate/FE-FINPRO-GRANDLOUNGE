@@ -1,4 +1,3 @@
-// src/app/tenant/properties/new/page.tsx
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -6,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import apiHelper from "@/lib/apiHelper"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast" // Menggunakan path yang benar
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,14 +20,13 @@ import { Loader2 } from "lucide-react"
 interface Category { id: string; name: string; }
 interface City { id: string; name: string; }
 
-// --- PERBAIKAN 1: Tambahkan zipCode ke skema validasi ---
 const propertyFormSchema = z.object({
   name: z.string().min(5, { message: "Property name must be at least 5 characters." }),
   description: z.string().min(20, { message: "Description must be at least 20 characters." }),
   categoryId: z.string({ required_error: "Please select a category." }),
   cityId: z.string({ required_error: "Please select a city." }),
   zipCode: z.string().min(5, { message: "Zip code must be 5 characters." }).max(5, { message: "Zip code must be 5 characters." }),
-  mainImage: z.string().url({ message: "Please enter a valid image URL." }).optional(), // Dibuat opsional untuk sementara
+  mainImage: z.string().url({ message: "Please enter a valid image URL." }).optional(),
 })
 
 export default function NewPropertyPage() {
@@ -66,17 +64,15 @@ export default function NewPropertyPage() {
     },
   })
 
-  // --- PERBAIKAN 2: Ubah endpoint API dan pesan error ---
   async function onSubmit(values: z.infer<typeof propertyFormSchema>) {
     setIsLoading(true)
     try {
-      // Endpoint yang benar untuk membuat properti adalah '/properties'
       await apiHelper.post("/properties", values)
       toast({
         title: "Success!",
         description: "Your property has been created successfully.",
       })
-      router.push("/tenant/properties") // Arahkan ke daftar properti
+      router.push("/tenant/properties")
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Something went wrong. Please try again.";
       toast({
@@ -171,8 +167,6 @@ export default function NewPropertyPage() {
                   )}
                 />
               </div>
-
-              {/* --- PERBAIKAN 3: Tambahkan input untuk zipCode --- */}
               <FormField
                 control={form.control}
                 name="zipCode"
