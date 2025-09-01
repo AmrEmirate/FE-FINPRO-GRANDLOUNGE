@@ -1,4 +1,3 @@
-// src/app/tenant/properties/[propertyId]/availability/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -19,23 +18,27 @@ const mockAvailability = [
     { date: "2025-10-11", isAvailable: false },
 ];
 
-export default function ManageAvailabilityPage() {
+// 1. PERBAIKAN PADA PARAMS: Menggunakan `id` bukan `propertyId`
+export default function ManageAvailabilityPage({ params }: { params: { id: string } }) {
     const [selectedRoom, setSelectedRoom] = useState(mockRooms[0]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
-    // === PERBAIKAN DI SINI ===
-    // Sesuaikan tipe data agar cocok dengan props onSave di AvailabilityCalendar
+    // Menerima property `id` dari URL
+    const propertyId = params.id;
+    // Anda bisa menggunakan `propertyId` ini untuk fetch data spesifik jika diperlukan
+
+    // 2. KODE YANG ANDA TAMBAHKAN: Logika untuk handleSave
     const handleSave = (
         dates: DateRange,
         isAvailable: boolean,
-        price?: number // Jadikan opsional dengan tanda tanya (?)
+        price?: number
     ) => {
-        // Karena 'dates' dijamin ada oleh komponen, kita bisa langsung menggunakannya
-        // (Pengecekan 'from' dan 'to' tetap ide yang bagus)
         if (dates.from && dates.to) {
             alert(
-                `Saved: ${dates.from.toDateString()} to ${dates.to.toDateString()}, Available: ${isAvailable}, Price: ${price || 'Not set' // Tampilkan jika harga ada
-                }`
+                `Saved for Room ID ${selectedRoom.id} & Property ID ${propertyId}:\n` +
+                `Dates: ${dates.from.toDateString()} to ${dates.to.toDateString()}\n` +
+                `Available: ${isAvailable}\n` +
+                `Price: ${price || 'Not set'}`
             );
         } else {
             alert("Something went wrong with the selected date range.");
