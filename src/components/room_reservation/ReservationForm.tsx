@@ -1,74 +1,89 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import axios from "axios";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import api from '@/utils/api';
 
-interface Props {
-    setRooms: (rooms: any[]) => void;
+interface ReservationFormProps {
+    roomId: string;
+    pricePerNight: number;
 }
 
-export default function ReservationForm({ setRooms }: Props) {
-    const [city, setCity] = useState("");
-    const [checkIn, setCheckIn] = useState("");
-    const [checkOut, setCheckOut] = useState("");
-    const [guests, setGuests] = useState(1);
+export default function ReservationForm({ roomId, pricePerNight }: ReservationFormProps) {
+    const [checkIn, setCheckIn] = useState('');
+    const [checkOut, setCheckOut] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+    const { toast } = useToast();
 
-    const handleSearch = async (e: React.FormEvent) => {
+    const calculateNights = () => {
+        if (!checkIn || !checkOut) return 0;
+        const start = new Date(checkIn);
+        const end = new Date(checkOut);
+        const diff = end.getTime() - start.getTime();
+        if (diff <= 0) return 0;
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    };
+
+    const nights = calculateNights();
+    const total = nights * pricePerNight;
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (nights <= 0) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Tanggal check-out harus setelah tanggal check-in.' });
+            return;
+        }
+        setIsLoading(true);
 
         try {
-            const res = await axios.get("/api/rooms/available", {
-                params: { city, checkIn, checkOut, guests },
+            await api.post('/room-reservation', {
+                roomId,
+                checkInDate: checkIn,
+                checkOutDate: checkOut,
             });
-            setRooms(res.data);
-        } catch (err) {
-            console.error("Error fetching rooms:", err);
+
+            toast({ title: 'Sukses', description: 'Reservasi berhasil dibuat! Silakan lanjutkan pembayaran.' });
+
+            // Arahkan pengguna ke halaman daftar pesanan setelah berhasil
+            router.push('/dashboard/akun_user/orders');
+
+        } catch (error: any) {
+            setIsLoading(false);
+            const errorMessage = error.response?.data?.message || 'Kamar tidak tersedia atau terjadi kesalahan.';
+            toast({ variant: 'destructive', title: 'Gagal Reservasi', description: errorMessage });
+            console.error(error);
         }
     };
 
     return (
-        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-lg shadow">
-            {/* City */}
-            <input
-                type="text"
-                placeholder="Destination City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="border p-2 rounded"
-                required
-            />
-
-            {/* Check-in */}
-            <input
-                type="date"
-                value={checkIn}
-                onChange={(e) => setCheckIn(e.target.value)}
-                className="border p-2 rounded"
-                required
-            />
-
-            {/* Check-out */}
-            <input
-                type="date"
-                value={checkOut}
-                onChange={(e) => setCheckOut(e.target.value)}
-                className="border p-2 rounded"
-                required
-            />
-
-            {/* Guests */}
-            <input
-                type="number"
-                min={1}
-                value={guests}
-                onChange={(e) => setGuests(Number(e.target.value))}
-                className="border p-2 rounded"
-                required
-            />
-
-            <button type="submit" className="col-span-1 md:col-span-4 bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-                Search Rooms
-            </button>
-        </form>
+        <Card>
+            <CardHeader>
+                <CardTitle>Buat Pesanan</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <Label htmlFor="checkIn">Tanggal Check-in</Label>
+                        <Input id="checkIn" type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} required />
+                    </div>
+                    <div>
+                        <Label htmlFor="checkOut">Tanggal Check-out</Label>
+                        <Input id="checkOut" type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} required />
+                    </div>
+                    <div className="font-bold text-lg">
+                        Total: Rp {total.toLocaleString('id-ID')} ({nights} malam)
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading || nights <= 0}>
+                        {isLoading ? 'Memproses...' : 'Pesan Sekarang'}
+                    </Button>
+                </form>
+            </CardContent>
+        </Card>
     );
 }
