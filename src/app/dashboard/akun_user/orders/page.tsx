@@ -43,7 +43,7 @@ function OrdersContent() {
             if (filters.orderId) params.append('orderId', filters.orderId);
             if (filters.date) params.append('date', filters.date);
 
-            const response = await api.get(`/order-list/user?${params.toString()}`);
+            const response = await api.get(`/orders/order-list?${params.toString()}`);
 
             if (Array.isArray(response.data.data)) {
                 setOrders(response.data.data);
@@ -66,11 +66,11 @@ function OrdersContent() {
             setOrders(currentOrders => {
                 let hasChanged = false;
                 const updatedOrders = currentOrders.map(order => {
-                    if (order.status === 'Menunggu Pembayaran') {
+                    if (order.status === 'MENUNGGU_PEMBAYARAN') {
                         const isExpired = new Date() > new Date(order.paymentDeadline);
                         if (isExpired) {
                             hasChanged = true;
-                            return { ...order, status: 'Dibatalkan' as const };
+                            return { ...order, status: 'DIBATALKAN' as const };
                         }
                     }
                     return order;
@@ -160,22 +160,22 @@ function OrdersContent() {
                     <TableBody>
                         {orders.map((order) => (
                             <TableRow key={order.id}>
-                                <TableCell className="font-medium">{order.orderId}</TableCell>
+                                <TableCell className="font-medium">{order.invoiceNumber}</TableCell>
                                 <TableCell>{order.property.name}</TableCell>
                                 <TableCell>{new Date(order.checkIn).toLocaleDateString('id-ID')}</TableCell>
-                                <TableCell>Rp {order.total.toLocaleString('id-ID')}</TableCell>
+                                <TableCell>Rp {order.totalPrice.toLocaleString('id-ID')}</TableCell>
                                 <TableCell>
                                     <Badge>{order.status}</Badge>
-                                    {order.status === 'Menunggu Pembayaran' && (
+                                    {order.status === 'MENUNGGU_PEMBAYARAN' && (
                                         <p className="text-xs text-gray-500 mt-1">
                                             Bayar sebelum: {formatDeadline(order.paymentDeadline)}
                                         </p>
                                     )}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    {order.status === 'Menunggu Pembayaran' && (
+                                    {order.status === 'MENUNGGU_PEMBAYARAN' && (
                                         <div className="flex justify-end space-x-2">
-                                            <UploadPaymentDialog orderId={order.id} onUploadSuccess={fetchOrders} />
+                                            <UploadPaymentDialog invoiceNumber={order.invoiceNumber} onUploadSuccess={fetchOrders} />
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
                                                     <Button variant="destructive" size="sm">Batalkan</Button>

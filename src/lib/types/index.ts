@@ -109,25 +109,25 @@ export interface User {
 
 export interface UserOrder {
   id: string;
-  orderId: string;
+  invoiceNumber: string;
   property: { name: string };
   checkIn: string;
   checkOut: string;
-  total: number;
-  status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
+  totalPrice: number;
+  status: 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'DIBATALKAN' | 'SELESAI';
   paymentDeadline: string;
 }
 
 export interface TenantTransaction {
   id: string;
-  orderId: string;
+  invoiceNumber: string;
   user: {
     name: string;
   };
   property: {
     name: string;
   };
-  status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
+  status: 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'DIBATALKAN' | 'SELESAI';
   paymentProof?: string;
 }
 

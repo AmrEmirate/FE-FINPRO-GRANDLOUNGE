@@ -22,8 +22,6 @@ function ReservationContent() {
   const [paymentMethod, setPaymentMethod] = useState('manual');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // --- PERBAIKAN DI SINI ---
-  // Pastikan semua parameter diambil dari URL
   const propertyId = searchParams.get('propertyId');
   const roomId = searchParams.get('roomId');
   const checkIn = searchParams.get('checkIn');
@@ -51,6 +49,7 @@ function ReservationContent() {
         return;
       }
 
+      const guests = searchParams.get('guests');
 
       const payload = {
         propertyId: propertyId,
@@ -59,13 +58,15 @@ function ReservationContent() {
         checkOut: new Date(checkOut).toISOString(),
         paymentMethod: paymentMethod,
         userId: user.id,
+        guestCount: guests ? parseInt(guests, 10) : 1,
         guestInfo: {
           name: user?.fullName,
           email: user?.email,
         },
       };
       console.log("Payload yang dikirim:", payload);
-      const response = await apiHelper.post('/by-room-name', payload);
+      
+      const response = await apiHelper.post('/reservations/by-room-name', payload);
 
       if (paymentMethod === 'gateway' && response.data.data.paymentUrl) {
         window.location.href = response.data.data.paymentUrl;

@@ -44,11 +44,11 @@ export function BookingSidebar({
       return;
     }
 
-    // --- PERBAIKAN DI SINI ---
-    // Pastikan semua parameter yang dibutuhkan dikirim dengan benar ke URL
+
     const queryParams = new URLSearchParams({
       propertyId: selectedRoom.propertyId,
       roomId: selectedRoom.id,
+      roomName: selectedRoom.name,
       checkIn: selectedRange.from.toISOString(),
       checkOut: selectedRange.to.toISOString(),
       nights: nights.toString(),

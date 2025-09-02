@@ -9,11 +9,11 @@ import { useToast } from '@/components/ui/use-toast';
 import api from '@/utils/api';
 
 interface Props {
-    orderId: string;
+    invoiceNumber: string;
     onUploadSuccess: () => void;
 }
 
-export default function UploadPaymentDialog({ orderId, onUploadSuccess }: Props) {
+export default function UploadPaymentDialog({ invoiceNumber, onUploadSuccess }: Props) {
     const [file, setFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [open, setOpen] = useState(false);
@@ -42,7 +42,7 @@ export default function UploadPaymentDialog({ orderId, onUploadSuccess }: Props)
         formData.append('paymentProof', file);
 
         try {
-            await api.post(`/upload-payment/${orderId}`, formData, {
+            await api.post(`/payments/${invoiceNumber}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
 

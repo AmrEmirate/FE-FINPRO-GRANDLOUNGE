@@ -20,7 +20,7 @@ export function useUserOrders() {
                 params.append('date', filters.date);
             }
 
-            const response = await api.get(`/order-list/user?${params.toString()}`);
+            const response = await api.get(`/orders/order-list?${params.toString()}`);
 
             if (Array.isArray(response.data.data)) {
                 setOrders(response.data.data);
