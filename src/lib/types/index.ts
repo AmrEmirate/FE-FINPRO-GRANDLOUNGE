@@ -117,6 +117,7 @@ export interface UserOrder {
   checkOut: string;
   total: number;
   status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
+  paymentDeadline: string;
 }
 
 export interface TenantTransaction {
@@ -129,5 +130,17 @@ export interface TenantTransaction {
     name: string;
   };
   status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
-  paymentProof?: string; 
+  paymentProof?: string;
+}
+
+export interface Review {
+  id: string;
+  rating: number;
+  comment?: string;
+  reply?: string | null;
+  user: {
+    fullName: string;
+    profilePicture?: string; // URL gambar, opsional
+  };
+  createdAt: string; // atau Date
 }

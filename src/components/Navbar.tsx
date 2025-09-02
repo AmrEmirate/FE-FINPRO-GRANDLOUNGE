@@ -19,7 +19,9 @@ import {
 export default function NavbarLayout({ children }: { children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
-    const { isAuthenticated, user, logout } = useAuth();
+
+    // PERBAIKAN 1: Hapus `isAuthenticated`. Kita akan cek langsung dari `user`.
+    const { user, logout } = useAuth();
 
     // cek apakah halaman home
     const isHome = pathname === "/";
@@ -37,7 +39,9 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
         return () => clearInterval(interval);
     }, []);
 
-    if (pathname.startsWith("/auth")) return children;
+    if (pathname.startsWith("/auth")) return <>{children}</>;
+    if (pathname.startsWith("/dashboard") || pathname.startsWith("/tenant")) return <>{children}</>;
+
 
     // Kondisi background
     const navbarBg = isHome ? "bg-transparent" : "bg-black shadow-md text-white";
@@ -84,18 +88,20 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
 
                 {/* MENU (Desktop) */}
                 <div className="hidden lg:flex gap-6 text-white">
-                    <Link href="/hotel">Hotel</Link>
-                    <Link href="/villa">Villa</Link>
-                    <Link href="/apartemen">Apartemen</Link>
+                    <Link href="/properties">Properti</Link>
+                    <Link href="/about">Tentang Kami</Link>
+                    <Link href="/contact">Kontak</Link>
                 </div>
 
                 {/* Auth Section (Desktop) */}
                 <div className="ml-auto hidden lg:flex gap-3 items-center">
-                    {isAuthenticated ? (
+                    {/* PERBAIKAN 2: Ganti `isAuthenticated` menjadi `user` */}
+                    {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer flex items-center justify-center text-black font-bold">
-                                    {user?.fullName?.charAt(0).toUpperCase()}
+                                    {/* PERBAIKAN 3: Ganti `fullName` menjadi `name` agar sesuai dengan context */}
+                                    {user?.name?.charAt(0).toUpperCase()}
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -107,8 +113,8 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
                                     { label: "Akun", href: "/dashboard/akun_user/profile" },
                                     { label: "Your Orders", href: "/dashboard/akun_user/orders" },
                                     { label: "Metode Pembayaran", href: "/dashboard/akun_user/metode_pembayaran" },
-                                    { label: "My Review", href: "/dashboard/akun_user/reviews" },
-                                    { label: "Pengaturan", href: "/dashboard/akun_user/settings" },
+                                    { label: "My Review", href: "/dashboard/akun_user/review" },
+                                    { label: "Pengaturan", href: "/dashboard/akun_user/pengaturan" },
                                 ].map((item) => (
                                     <DropdownMenuItem asChild key={item.href}>
                                         <Link href={item.href}>{item.label}</Link>
@@ -164,14 +170,15 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
                         transition={{ duration: 0.3 }}
                         className="fixed top-20 left-0 w-full bg-white cursor-pointer shadow-md p-6 flex flex-col gap-4 lg:hidden z-40"
                     >
-                        {isAuthenticated ? (
+                        {/* PERBAIKAN 4: Ganti `isAuthenticated` menjadi `user` */}
+                        {user ? (
                             <div className="mt-4">
                                 {[
                                     { label: "Akun", href: "/dashboard/akun_user/profile" },
-                                    { label: "Your Orders", href: "/orders" },
-                                    { label: "Metode Pembayaran", href: "/payment-methods" },
-                                    { label: "My Review", href: "/reviews" },
-                                    { label: "Pengaturan", href: "/settings" },
+                                    { label: "Your Orders", href: "/dashboard/akun_user/orders" },
+                                    { label: "Metode Pembayaran", href: "/dashboard/akun_user/metode_pembayaran" },
+                                    { label: "My Review", href: "/dashboard/akun_user/review" },
+                                    { label: "Pengaturan", href: "/dashboard/akun_user/pengaturan" },
                                 ].map((item) => (
                                     <Link
                                         key={item.href}
