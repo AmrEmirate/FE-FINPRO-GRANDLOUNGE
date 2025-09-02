@@ -16,8 +16,8 @@ export default function TenantTransactionsPage() {
         setIsLoading(true);
         try {
             // Endpoint BE untuk mengambil semua transaksi milik tenant
-            const response = await api.get('/order-list/tenant');
-            setTransactions(response.data);
+            const response = await api.get('/orders/tenant-transaction-list');
+            setTransactions(response.data.data);
         } catch (error) {
             toast({
                 variant: 'destructive',

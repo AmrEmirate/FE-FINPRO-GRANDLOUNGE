@@ -17,7 +17,7 @@ interface Props {
 export default function TransactionsTable({ data, refetchData }: Props) {
     const { toast } = useToast();
 
-    const handleAction = async (action: 'approve' | 'reject', id: string) => {
+    const handleAction = async (action: 'approve' | 'reject', invoiceNumber: string) => {
         const actionMessages = {
             approve: { past: 'disetujui', present: 'menyetujui' },
             reject: { past: 'ditolak', present: 'menolak' },
@@ -25,7 +25,9 @@ export default function TransactionsTable({ data, refetchData }: Props) {
         const message = actionMessages[action];
 
         try {
-            await api.patch(`/confirm-payment/${id}/${action}`);
+            await api.patch(`/payment-confirm/confirm/${invoiceNumber}`, {
+                isAccepted: action === 'approve'
+            });
             toast({ title: 'Sukses', description: `Pembayaran berhasil ${message.past}.` });
             refetchData();
         } catch (error) {
@@ -58,21 +60,21 @@ export default function TransactionsTable({ data, refetchData }: Props) {
                 <TableBody>
                     {data.map((item) => (
                         <TableRow key={item.id}>
-                            <TableCell className="font-medium">{item.orderId}</TableCell>
+                            <TableCell className="font-medium">{item.invoiceNumber}</TableCell>
                             <TableCell>{item.user.name}</TableCell>
                             <TableCell>{item.property.name}</TableCell>
                             <TableCell><Badge>{item.status}</Badge></TableCell>
                             <TableCell className="text-right space-x-2">
-                                {item.status === 'Menunggu Konfirmasi' && (
+                                {item.status === 'MENUNGGU_KONFIRMASI' && (
                                     <>
                                         <Button asChild variant="outline" size="sm">
                                             <Link href={item.paymentProof || '#'} target="_blank" rel="noopener noreferrer">Lihat Bukti</Link>
                                         </Button>
-                                        <Button size="sm" onClick={() => handleAction('approve', item.id)}>Setujui</Button>
-                                        <Button variant="destructive" size="sm" onClick={() => handleAction('reject', item.id)}>Tolak</Button>
+                                        <Button size="sm" onClick={() => handleAction('approve', item.invoiceNumber)}>Setujui</Button>
+                                        <Button variant="destructive" size="sm" onClick={() => handleAction('reject', item.invoiceNumber)}>Tolak</Button>
                                     </>
                                 )}
-                                {item.status === 'Menunggu Pembayaran' && (
+                                {item.status === 'MENUNGGU_PEMBAYARAN' && (
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="destructive" size="sm">Batalkan</Button>
