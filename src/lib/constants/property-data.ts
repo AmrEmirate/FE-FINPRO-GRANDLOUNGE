@@ -1,196 +1,120 @@
-import type { Property } from "@/lib/types"
-import { RoomCategory, BedOption, UserRole } from "@/lib/types"
-import { mockCategories } from "./categories"
+import type { Property } from "@/lib/types";
+import { BedOption, RoomCategory } from "@/lib/types";
+import { mockCategories } from "./categories";
 
+// Helper function to create consistent mock data with corrected structure
 const createMockProperty = (
-  id: number,
-  tenantId: number,
+  id: string,
+  tenantId: string,
   name: string,
-  categoryId: number,
+  categoryId: string,
   description: string,
-  location: string,
-  latitude: number,
-  longitude: number,
-  provinsi: string,
-  zipCode: string,
-  mainImage: string,
-  companyName: string,
-  managerName: string,
-  email: string,
-  phone: string,
+  address: string, // Address is now a separate parameter for city name
+  provinsi: string, // Province is also separate
+  image: string,
+  contactName: string,
   rooms: Array<{
-    id: number
-    name: string
-    category: RoomCategory
-    description: string
-    bedOption: BedOption
-    capacity: number
-    basePrice: number
-  }>,
+    id: string;
+    name: string;
+    category: RoomCategory;
+    description: string;
+    bedOption: BedOption; // Ensure this uses valid enum values
+    capacity: number;
+    basePrice: number;
+  }>
 ): Property => ({
   id,
   tenantId,
   name,
-  categoryId,
   description,
-  location,
-  latitude,
-  longitude,
-  provinsi,
-  zipCode,
-  mainImage,
-  createdAt: new Date("2024-01-01"),
-  updatedAt: new Date("2024-01-01"),
-  tenant: {
-    id: tenantId,
-    userId: tenantId,
-    companyName,
-    addressCompany: location,
-    phoneNumberCompany: phone,
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
-    user: {
-      id: tenantId,
-      role: UserRole.TENANT,
-      fullName: managerName,
-      email,
-      verified: true,
-      createdAt: new Date("2024-01-01"),
-      updatedAt: new Date("2024-01-01"),
-    },
+  mainImage: image,
+  createdAt: new Date().toISOString(),
+  // updatedAt DIHAPUS DARI SINI
+  
+  city: {
+    id: `city-${id}`, // Example city ID
+    name: address,
+    provinsi: provinsi,
   },
-  category: mockCategories[categoryId - 1],
+  
+  category: mockCategories.find(cat => cat.id === categoryId) || mockCategories[0],
+  
+  tenant: {
+    user: {
+      fullName: contactName,
+      profilePicture: "/placeholder-user.jpg",
+    },
+    createdAt: new Date().toISOString(),
+  },
+  
   rooms: rooms.map((room) => ({
     ...room,
     propertyId: id,
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
-    property: {} as Property,
+    isDeleted: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   })),
-})
+  
+  reviews: [],
+  images: [],
+});
 
 export const mockProperties: Property[] = [
   createMockProperty(
-    1,
-    1,
-    "Grand Lodge Downtown",
-    1,
-    "Luxury hotel in the heart of Jakarta with world-class amenities",
-    "Jakarta Pusat",
-    -6.2088,
-    106.8456,
-    "DKI Jakarta",
-    "10110",
-    "/luxury-downtown-hotel.png",
-    "Grand Lodge Management",
-    "Hotel Manager",
-    "manager@grandlodge.com",
-    "+62 21 1234 5678",
+    "1", "tenant-1", "Grand Lodge Downtown", "1",
+    "A luxurious hotel located in the heart of the bustling city.",
+    "Jakarta", "DKI Jakarta", "/luxury-downtown-hotel.png",
+    "John Doe",
     [
       {
-        id: 1,
-        name: "Standard Room",
-        category: RoomCategory.STANDARD,
-        description: "Comfortable room with city view",
-        bedOption: BedOption.DOUBLE,
-        capacity: 2,
-        basePrice: 850000,
+        id: "room-101", name: "Standard Room", category: RoomCategory.STANDARD,
+        description: "A cozy room with all the basic amenities.",
+        bedOption: BedOption.DOUBLE, capacity: 2, basePrice: 850000,
       },
       {
-        id: 2,
-        name: "Deluxe Room",
-        category: RoomCategory.DELUXE,
-        description: "Spacious room with premium amenities",
-        bedOption: BedOption.DOUBLE,
-        capacity: 3,
-        basePrice: 1200000,
+        id: "room-103", name: "Executive Suite", category: RoomCategory.SUITE,
+        description: "A luxurious suite with a separate living area.",
+        bedOption: BedOption.DOUBLE, capacity: 4, basePrice: 2500000,
       },
-    ],
+    ]
   ),
   createMockProperty(
-    2,
-    2,
-    "Seaside Villa Resort",
-    2,
-    "Beautiful villa resort with ocean views",
-    "Seminyak",
-    -8.6905,
-    115.1729,
-    "Bali",
-    "80361",
-    "/seaside-villa-resort.png",
-    "Seaside Resorts",
-    "Villa Manager",
-    "manager@seaside.com",
-    "+62 361 123456",
+    "2", "tenant-2", "Seaside Villa Resort", "2",
+    "An exquisite villa resort offering private pools.",
+    "Bali", "Bali", "/seaside-villa-resort.png",
+    "Jane Smith",
     [
       {
-        id: 3,
-        name: "Ocean View Villa",
-        category: RoomCategory.SUITE,
-        description: "Luxury villa with private pool and ocean view",
-        bedOption: BedOption.DOUBLE,
-        capacity: 8,
-        basePrice: 2500000,
+        id: "room-201", name: "One-Bedroom Villa", category: RoomCategory.DELUXE,
+        description: "Private villa with a personal pool.",
+        bedOption: BedOption.DOUBLE, capacity: 2, basePrice: 3500000,
       },
-    ],
+    ]
   ),
   createMockProperty(
-    3,
-    3,
-    "Mountain View Lodge",
-    3,
-    "Cozy lodge with stunning mountain views",
-    "Lembang",
-    -6.8116,
-    107.6178,
-    "Jawa Barat",
-    "40391",
-    "/mountain-view-lodge.png",
-    "Mountain Lodge Co",
-    "Lodge Manager",
-    "manager@mountainlodge.com",
-    "+62 22 123456",
+    "3", "tenant-3", "Mountain View Lodge", "3",
+    "A cozy lodge nestled in the mountains of Bandung.",
+    "Bandung", "Jawa Barat", "/mountain-view-lodge.png",
+    "Michael Chen",
     [
       {
-        id: 4,
-        name: "Mountain Cabin",
-        category: RoomCategory.STANDARD,
-        description: "Rustic cabin with mountain view",
-        bedOption: BedOption.TWIN,
-        capacity: 4,
-        basePrice: 650000,
+        id: "room-301", name: "Forest View Cabin", category: RoomCategory.STANDARD,
+        description: "A rustic cabin with a view of the forest.",
+        bedOption: BedOption.TWIN, capacity: 2, basePrice: 750000,
       },
-    ],
+    ]
   ),
   createMockProperty(
-    4,
-    4,
-    "Urban Boutique Hotel",
-    1,
-    "Modern boutique hotel in the city center",
-    "Surabaya Pusat",
-    -7.2575,
-    112.7521,
-    "Jawa Timur",
-    "60271",
-    "/urban-boutique-hotel.png",
-    "Urban Hotels",
-    "Hotel Manager",
-    "manager@urbanhotel.com",
-    "+62 31 123456",
+    "4", "tenant-4", "Urban Boutique Hotel", "1", // Hotel category
+    "A stylish boutique hotel in the trendy district of Yogyakarta.",
+    "Yogyakarta", "Yogyakarta", "/urban-boutique-hotel.png",
+    "Sarah Lee",
     [
       {
-        id: 5,
-        name: "Boutique Room",
-        category: RoomCategory.DELUXE,
-        description: "Stylish room with modern amenities",
-        bedOption: BedOption.DOUBLE,
-        capacity: 2,
-        basePrice: 750000,
+        id: "room-402", name: "Gallery Suite", category: RoomCategory.SUITE,
+        description: "A spacious suite featuring a collection of art.",
+        bedOption: BedOption.DOUBLE, capacity: 2, basePrice: 1800000,
       },
-    ],
+    ]
   ),
-]
-
-export { createMockProperty }
+];
