@@ -29,25 +29,28 @@ export function useProperties(searchParams: ReadonlyURLSearchParams) {
   const filteredProperties = useMemo(() => {
     let filtered = [...properties]
 
-    // Search filter
+    // --- PERBAIKAN 2: Ubah cara filter pencarian ---
     if (searchTerm) {
       filtered = filtered.filter(
         (property) =>
           property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          property.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          // Gunakan property.city.name
+          property.city.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           property.category.name.toLowerCase().includes(searchTerm.toLowerCase()),
       )
     }
 
-    // URL search params filters
     const destination = searchParams.get("destination")
     if (destination) {
       filtered = filtered.filter(
         (property) =>
-          property.location.toLowerCase().includes(destination.toLowerCase()) ||
-          property.provinsi.toLowerCase().includes(destination.toLowerCase()),
+          // Gunakan property.city.name
+          property.city.name.toLowerCase().includes(destination.toLowerCase()) ||
+          // Gunakan property.city.provinsi
+          property.city.provinsi.toLowerCase().includes(destination.toLowerCase()),
       )
     }
+    // --- AKHIR PERBAIKAN 2 ---
 
     // Price range filter
     if (filters.priceRange) {

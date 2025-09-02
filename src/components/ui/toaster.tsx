@@ -1,6 +1,8 @@
 "use client"
 
-import { useToast } from "@/hooks/use-toast"
+// --- PERBAIKAN DI SINI ---
+// Ubah path import dari "@/hooks/use-toast" menjadi "@/components/ui/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import {
   Toast,
   ToastClose,

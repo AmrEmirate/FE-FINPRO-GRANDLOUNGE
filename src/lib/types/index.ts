@@ -94,6 +94,13 @@ export interface Property {
   images?: PropertyImage[];
 }
 
+// --- PERBAIKAN 1: Tambahkan tipe PropertyFilters ---
+export interface PropertyFilters {
+  priceRange?: [number, number];
+  categories?: string[];
+  guestCount?: string;
+}
+
 // Tipe data untuk User yang sedang login
 export interface User {
   id: string;
@@ -109,36 +116,24 @@ export interface User {
 
 export interface UserOrder {
   id: string;
-  invoiceNumber: string;
+  orderId: string;
   property: { name: string };
   checkIn: string;
   checkOut: string;
-  totalPrice: number;
-  status: 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'DIBATALKAN' | 'SELESAI';
+  total: number;
+  status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
   paymentDeadline: string;
 }
 
 export interface TenantTransaction {
   id: string;
-  invoiceNumber: string;
+  orderId: string;
   user: {
     name: string;
   };
   property: {
     name: string;
   };
-  status: 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'DIBATALKAN' | 'SELESAI';
+  status: 'Menunggu Pembayaran' | 'Diproses' | 'Selesai' | 'Dibatalkan' | 'Menunggu Konfirmasi';
   paymentProof?: string;
-}
-
-export interface Review {
-  id: string;
-  rating: number;
-  comment?: string;
-  reply?: string | null;
-  user: {
-    fullName: string;
-    profilePicture?: string; // URL gambar, opsional
-  };
-  createdAt: string; // atau Date
 }
