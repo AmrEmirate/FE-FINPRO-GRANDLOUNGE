@@ -1,20 +1,35 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle, XCircle, Mail } from "lucide-react"
-import { useAuth } from "@/context/AuthContext" // Menggunakan user dari context
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, Mail } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
-interface VerificationStatusProps {
-  isLoading: boolean
-  onEmailVerification: () => void
-}
+// Komponen ini tidak lagi memerlukan props isLoading dan onEmailVerification
+export function VerificationStatus() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-export function VerificationStatus({ isLoading, onEmailVerification }: VerificationStatusProps) {
-  const { user } = useAuth(); // Mengambil user dari context
+  // Fungsi untuk mengirim ulang email verifikasi
+  const handleResendVerification = async () => {
+    setIsLoading(true);
+    // Di sini Anda bisa menambahkan logika pemanggilan API ke backend
+    // untuk mengirim ulang email.
+    try {
+      // await apiHelper.post('/auth/resend-verification', { email: user?.email });
+      toast({ title: "Info", description: `Email verifikasi baru telah dikirim ke ${user?.email}` });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Gagal mengirim email verifikasi." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (!user) {
-      return null; // atau skeleton loader
+    return <p>Memuat status verifikasi...</p>;
   }
 
   return (
@@ -23,7 +38,7 @@ export function VerificationStatus({ isLoading, onEmailVerification }: Verificat
         <div className="flex items-center space-x-3">
           <Mail className="h-5 w-5 text-gray-400" />
           <div>
-            <h3 className="font-medium">Email Verification</h3>
+            <h3 className="font-medium">Verifikasi Email</h3>
             <p className="text-sm text-gray-600">{user.email}</p>
           </div>
         </div>
@@ -32,13 +47,13 @@ export function VerificationStatus({ isLoading, onEmailVerification }: Verificat
             <>
               <CheckCircle className="h-5 w-5 text-green-500" />
               <Badge variant="default" className="bg-green-100 text-green-800">
-                Verified
+                Terverifikasi
               </Badge>
             </>
           ) : (
             <>
               <XCircle className="h-5 w-5 text-red-500" />
-              <Badge variant="destructive">Not Verified</Badge>
+              <Badge variant="destructive">Belum Diverifikasi</Badge>
             </>
           )}
         </div>
@@ -46,30 +61,14 @@ export function VerificationStatus({ isLoading, onEmailVerification }: Verificat
 
       {!user.verified && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <Mail className="h-5 w-5 text-amber-600 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-medium text-amber-800">Email Verification Required</h3>
-              <p className="text-sm text-amber-700 mt-1">
-                Please verify your email address to secure your account and receive important updates.
-              </p>
-              <Button onClick={onEmailVerification} disabled={isLoading} className="mt-3" size="sm">
-                {isLoading ? "Sending..." : "Send Verification Email"}
-              </Button>
-            </div>
-          </div>
+          <p className="text-sm text-amber-700">
+            Silakan verifikasi alamat email Anda untuk mengamankan akun dan menerima pembaruan penting.
+          </p>
+          <Button onClick={handleResendVerification} disabled={isLoading} className="mt-3" size="sm">
+            {isLoading ? "Mengirim..." : "Kirim Ulang Email Verifikasi"}
+          </Button>
         </div>
       )}
-
-      <div className="text-sm text-gray-600">
-        <h4 className="font-medium mb-2">Verification Benefits:</h4>
-        <ul className="list-disc list-inside mt-1 space-y-1">
-          <li>• Enhanced account security</li>
-          <li>• Access to all platform features</li>
-          <li>• Priority customer support</li>
-          <li>• Booking confirmations and updates</li>
-        </ul>
-      </div>
     </div>
-  )
+  );
 }

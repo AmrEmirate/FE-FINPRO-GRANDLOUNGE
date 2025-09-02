@@ -1,133 +1,81 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Lock, Eye, EyeOff } from "lucide-react"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import apiHelper from "@/lib/apiHelper";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
-// Tipe data untuk state password
-interface PasswordData {
-  currentPassword?: string;
-  newPassword?: string;
-  confirmPassword?: string;
-}
+const securityFormSchema = z.object({
+  oldPassword: z.string().min(1, { message: "Password saat ini harus diisi." }),
+  newPassword: z.string().min(8, { message: "Password baru minimal 8 karakter." }),
+});
 
-// Tipe data untuk state visibilitas password
-interface ShowPasswordsState {
-  current: boolean;
-  new: boolean;
-  confirm: boolean;
-}
+type SecurityFormValues = z.infer<typeof securityFormSchema>;
 
-// Definisikan props yang diterima komponen
-interface SecurityFormProps {
-  passwordData: PasswordData;
-  showPasswords: ShowPasswordsState;
-  isLoading: boolean;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  onChange: (data: PasswordData) => void;
-  onTogglePassword: (field: keyof ShowPasswordsState) => void;
-}
+export function SecurityForm() {
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
 
-export function SecurityForm({
-  passwordData,
-  showPasswords,
-  isLoading,
-  onSubmit,
-  onChange,
-  onTogglePassword,
-}: SecurityFormProps) {
-  // Fungsi untuk menangani perubahan pada input field
-  const handleInputChange = (field: keyof PasswordData, value: string) => {
-    onChange({ ...passwordData, [field]: value })
-  }
+    const form = useForm<SecurityFormValues>({
+        resolver: zodResolver(securityFormSchema),
+        defaultValues: { oldPassword: "", newPassword: "" },
+    });
 
-  return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      {/* Input untuk Current Password */}
-      <div>
-        <Label htmlFor="currentPassword">Current Password</Label>
-        <div className="relative mt-1">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            id="currentPassword"
-            type={showPasswords.current ? "text" : "password"}
-            value={passwordData.currentPassword || ""}
-            onChange={(e) => handleInputChange("currentPassword", e.target.value)}
-            className="pl-10 pr-10"
-            placeholder="Enter current password"
-            required
-          />
-          <button
-            type="button"
-            title={showPasswords.current ? "Hide password" : "Show password"} // Perbaikan aksesibilitas
-            onClick={() => onTogglePassword("current")}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
+    async function onSubmit(data: SecurityFormValues) {
+        setIsLoading(true);
+        try {
+            await apiHelper.patch("/user/password", data);
+            toast({ title: "Sukses", description: "Password berhasil diubah." });
+            form.reset();
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Gagal Mengubah Password",
+                description: error.response?.data?.message || "Terjadi kesalahan.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
-      {/* Input untuk New Password */}
-      <div>
-        <Label htmlFor="newPassword">New Password</Label>
-        <div className="relative mt-1">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            id="newPassword"
-            type={showPasswords.new ? "text" : "password"}
-            value={passwordData.newPassword || ""}
-            onChange={(e) => handleInputChange("newPassword", e.target.value)}
-            className="pl-10 pr-10"
-            placeholder="Enter new password"
-            minLength={8}
-            required
-          />
-          <button
-            type="button"
-            title={showPasswords.new ? "Hide password" : "Show password"} // Perbaikan aksesibilitas
-            onClick={() => onTogglePassword("new")}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Input untuk Confirm New Password */}
-      <div>
-        <Label htmlFor="confirmPassword">Confirm New Password</Label>
-        <div className="relative mt-1">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            id="confirmPassword"
-            type={showPasswords.confirm ? "text" : "password"}
-            value={passwordData.confirmPassword || ""}
-            onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-            className="pl-10 pr-10"
-            placeholder="Confirm new password"
-            minLength={8}
-            required
-          />
-          <button
-            type="button"
-            title={showPasswords.confirm ? "Hide password" : "Show password"} // Perbaikan aksesibilitas
-            onClick={() => onTogglePassword("confirm")}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Tombol Submit */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Updating..." : "Change Password"}
-        </Button>
-      </div>
-    </form>
-  )
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                    control={form.control}
+                    name="oldPassword"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password Saat Ini</FormLabel>
+                            <FormControl><Input type="password" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password Baru</FormLabel>
+                            <FormControl><Input type="password" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <div className="flex justify-end">
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Ubah Password
+                    </Button>
+                </div>
+            </form>
+        </Form>
+    );
 }
