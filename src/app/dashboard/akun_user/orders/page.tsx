@@ -16,6 +16,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon, Search, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 const formatDeadline = (isoString: string) => {
     try {
@@ -28,7 +29,7 @@ const formatDeadline = (isoString: string) => {
     }
 };
 
-export default function UserOrdersPage() {
+function OrdersContent() {
     const [orders, setOrders] = useState<UserOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
@@ -60,39 +61,29 @@ export default function UserOrdersPage() {
         fetchOrders();
     }, [fetchOrders]);
 
-    // --- PENJELASAN 1: Efek untuk memeriksa pesanan yang kedaluwarsa secara real-time ---
     useEffect(() => {
-        // Jalankan sebuah timer yang akan memeriksa setiap 5 detik
         const intervalId = setInterval(() => {
-            // Dapatkan state `orders` yang paling baru
             setOrders(currentOrders => {
                 let hasChanged = false;
-                // Buat array baru dengan status yang sudah diperbarui
                 const updatedOrders = currentOrders.map(order => {
-                    // Hanya periksa pesanan yang statusnya 'Menunggu Pembayaran'
                     if (order.status === 'Menunggu Pembayaran') {
                         const isExpired = new Date() > new Date(order.paymentDeadline);
                         if (isExpired) {
-                            hasChanged = true; 
+                            hasChanged = true;
                             return { ...order, status: 'Dibatalkan' as const };
                         }
                     }
-                    return order; // Kembalikan pesanan tanpa perubahan jika tidak ada masalah
+                    return order;
                 });
-
-                // Hanya perbarui state jika benar-benar ada perubahan
-                // Ini penting untuk mencegah re-render yang tidak perlu
                 if (hasChanged) {
                     return updatedOrders;
                 }
                 return currentOrders;
             });
-        }, 5000); // Interval 5 detik
+        }, 5000);
 
-        // --- PENJELASAN 2: Hentikan timer saat komponen tidak lagi ditampilkan ---
-        // Ini adalah "cleanup function" yang sangat penting untuk mencegah kebocoran memori (memory leak)
         return () => clearInterval(intervalId);
-    }, []); // Dependency array kosong `[]` berarti efek ini hanya berjalan sekali saat komponen dimuat
+    }, []);
 
     const handleSearch = () => {
         const filters: { orderId?: string; date?: string } = {};
@@ -182,9 +173,6 @@ export default function UserOrdersPage() {
                                     )}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    {/* --- PENJELASAN 3: Logika Tampilan Otomatis Berubah --- */}
-                                    {/* Karena state statusnya diubah oleh timer, React akan otomatis */}
-                                    {/* menyembunyikan bagian ini saat status berubah menjadi 'Dibatalkan' */}
                                     {order.status === 'Menunggu Pembayaran' && (
                                         <div className="flex justify-end space-x-2">
                                             <UploadPaymentDialog orderId={order.id} onUploadSuccess={fetchOrders} />
@@ -213,4 +201,12 @@ export default function UserOrdersPage() {
             )}
         </div>
     );
+}
+
+export default function UserOrdersPage() {
+    return (
+        <ProtectedRoute>
+            <OrdersContent />
+        </ProtectedRoute>
+    )
 }

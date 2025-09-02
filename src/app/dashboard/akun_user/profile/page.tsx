@@ -24,7 +24,7 @@ function ProfileContent(): ReactElement {
     useEffect(() => {
         if (user) {
             setProfileData({
-                fullName: user.fullName,
+                fullName: user.name,
                 email: user.email,
             });
         }

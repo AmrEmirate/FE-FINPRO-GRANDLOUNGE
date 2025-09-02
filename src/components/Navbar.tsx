@@ -15,18 +15,15 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 
-export default function NavbarLayout({ children }: { children: React.ReactNode }) {
+export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
-
-    // PERBAIKAN 1: Hapus `isAuthenticated`. Kita akan cek langsung dari `user`.
     const { user, logout } = useAuth();
 
-    // cek apakah halaman home
     const isHome = pathname === "/";
 
-    // Placeholder untuk search bar
     const placeholders = ["Cari Hotel...", "Cari Villa...", "Cari Apartemen..."];
     const [index, setIndex] = useState(0);
     const [isFocused, setIsFocused] = useState(false);
@@ -39,16 +36,15 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
         return () => clearInterval(interval);
     }, []);
 
-    if (pathname.startsWith("/auth")) return <>{children}</>;
-    if (pathname.startsWith("/dashboard") || pathname.startsWith("/tenant")) return <>{children}</>;
+    // Sembunyikan navbar di auth/dashboard/tenant
+    if (pathname.startsWith("/auth")) return null;
+    if (pathname.startsWith("/dashboard") || pathname.startsWith("/tenant")) return null;
 
-
-    // Kondisi background
     const navbarBg = isHome ? "bg-transparent" : "bg-black shadow-md text-white";
     const navbarPosition = isHome ? "absolute" : "fixed";
 
     return (
-        <div>
+        <>
             {/* NAVBAR */}
             <nav
                 className={`${navbarPosition} top-0 left-0 w-full flex items-center h-20 px-6 lg:px-12 z-50 gap-6 transition-all duration-300 ${navbarBg}`}
@@ -93,22 +89,19 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
                     <Link href="/contact">Kontak</Link>
                 </div>
 
-                {/* Auth Section (Desktop) */}
+                {/* Auth Section */}
                 <div className="ml-auto hidden lg:flex gap-3 items-center">
-                    {/* PERBAIKAN 2: Ganti `isAuthenticated` menjadi `user` */}
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer flex items-center justify-center text-black font-bold">
-                                    {/* PERBAIKAN 3: Ganti `fullName` menjadi `name` agar sesuai dengan context */}
-                                    {user?.name?.charAt(0).toUpperCase()}
-                                </button>
+                                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={user?.profilePicture || "/placeholder-user.jpg"} alt={user?.fullName} />
+                                        <AvatarFallback>{user?.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
+                                    </Avatar>
+                                </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                align="end"
-                                sideOffset={8}
-                                className="w-64 p-3 rounded-2xl shadow-xl cursor-pointer"
-                            >
+                            <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-3 rounded-2xl shadow-xl cursor-pointer">
                                 {[
                                     { label: "Akun", href: "/dashboard/akun_user/profile" },
                                     { label: "Your Orders", href: "/dashboard/akun_user/orders" },
@@ -123,10 +116,7 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
 
                                 <DropdownMenuSeparator />
 
-                                <DropdownMenuItem
-                                    onClick={logout}
-                                    className="text-red-500 cursor-pointer"
-                                >
+                                <DropdownMenuItem onClick={logout} className="text-red-500 cursor-pointer">
                                     <LogOut className="mr-2 h-4 w-4" />
                                     Keluar
                                 </DropdownMenuItem>
@@ -151,11 +141,7 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
                 {/* Mobile menu toggle */}
                 <div className="ml-auto lg:hidden">
                     <button onClick={() => setIsOpen(!isOpen)}>
-                        {isOpen ? (
-                            <X className="text-white w-7 h-7" />
-                        ) : (
-                            <Menu className="text-white w-7 h-7" />
-                        )}
+                        {isOpen ? <X className="text-white w-7 h-7" /> : <Menu className="text-white w-7 h-7" />}
                     </button>
                 </div>
             </nav>
@@ -170,7 +156,6 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
                         transition={{ duration: 0.3 }}
                         className="fixed top-20 left-0 w-full bg-white cursor-pointer shadow-md p-6 flex flex-col gap-4 lg:hidden z-40"
                     >
-                        {/* PERBAIKAN 4: Ganti `isAuthenticated` menjadi `user` */}
                         {user ? (
                             <div className="mt-4">
                                 {[
@@ -180,12 +165,7 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
                                     { label: "My Review", href: "/dashboard/akun_user/review" },
                                     { label: "Pengaturan", href: "/dashboard/akun_user/pengaturan" },
                                 ].map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className="block py-2 text-gray-700"
-                                        onClick={() => setIsOpen(false)}
-                                    >
+                                    <Link key={item.href} href={item.href} className="block py-2 text-gray-700" onClick={() => setIsOpen(false)}>
                                         {item.label}
                                     </Link>
                                 ))}
@@ -213,11 +193,6 @@ export default function NavbarLayout({ children }: { children: React.ReactNode }
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* PAGE CONTENT */}
-            <main className={`${isHome ? "" : "pt-20"}`}>
-                {children}
-            </main>
-        </div>
+        </>
     );
 }

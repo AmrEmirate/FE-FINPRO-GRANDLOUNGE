@@ -25,10 +25,8 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <AuthProvider>
-          {/* PERBAIKAN: Navbar sekarang membungkus konten utama */}
-          <Navbar>
-            <main>{children}</main>
-          </Navbar>
+          <Navbar />
+          <main>{children}</main>
           <Toaster />
         </AuthProvider>
       </body>

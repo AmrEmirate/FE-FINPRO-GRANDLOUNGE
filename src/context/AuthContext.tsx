@@ -7,8 +7,9 @@ import api from '@/utils/api';
 
 interface User {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
+  profilePicture?: string;
   role: 'USER' | 'TENANT';
 }
 
@@ -27,33 +28,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     if (token) {
       try {
-        const decodedUser: User = jwtDecode(token);
-        setUser(decodedUser);
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const decoded: any = jwtDecode(token);
+        const mappedUser: User = {
+          id: decoded.id || decoded.sub, // tergantung payload JWT kamu
+          fullName: decoded.fullName || decoded.name || "", // fallback kalau kosong
+          email: decoded.email,
+          profilePicture: decoded.profilePicture || "",
+          role: decoded.role,
+        };
+
+        setUser(mappedUser);
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       } catch (error) {
         console.error("Invalid token:", error);
-        localStorage.removeItem('authToken');
+        localStorage.removeItem("authToken");
       }
     }
     setLoading(false);
   }, []);
 
   const login = (token: string) => {
-    localStorage.setItem('authToken', token);
-    const decodedUser: User = jwtDecode(token);
-    setUser(decodedUser);
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    localStorage.setItem("authToken", token);
+
+    const decoded: any = jwtDecode(token);
+    const mappedUser: User = {
+      id: decoded.id || decoded.sub,
+      fullName: decoded.fullName || decoded.name || "",
+      email: decoded.email,
+      profilePicture: decoded.profilePicture || "",
+      role: decoded.role,
+    };
+
+    setUser(mappedUser);
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
     // Redirect based on role
-    if (decodedUser.role === 'TENANT') {
-      router.push('/tenant/dashboard');
+    if (mappedUser.role === "TENANT") {
+      router.push("/tenant/dashboard");
     } else {
-      router.push('/');
+      router.push("/");
     }
   };
+
 
   const logout = () => {
     localStorage.removeItem('authToken');
