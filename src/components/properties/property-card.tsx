@@ -54,12 +54,15 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </div>
           </div>
 
+          {/* --- PERBAIKAN DI SINI --- */}
           <div className="flex items-center text-gray-600 mb-2">
             <MapPin className="h-4 w-4 mr-1" />
             <span className="text-sm">
-              {property.location}, {property.provinsi}
+              {/* Mengakses nama kota dan provinsi dari objek city */}
+              {property.city.name}, {property.city.provinsi}
             </span>
           </div>
+          {/* --- AKHIR PERBAIKAN --- */}
 
           {maxCapacity > 0 && (
             <div className="flex items-center text-gray-600 mb-3">
