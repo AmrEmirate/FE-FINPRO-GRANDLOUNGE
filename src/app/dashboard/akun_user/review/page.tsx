@@ -1,5 +1,3 @@
-// src/app/dashboard/akun_user/review/page.tsx
-
 'use client';
 
 import { useState } from 'react';
@@ -12,8 +10,9 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { ReviewFormDialog } from '@/components/reviews/review-form-dialog';
 import { ReviewCard } from '@/components/reviews/review-card';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-const ReviewPage = () => {
+const ReviewPageContent = () => {
     const { orders, isLoading, error, submitReview } = useReviews();
     const [selectedOrder, setSelectedOrder] = useState<OrderForReview | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -107,7 +106,6 @@ const ReviewPage = () => {
                 )}
             </div>
 
-
             {/* Dialog Form Ulasan */}
             {selectedOrder && (
                 <ReviewFormDialog
@@ -121,4 +119,10 @@ const ReviewPage = () => {
     );
 };
 
-export default ReviewPage;
+export default function ReviewPage() {
+    return (
+        <ProtectedRoute>
+            <ReviewPageContent />
+        </ProtectedRoute>
+    );
+}

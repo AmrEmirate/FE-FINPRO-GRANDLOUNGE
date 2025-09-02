@@ -54,9 +54,7 @@ export interface Room {
   description: string;
   bedOption: BedOption;
   capacity: number; // Menggantikan 'maxGuests'
-  basePrice: number; // Menggantikan 'price'
-  // Properti 'available' tidak ada langsung dari API, penanganan ketersediaan
-  // akan dilakukan melalui logika booking atau state terpisah.
+  basePrice: number; 
 }
 
 export interface Review {

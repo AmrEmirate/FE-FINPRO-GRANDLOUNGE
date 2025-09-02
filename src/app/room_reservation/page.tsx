@@ -1,4 +1,3 @@
-// src/app/room_reservation/page.tsx
 'use client';
 
 import { Suspense, useState } from 'react';
@@ -18,13 +17,13 @@ function ReservationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuth(); // Ambil data user yang sedang login
+  const { user } = useAuth();
 
-  // State untuk metode pembayaran
-  const [paymentMethod, setPaymentMethod] = useState('manual'); // 'manual' or 'gateway'
+  const [paymentMethod, setPaymentMethod] = useState('manual');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Ambil data dari URL
+  // --- PERBAIKAN DI SINI ---
+  // Pastikan semua parameter diambil dari URL
   const propertyId = searchParams.get('propertyId');
   const roomId = searchParams.get('roomId');
   const checkIn = searchParams.get('checkIn');
@@ -32,7 +31,6 @@ function ReservationContent() {
   const nights = searchParams.get('nights');
   const totalCost = searchParams.get('totalCost');
 
-  // Fungsi untuk menangani pembuatan reservasi
   const handleCreateReservation = async () => {
     if (!propertyId || !roomId || !checkIn || !checkOut || !user) {
       toast({
@@ -46,49 +44,58 @@ function ReservationContent() {
     setIsProcessing(true);
 
     try {
-      // Data yang dikirim ke backend, sesuaikan dengan kebutuhan service Anda
+      const roomName = searchParams.get('roomName');
+      if (!roomName) {
+        toast({ variant: "destructive", title: "Error", description: "Nama kamar tidak ditemukan." });
+        setIsProcessing(false);
+        return;
+      }
+
+
       const payload = {
         propertyId: propertyId,
-        roomId: roomId,
-        checkinDate: new Date(checkIn).toISOString(),
-        checkoutDate: new Date(checkOut).toISOString(),
-        paymentMethod: paymentMethod, // Kirim metode pembayaran
+        roomName: roomName,
+        checkIn: new Date(checkIn).toISOString(),
+        checkOut: new Date(checkOut).toISOString(),
+        paymentMethod: paymentMethod,
+        userId: user.id,
+        guestInfo: {
+          name: user?.fullName,
+          email: user?.email,
+        },
       };
+      console.log("Payload yang dikirim:", payload);
+      const response = await apiHelper.post('/by-room-name', payload);
 
-      // Ganti endpoint jika berbeda. Berdasarkan backend Anda, sepertinya ini yang benar.
-      const response = await apiHelper.post('/reservations', payload);
-
-      toast({
-        title: 'Reservasi Berhasil Dibuat',
-        description: 'Anda akan diarahkan ke halaman pembayaran.',
-      });
-
-      // Arahkan ke halaman pembayaran Midtrans jika URL tersedia
-      if (response.data.paymentUrl) {
-        window.location.href = response.data.paymentUrl;
+      if (paymentMethod === 'gateway' && response.data.data.paymentUrl) {
+        window.location.href = response.data.data.paymentUrl;
       } else {
-        // Fallback untuk transfer manual
+        toast({
+          title: 'Reservasi Berhasil Dibuat',
+          description: 'Silakan unggah bukti pembayaran Anda.',
+        });
         router.push('/dashboard/akun_user/orders');
       }
     } catch (error: any) {
       console.error('Failed to create reservation:', error);
       toast({
         title: 'Gagal Membuat Reservasi',
-        description:
-          error.response?.data?.message ||
-          'Terjadi kesalahan saat memproses pesanan Anda.',
+        description: error.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan Anda.',
         variant: 'destructive',
       });
     } finally {
       setIsProcessing(false);
     }
   };
+  console.log("DATA USER SAAT INI:", user);
 
+  // Periksa apakah semua parameter ada sebelum menampilkan konten utama
+  console.log({ propertyId, roomId, checkIn, checkOut, user });
   if (!propertyId || !checkIn || !checkOut || !nights || !totalCost) {
     return (
-      <div className="text-center">
-        <p>Data reservasi tidak valid.</p>
-        <Button onClick={() => router.push('/')}>Kembali ke Beranda</Button>
+      <div className="text-center container mx-auto py-12">
+        <p className="text-red-500">Data reservasi tidak valid.</p>
+        <Button onClick={() => router.push('/')} className="mt-4">Kembali ke Beranda</Button>
       </div>
     );
   }

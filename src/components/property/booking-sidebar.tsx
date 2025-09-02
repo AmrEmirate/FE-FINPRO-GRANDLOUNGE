@@ -44,8 +44,10 @@ export function BookingSidebar({
       return;
     }
 
+    // --- PERBAIKAN DI SINI ---
+    // Pastikan semua parameter yang dibutuhkan dikirim dengan benar ke URL
     const queryParams = new URLSearchParams({
-      propertyId: selectedRoom.propertyId, // Mengambil dari data kamar
+      propertyId: selectedRoom.propertyId,
       roomId: selectedRoom.id,
       checkIn: selectedRange.from.toISOString(),
       checkOut: selectedRange.to.toISOString(),
@@ -55,17 +57,17 @@ export function BookingSidebar({
 
     router.push(`/room_reservation?${queryParams.toString()}`);
   };
-  
+
   // Jika tidak ada kamar atau tanggal yang dipilih, tampilkan pesan
   if (!selectedRoom || !selectedRange?.from) {
-      return (
-          <aside className="sticky top-24 col-span-4 rounded-xl border p-6 shadow-lg">
-              <h2 className="text-xl font-bold">Pilih Kamar & Tanggal</h2>
-              <p className="text-gray-500 mt-2">
-                  Silakan pilih kamar dan tentukan tanggal menginap Anda untuk melihat rincian harga.
-              </p>
-          </aside>
-      );
+    return (
+      <aside className="sticky top-24 col-span-4 rounded-xl border p-6 shadow-lg">
+        <h2 className="text-xl font-bold">Pilih Kamar & Tanggal</h2>
+        <p className="text-gray-500 mt-2">
+          Silakan pilih kamar dan tentukan tanggal menginap Anda untuk melihat rincian harga.
+        </p>
+      </aside>
+    );
   }
 
 
@@ -87,7 +89,7 @@ export function BookingSidebar({
           <span className="font-medium">{selectedRange.to ? selectedRange.to.toLocaleDateString('id-ID') : '-'}</span>
         </div>
       </div>
-      
+
       <Button
         className="mt-6 w-full"
         size="lg"
@@ -98,23 +100,23 @@ export function BookingSidebar({
       </Button>
 
       {nights > 0 && (
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between">
-              <span>
-                Rp {selectedRoom.basePrice.toLocaleString('id-ID')} x {nights} malam
-              </span>
-              <span>Rp {totalCost.toLocaleString('id-ID')}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Biaya layanan</span>
-              <span>Rp 0</span>
-            </div>
-            <hr />
-            <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span>Rp {totalCost.toLocaleString('id-ID')}</span>
-            </div>
+        <div className="mt-4 space-y-2">
+          <div className="flex justify-between">
+            <span>
+              Rp {selectedRoom.basePrice.toLocaleString('id-ID')} x {nights} malam
+            </span>
+            <span>Rp {totalCost.toLocaleString('id-ID')}</span>
           </div>
+          <div className="flex justify-between">
+            <span>Biaya layanan</span>
+            <span>Rp 0</span>
+          </div>
+          <hr />
+          <div className="flex justify-between font-bold text-lg">
+            <span>Total</span>
+            <span>Rp {totalCost.toLocaleString('id-ID')}</span>
+          </div>
+        </div>
       )}
     </aside>
   );

@@ -6,16 +6,16 @@ import { useRouter } from 'next/navigation';
 import { useEffect, ReactNode } from 'react';
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!loading && !user) {
       router.push('/auth/login');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [user, loading, router]);
 
-  if (isLoading || !isAuthenticated) {
+  if (loading || !user) {
     // Tampilkan loading spinner atau halaman kosong selagi memeriksa
     return (
       <div className="min-h-screen flex items-center justify-center">
