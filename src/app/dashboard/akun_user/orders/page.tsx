@@ -35,13 +35,15 @@ function OrdersContent() {
     const { toast } = useToast();
     const [searchOrderId, setSearchOrderId] = useState('');
     const [searchDate, setSearchDate] = useState<Date | undefined>();
+    const [searchPropertyName, setSearchPropertyName] = useState('');
 
-    const fetchOrders = useCallback(async (filters: { orderId?: string; date?: string } = {}) => {
+    const fetchOrders = useCallback(async (filters: { orderId?: string; date?: string; propertyName?: string } = {}) => {
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
-            if (filters.orderId) params.append('orderId', filters.orderId);
-            if (filters.date) params.append('date', filters.date);
+            if (filters.orderId) params.append('invoiceNumber', filters.orderId);
+            if (filters.date) params.append('checkIn', filters.date);
+            if (filters.propertyName) params.append('propertyName', filters.propertyName);
 
             const response = await api.get(`/orders/order-list?${params.toString()}`);
 
@@ -86,21 +88,23 @@ function OrdersContent() {
     }, []);
 
     const handleSearch = () => {
-        const filters: { orderId?: string; date?: string } = {};
+        const filters: { orderId?: string; date?: string; propertyName?: string } = {};
         if (searchOrderId) filters.orderId = searchOrderId;
         if (searchDate) filters.date = searchDate.toISOString().split('T')[0];
+        if (searchPropertyName) filters.propertyName = searchPropertyName;
         fetchOrders(filters);
     };
 
     const handleReset = () => {
         setSearchOrderId('');
         setSearchDate(undefined);
+        setSearchPropertyName('');
         fetchOrders();
     };
 
-    const handleCancelOrder = async (orderId: string) => {
+    const handleCancelOrder = async (invoiceNumber: string) => {
         try {
-            await api.patch(`/cancel-order/user/${orderId}`);
+            await api.patch(`/order-cancel/user/cancel/invoice/${invoiceNumber}`);
             toast({ title: 'Sukses', description: 'Pesanan berhasil dibatalkan.' });
             fetchOrders();
         } catch (error) {
@@ -125,9 +129,15 @@ function OrdersContent() {
 
             <div className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg bg-gray-50/50">
                 <Input
-                    placeholder="Cari berdasarkan Order ID..."
+                    placeholder="Cari berdasarkan Invoice Number..."
                     value={searchOrderId}
                     onChange={(e) => setSearchOrderId(e.target.value)}
+                    className="md:max-w-xs"
+                />
+                <Input
+                    placeholder="Cari nama properti..."
+                    value={searchPropertyName}
+                    onChange={(e) => setSearchPropertyName(e.target.value)}
                     className="md:max-w-xs"
                 />
                 <Popover>
@@ -153,7 +163,7 @@ function OrdersContent() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Order ID</TableHead><TableHead>Properti</TableHead><TableHead>Check-in</TableHead>
+                            <TableHead>Invoice Number</TableHead><TableHead>Properti</TableHead><TableHead>Check-in</TableHead>
                             <TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -187,7 +197,7 @@ function OrdersContent() {
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
                                                         <AlertDialogCancel>Tidak</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleCancelOrder(order.id)}>Ya, Batalkan</AlertDialogAction>
+                                                        <AlertDialogAction onClick={() => handleCancelOrder(order.invoiceNumber)}>Ya, Batalkan</AlertDialogAction>
                                                     </AlertDialogFooter>
                                                 </AlertDialogContent>
                                             </AlertDialog>
