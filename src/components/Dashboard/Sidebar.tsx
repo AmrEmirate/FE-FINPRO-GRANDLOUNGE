@@ -4,19 +4,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import {
-    Bell,
     Building,
     CreditCard,
-    Home,
     LayoutDashboard,
-    LineChart,
+    LineChart, 
     Package,
     Settings,
     Star,
     Users,
     Wallet,
+    Calendar,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -34,7 +32,10 @@ export default function Sidebar() {
         { href: '/tenant/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/tenant/properties', label: 'Properti', icon: Building },
         { href: '/tenant/transactions', label: 'Transaksi', icon: CreditCard },
-        // { href: '/tenant/reports', label: 'Laporan', icon: LineChart },
+        // --- TAMBAHAN BARU ---
+        { href: '/tenant/reports/sales', label: 'Laporan Penjualan', icon: LineChart },
+        { href: '/tenant/reports/availability', label: 'Ketersediaan', icon: Calendar },
+        // --- AKHIR TAMBAHAN ---
     ];
 
     const navItems = user?.role === 'TENANT' ? tenantNavItems : userNavItems;
@@ -57,7 +58,7 @@ export default function Sidebar() {
                                 href={item.href}
                                 className={cn(
                                     'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-                                    (pathname === item.href || (item.href !== '/tenant/dashboard' && pathname.startsWith(item.href))) && 'bg-muted text-primary'
+                                    (pathname.startsWith(item.href)) && 'bg-muted text-primary'
                                 )}
                             >
                                 <item.icon className="h-4 w-4" />

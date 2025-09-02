@@ -1,4 +1,3 @@
-// src/components/property/booking-sidebar.tsx
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -9,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Room } from '@/lib/types';
 
-// --- PERUBAHAN DI SINI: Interface props diperbarui ---
 interface BookingSidebarProps {
   selectedRoom: Room | null;
   selectedRange: DateRange | undefined;
