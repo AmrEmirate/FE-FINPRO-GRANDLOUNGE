@@ -1,17 +1,34 @@
-import type { Metadata } from 'next'
+// src/app/layout.tsx
+
+"use client" // Tambahkan ini di baris pertama
+
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { Toaster } from '@/components/ui/toaster'
+import { Toaster } from '@/components/ui/sonner'
 import Navbar from '@/components/Navbar'
 import { AuthProvider } from '@/context/AuthContext'
+import { usePathname } from 'next/navigation' // Impor usePathname
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: 'Grand Lodge - Premium Property Rentals',
-  description: 'Find and book premium accommodations for your perfect stay',
-  keywords: 'hotel, accommodation, booking, rental, property, lodge',
+// Hapus metadata dari sini karena Client Component tidak mendukungnya
+// export const metadata: Metadata = { ... };
+
+function MainLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isHome = pathname === '/';
+
+  return (
+    <>
+      <Navbar />
+      {/* PERBAIKAN UTAMA:
+        Kelas pt-20 hanya ditambahkan jika BUKAN halaman utama.
+      */}
+      <main className={!isHome ? 'pt-20' : ''}>{children}</main>
+    </>
+  )
 }
+
 
 export default function RootLayout({
   children,
@@ -21,12 +38,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Anda bisa menambahkan <title> dan <meta> di sini secara manual jika perlu */}
+        <title>Grand Lodge - Premium Property Rentals</title>
+        <meta name="description" content="Find and book premium accommodations for your perfect stay" />
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={inter.className}>
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
+          <MainLayout>{children}</MainLayout>
           <Toaster />
         </AuthProvider>
       </body>

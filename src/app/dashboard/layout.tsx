@@ -1,5 +1,6 @@
 // src/app/dashboard/layout.tsx
 
+
 'use client';
 
 import { ReactNode } from 'react';
@@ -17,7 +18,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // Logika utama: Pilih komponen berdasarkan role
   const SidebarComponent = user?.role === 'TENANT' ? TenantSidebar : UserSidebar;
 
+
   return (
+
     <div className="flex min-h-screen w-full">
       <aside className="hidden w-64 flex-col border-r bg-gray-100/40 p-4 dark:bg-gray-800/40 md:flex">
         <SidebarComponent/>

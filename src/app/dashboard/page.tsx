@@ -1,13 +1,14 @@
 "use client"
 
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+// Hapus "import ProtectedRoute..."
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-function DashboardContent() {
+// Langsung ekspor komponen kontennya
+export default function DashboardPage() {
     const { user } = useAuth();
 
     return (
@@ -34,14 +35,5 @@ function DashboardContent() {
                 </CardContent>
             </Card>
         </div>
-    );
-}
-
-// Komponen utama halaman yang dilindungi
-export default function DashboardPage() {
-    return (
-        <ProtectedRoute>
-            <DashboardContent />
-        </ProtectedRoute>
     );
 }

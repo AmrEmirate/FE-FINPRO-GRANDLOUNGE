@@ -11,14 +11,15 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { SocialLogin } from "@/components/auth/social-login"
-import api from "@/lib/apiHelper" // Import instance Axios
-import { useToast } from "@/hooks/use-toast" // Import useToast
+import api from "@/utils/api" // Menggunakan instance api dari utils
+import { toast } from "sonner" // Menggunakan sonner
+import { useAuth } from "@/context/AuthContext" // 1. Impor useAuth
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const userType = searchParams.get("type") || "user"
-  const { toast } = useToast()
+  const { login } = useAuth() // 2. Dapatkan fungsi login dari context
 
   const [formData, setFormData] = useState({
     email: "",
@@ -33,46 +34,29 @@ function LoginContent() {
 
     try {
       if (!formData.email || !formData.password) {
-        toast({
-          variant: "destructive",
-          title: "Input Tidak Lengkap",
-          description: "Mohon isi email dan password.",
-        })
+        toast.error("Input Tidak Lengkap", { description: "Mohon isi email dan password." });
         setIsLoading(false)
         return
       }
 
       const response = await api.post("/auth/login", formData)
       
-      const { token, user } = response.data.data;
+      const { token } = response.data.data;
       
-      // Simpan token di localStorage untuk digunakan di permintaan selanjutnya
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      toast({
-        title: "Login Berhasil",
-        description: "Selamat datang kembali!",
-      })
+      toast.success("Login Berhasil", { description: "Selamat datang kembali!" });
       
-      // Arahkan berdasarkan peran pengguna
-      if (user.role === "TENANT") {
-        router.push("/tenant/dashboard")
-      } else {
-        router.push("/dashboard")
-      }
+      // --- PERBAIKAN UTAMA DI SINI ---
+      // 3. Panggil fungsi login dari context.
+      //    Context yang akan menangani penyimpanan token dan redirect.
+      login(token);
 
     } catch (error: any) {
       console.error("Login error:", error)
       const errorMessage = error.response?.data?.message || "Terjadi kesalahan saat login."
-      toast({
-        variant: "destructive",
-        title: "Login Gagal",
-        description: errorMessage,
-      })
-    } finally {
-      setIsLoading(false)
-    }
+      toast.error("Login Gagal", { description: errorMessage });
+      setIsLoading(false); // Pastikan loading berhenti jika ada error
+    } 
+    // Tidak perlu 'finally' karena redirect akan menghentikan komponen ini
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

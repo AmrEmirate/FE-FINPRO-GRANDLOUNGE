@@ -1,36 +1,56 @@
-"use client"
+// src/components/home/search-form.tsx
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { CalendarIcon, MapPin, Users } from "lucide-react"
-import { format } from "date-fns"
-import { DestinationSelect } from "./destination-select"
-import { DatePicker } from "./date-picker"
-import { GuestSelect } from "./guest-select"
+"use client";
 
-export function SearchForm() {
-  const router = useRouter()
-  const [destination, setDestination] = useState("")
-  const [checkIn, setCheckIn] = useState<Date>()
-  const [checkOut, setCheckOut] = useState<Date>()
-  const [guests, setGuests] = useState("1")
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { CalendarIcon, MapPin, Users } from "lucide-react";
+import { DestinationSelect } from "./destination-select";
+import { DatePicker } from "./date-picker";
+import { GuestSelect } from "./guest-select";
+
+// Ekspor tipe data query agar bisa digunakan di page.tsx
+export interface SearchQuery {
+  destination: string;
+  checkIn: Date;
+  checkOut: Date;
+  guests: string;
+}
+
+// Tambahkan props onSearch
+interface SearchFormProps {
+  onSearch: (query: SearchQuery | null) => void;
+}
+
+export function SearchForm({ onSearch }: SearchFormProps) {
+  const [destination, setDestination] = useState("");
+  const [checkIn, setCheckIn] = useState<Date>();
+  const [checkOut, setCheckOut] = useState<Date>();
+  const [guests, setGuests] = useState("1");
 
   const handleSearch = () => {
     if (!destination || !checkIn || !checkOut) {
-      alert("Please fill in all required fields")
-      return
+      alert("Please fill in all required fields");
+      return;
     }
 
-    const searchParams = new URLSearchParams({
+    // Panggil fungsi onSearch dari props dengan data form
+    onSearch({
       destination,
-      checkIn: format(checkIn, "yyyy-MM-dd"),
-      checkOut: format(checkOut, "yyyy-MM-dd"),
+      checkIn,
+      checkOut,
       guests,
-    })
-
-    router.push(`/properties?${searchParams.toString()}`)
+    });
+  };
+  
+  // Fungsi baru untuk mereset filter
+  const handleReset = () => {
+      setDestination("");
+      setCheckIn(undefined);
+      setCheckOut(undefined);
+      setGuests("1");
+      onSearch(null); // Kirim null untuk menampilkan semua properti lagi
   }
 
   return (
@@ -79,11 +99,15 @@ export function SearchForm() {
         </div>
       </div>
 
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center gap-4">
         <Button onClick={handleSearch} size="lg" className="px-12">
           Search Properties
         </Button>
+        {/* Tambahkan tombol Reset */}
+        <Button onClick={handleReset} size="lg" variant="outline" className="px-12">
+          Reset
+        </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -11,7 +11,7 @@ function PengaturanContent() {
 
 export default function PengaturanPage() {
     return (
-        <ProtectedRoute>
+        <ProtectedRoute role="USER">
             <PengaturanContent />
         </ProtectedRoute>
     );
