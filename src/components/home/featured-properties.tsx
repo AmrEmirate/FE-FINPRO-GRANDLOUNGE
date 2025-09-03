@@ -1,34 +1,51 @@
-import { PropertyCard } from "@/components/properties/property-card"
-import type { Property } from "@/lib/types"
+// src/components/home/featured-properties.tsx
+
+"use client"; // Ubah menjadi Client Component
+
+import { useState, useEffect } from 'react';
+import { PropertyCard } from "@/components/properties/property-card";
+import type { Property } from "@/lib/types";
 import Link from "next/link";
+import api from '@/utils/api'; // Gunakan api client
+import { SearchQuery } from './search-form'; // Impor tipe SearchQuery
 
-// Fungsi untuk mengambil data properti di sisi server
-async function getFeaturedProperties() {
-    try {
-        // Kita menggunakan fetch langsung karena ini adalah Server Component
-        // Ambil 4 properti pertama sebagai "unggulan"
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/properties?limit=4`, {
-            next: { revalidate: 3600 } // Cache data selama 1 jam
-        });
-
-        if (!res.ok) {
-            console.error("Failed to fetch properties:", res.statusText);
-            return [];
-        }
-
-        const data = await res.json();
-        return data.data; // Backend Anda membungkus hasil di dalam properti `data`
-
-    } catch (error) {
-        console.error("Error fetching featured properties:", error);
-        return [];
-    }
+// Tambahkan props filter
+interface FeaturedPropertiesProps {
+  filter: SearchQuery | null;
 }
 
+export function FeaturedProperties({ filter }: FeaturedPropertiesProps) {
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-export async function FeaturedProperties() {
-  // Panggil fungsi dan tunggu hasilnya
-  const featuredProperties: Property[] = await getFeaturedProperties();
+  useEffect(() => {
+    const fetchProperties = async () => {
+      setIsLoading(true);
+      try {
+        // Ambil data dari API
+        const response = await api.get('/properties');
+        setProperties(response.data.data);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+        setProperties([]); // Set ke array kosong jika ada error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProperties();
+  }, []);
+
+  // Logika untuk memfilter properti berdasarkan kriteria pencarian
+  const filteredProperties = properties.filter(property => {
+    if (!filter) {
+      return true; // Jika tidak ada filter, tampilkan semua
+    }
+    const destinationMatch = property.city.name.toLowerCase() === filter.destination.toLowerCase();
+    
+    // Logika ketersediaan tanggal bisa ditambahkan di sini jika API mendukung
+    // Untuk saat ini, kita hanya filter berdasarkan destinasi
+    return destinationMatch;
+  });
 
   return (
     <section className="py-16 px-4 md:px-8 lg:px-16">
@@ -41,17 +58,18 @@ export async function FeaturedProperties() {
             Discover our handpicked selection of premium accommodations
           </p>
         </div>
-
-        {featuredProperties && featuredProperties.length > 0 ? (
+        
+        {isLoading ? (
+            <p className="text-center">Loading properties...</p>
+        ) : filteredProperties.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProperties.map((property) => (
-              // Kita menggunakan komponen PropertyCard yang sudah ada
+            {filteredProperties.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-600">
-            <p>Could not load featured properties at the moment. Please try again later.</p>
+          <div className="text-center text-gray-600 py-10">
+            <p>No properties found matching your criteria.</p>
           </div>
         )}
 
@@ -65,5 +83,5 @@ export async function FeaturedProperties() {
         </div>
       </div>
     </section>
-  )
+  );
 }

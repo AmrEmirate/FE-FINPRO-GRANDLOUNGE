@@ -1,3 +1,5 @@
+// src/app/dashboard/akun_user/orders/page.tsx
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -215,7 +217,8 @@ function OrdersContent() {
 
 export default function UserOrdersPage() {
     return (
-        <ProtectedRoute>
+        // --- PERBAIKAN DI SINI ---
+        <ProtectedRoute role="USER">
             <OrdersContent />
         </ProtectedRoute>
     )

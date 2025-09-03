@@ -32,9 +32,8 @@ export function PropertyFilters() {
   const handleFilterChange = (key: string, value: string) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()));
     
-    // Jika user memilih placeholder, value akan menjadi string kosong
-    // dan kita hapus parameter filter dari URL
-    if (!value) {
+    // PERBAIKAN 1: Cek jika value adalah "all" untuk menghapus filter
+    if (!value || value === "all") {
       current.delete(key);
     } else {
       current.set(key, value);
@@ -47,7 +46,13 @@ export function PropertyFilters() {
   };
 
   const clearFilters = () => {
-    router.push('/properties');
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    current.delete('category');
+    current.delete('sort');
+    current.delete('order');
+    const search = current.toString();
+    const query = search ? `?${search}` : "";
+    router.push(`/properties${query}`);
   }
 
   return (
@@ -55,17 +60,17 @@ export function PropertyFilters() {
       <div>
         <Label className="text-base font-medium mb-3 block">Property Type</Label>
         <Select 
-          value={searchParams.get('category') || ''} 
+          value={searchParams.get('category') || 'all'} 
           onValueChange={(value) => handleFilterChange('category', value)}
         >
           <SelectTrigger>
-            {/* Placeholder ini akan ditampilkan saat value adalah string kosong */}
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            {/* Hapus <SelectItem> dengan value kosong */}
+            {/* PERBAIKAN 2: Ganti value="" menjadi value="all" */}
+            <SelectItem value="all">All Categories</SelectItem>
             {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
+              <SelectItem key={category.id} value={category.name}>
                 {category.name}
               </SelectItem>
             ))}

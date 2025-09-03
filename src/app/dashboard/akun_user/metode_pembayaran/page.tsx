@@ -11,7 +11,9 @@ function MetodePembayaranContent() {
 
 export default function MetodePembayaranPage() {
     return (
-        <ProtectedRoute>
+        // --- PERBAIKAN DI SINI ---
+        // Tambahkan prop role="USER"
+        <ProtectedRoute role="USER">
             <MetodePembayaranContent />
         </ProtectedRoute>
     );

@@ -1,30 +1,58 @@
-// src/components/auth/ProtectedRoute.tsx
-"use client";
+"use client"
 
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect, ReactNode } from 'react';
+import { useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation" // Impor usePathname
+import { useAuth } from "@/context/AuthContext"
+import { toast } from "sonner"
 
-const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+interface ProtectedRouteProps {
+  children: React.ReactNode
+  role: "USER" | "TENANT" 
+}
+
+export default function ProtectedRoute({ children, role }: ProtectedRouteProps) {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+  const pathname = usePathname() // Dapatkan path saat ini
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth/login');
+    if (loading) {
+      return
     }
-  }, [user, loading, router]);
+
+    if (!user) {
+      toast.error("You must be logged in to access this page.")
+      router.push("/auth/login")
+      return
+    }
+
+    // --- PERBAIKAN UTAMA ---
+    if (user.role !== role) {
+      toast.error("You do not have permission to access this page.")
+      
+      let targetDashboard = "/"; // Fallback ke homepage
+      if (user.role === "TENANT") {
+        targetDashboard = "/tenant/dashboard";
+      } else if (user.role === "USER") {
+        targetDashboard = "/dashboard";
+      }
+
+      // Hanya redirect jika kita tidak sudah di halaman target
+      // Ini untuk mencegah redirect loop
+      if (pathname !== targetDashboard) {
+        router.push(targetDashboard);
+      }
+    }
+    
+  }, [user, loading, router, role, pathname]) // Tambahkan pathname
 
   if (loading || !user) {
-    // Tampilkan loading spinner atau halaman kosong selagi memeriksa
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
-      </div>
-    );
+    return <div>Authenticating...</div>
+  }
+  
+  if (user.role === role) {
+    return <>{children}</>
   }
 
-  return <>{children}</>;
-};
-
-export default ProtectedRoute;
+  return null
+}

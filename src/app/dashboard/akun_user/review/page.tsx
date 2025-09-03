@@ -121,7 +121,7 @@ const ReviewPageContent = () => {
 
 export default function ReviewPage() {
     return (
-        <ProtectedRoute>
+        <ProtectedRoute role="USER">
             <ReviewPageContent />
         </ProtectedRoute>
     );
