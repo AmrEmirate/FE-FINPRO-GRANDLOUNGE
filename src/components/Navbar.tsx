@@ -94,9 +94,13 @@ export default function Navbar() {
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
                                     <Avatar className="h-10 w-10">
-                                        <AvatarImage src={user?.profilePicture || "/placeholder-user.jpg"} alt={user?.fullName} />
+                                        <AvatarImage
+                                            src={user?.profilePicture || "/placeholder-user.jpg"}
+                                            alt={user?.fullName || "User"}
+                                            className="w-full h-full object-cover rounded-full"
+                                        />
                                         <AvatarFallback>{user?.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                 </Button>
@@ -107,7 +111,6 @@ export default function Navbar() {
                                     { label: "Your Orders", href: "/dashboard/akun_user/orders" },
                                     { label: "Metode Pembayaran", href: "/dashboard/akun_user/metode_pembayaran" },
                                     { label: "My Review", href: "/dashboard/akun_user/review" },
-                                    { label: "Pengaturan", href: "/dashboard/akun_user/pengaturan" },
                                 ].map((item) => (
                                     <DropdownMenuItem asChild key={item.href}>
                                         <Link href={item.href}>{item.label}</Link>

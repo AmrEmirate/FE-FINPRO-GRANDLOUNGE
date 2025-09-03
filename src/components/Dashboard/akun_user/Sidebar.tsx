@@ -20,7 +20,6 @@ const navItems = [
     { href: "/dashboard/akun_user/orders", label: "Pesanan Anda", icon: CreditCard },
     { href: "/dashboard/akun_user/review", label: "Ulasan Saya", icon: Star },
     { href: "/dashboard/akun_user/metode_pembayaran", label: "Metode Pembayaran", icon: Wallet },
-    { href: "/dashboard/akun_user/pengaturan", label: "Pengaturan", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -52,12 +51,6 @@ export default function Sidebar() {
                             </Link>
                         ))}
                     </nav>
-                </div>
-                <div className="mt-auto p-4">
-                    <Button variant="ghost" className="w-full justify-start" onClick={logout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Keluar
-                    </Button>
                 </div>
             </div>
         </div>
