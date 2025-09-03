@@ -11,15 +11,15 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { SocialLogin } from "@/components/auth/social-login"
-import api from "@/utils/api" // Menggunakan instance api dari utils
-import { toast } from "sonner" // Menggunakan sonner
-import { useAuth } from "@/context/AuthContext" // 1. Impor useAuth
+import api from "@/utils/api"
+import { toast } from "sonner"
+import { useAuth } from "@/context/AuthContext"
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const userType = searchParams.get("type") || "user"
-  const { login } = useAuth() // 2. Dapatkan fungsi login dari context
+  const { login } = useAuth()
 
   const [formData, setFormData] = useState({
     email: "",
@@ -39,24 +39,25 @@ function LoginContent() {
         return
       }
 
-      const response = await api.post("/auth/login", formData)
+      // **PERUBAHAN DI SINI: Tambahkan userType ke payload**
+      const response = await api.post("/auth/login", {
+        ...formData,
+        type: userType, // Kirim tipe pengguna ke backend
+      })
       
       const { token } = response.data.data;
       
       toast.success("Login Berhasil", { description: "Selamat datang kembali!" });
       
-      // --- PERBAIKAN UTAMA DI SINI ---
-      // 3. Panggil fungsi login dari context.
-      //    Context yang akan menangani penyimpanan token dan redirect.
       login(token);
 
     } catch (error: any) {
       console.error("Login error:", error)
       const errorMessage = error.response?.data?.message || "Terjadi kesalahan saat login."
       toast.error("Login Gagal", { description: errorMessage });
-      setIsLoading(false); // Pastikan loading berhenti jika ada error
-    } 
-    // Tidak perlu 'finally' karena redirect akan menghentikan komponen ini
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,6 +67,7 @@ function LoginContent() {
     }))
   }
 
+  // ... sisa kode tidak berubah ...
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -160,6 +162,7 @@ function LoginContent() {
     </div>
   )
 }
+// ... sisa kode tidak berubah ...
 
 export default function LoginPage() {
   return (

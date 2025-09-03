@@ -1,19 +1,21 @@
+// src/context/AuthContext.tsx
+
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import api from '@/utils/api';
+import { toast } from 'sonner';
 
-// --- PERBAIKAN 1: Lengkapi tipe data User ---
 interface User {
   id: string;
   fullName: string;
   email: string;
   profilePicture?: string;
   role: 'USER' | 'TENANT';
-  verified: boolean; // Tambahkan properti ini
-  createdAt: string;  // Tambahkan properti ini
+  verified: boolean;
+  createdAt: string;
 }
 
 interface AuthContextType {
@@ -30,11 +32,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Fungsi untuk memproses token (agar tidak duplikat kode)
-  const processToken = (token: string) => {
+  const processToken = useCallback((token: string) => {
     try {
       const decoded: any = jwtDecode(token);
-      // --- PERBAIKAN 2: Map semua data yang dibutuhkan dari token ---
       const mappedUser: User = {
         id: decoded.id,
         fullName: decoded.fullName,
@@ -44,7 +44,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         verified: decoded.verified,
         createdAt: decoded.createdAt,
       };
-
       setUser(mappedUser);
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       return mappedUser;
@@ -52,31 +51,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Invalid token:", error);
       localStorage.removeItem("authToken");
       setUser(null);
+      delete api.defaults.headers.common["Authorization"];
       return null;
     }
-  };
-  
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
       processToken(token);
     }
     setLoading(false);
-  }, []);
+  }, [processToken]);
 
-  const login = (token: string) => {
+  const login = useCallback((token: string) => {
     localStorage.setItem("authToken", token);
     const loggedInUser = processToken(token);
 
     if (loggedInUser) {
-      if (loggedInUser.role === "TENANT") {
-        router.push("/tenant/dashboard");
-      } else {
-        // Untuk user biasa, bisa diarahkan ke dashboard atau halaman utama
-        router.push("/");
-      }
+      toast.success("Login Berhasil!", {
+        description: "Selamat datang kembali!",
+      });
+
+      // --- PERUBAHAN UTAMA DI SINI ---
+      // Pindahkan logika redirect ke timeout singkat
+      // untuk memastikan toast sempat tampil dan DOM stabil.
+      setTimeout(() => {
+        if (loggedInUser.role === "TENANT") {
+          router.replace("/tenant/dashboard");
+        } else {
+          router.replace("/");
+        }
+      }, 500); // Penundaan 500ms
     }
-  };
+  }, [processToken, router]);
 
   const logout = () => {
     localStorage.removeItem('authToken');
