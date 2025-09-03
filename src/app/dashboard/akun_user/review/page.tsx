@@ -13,7 +13,7 @@ import { ReviewCard } from '@/components/reviews/review-card';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 const ReviewPageContent = () => {
-    const { orders, isLoading, error, submitReview } = useReviews();
+    const { orders, isLoading, error, submitReview, refetch } = useReviews();
     const [selectedOrder, setSelectedOrder] = useState<OrderForReview | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -25,6 +25,7 @@ const ReviewPageContent = () => {
     const handleDialogSubmit = async (rating: number, comment: string) => {
         if (selectedOrder) {
             await submitReview(selectedOrder.id, selectedOrder.property.id, rating, comment);
+            // Tidak perlu memanggil refetch() lagi di sini karena sudah ada di dalam hook submitReview
         }
     };
 
@@ -33,7 +34,7 @@ const ReviewPageContent = () => {
             <div className="space-y-4">
                 <h1 className="text-2xl font-bold">Ulasan Saya</h1>
                 {[...Array(3)].map((_, i) => (
-                    <Skeleton key={i} className="h-48 w-full rounded-lg" />
+                    <Skeleton key={i} className="h-28 w-full rounded-lg" />
                 ))}
             </div>
         );
@@ -59,33 +60,46 @@ const ReviewPageContent = () => {
                 <h2 className="text-xl font-semibold mb-4">Perlu Diulas</h2>
                 {toReviewOrders.length > 0 ? (
                     <div className="space-y-4">
-                        {toReviewOrders.map((order) => (
-                            <Card key={order.id}>
-                                <CardContent className="p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <Image
-                                            src={order.property.images?.[0]?.url || '/placeholder.jpg'}
-                                            alt={order.property.name}
-                                            width={100}
-                                            height={100}
-                                            className="rounded-md object-cover"
-                                        />
-                                        <div>
-                                            <p className="font-bold">{order.property.name}</p>
-                                            <p className="text-sm text-gray-500">
-                                                Check-out:{' '}
-                                                {format(new Date(order.checkOutDate), 'd MMMM yyyy', {
-                                                    locale: id,
-                                                })}
-                                            </p>
+                        {toReviewOrders.map((order) => {
+                            // Cek apakah tanggal checkout sudah lewat
+                            const canReview = new Date() > new Date(order.checkOut);
+
+                            return (
+                                <Card key={order.id}>
+                                    <CardContent className="p-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <Image
+                                                src={order.property.images?.[0]?.url || '/placeholder.jpg'}
+                                                alt={order.property.name}
+                                                width={100}
+                                                height={100}
+                                                className="rounded-md object-cover"
+                                            />
+                                            <div>
+                                                <p className="font-bold">{order.property.name}</p>
+                                                <p className="text-sm text-gray-500">
+                                                    Check-out:{' '}
+                                                    {format(new Date(order.checkOut), 'd MMMM yyyy', {
+                                                        locale: id,
+                                                    })}
+                                                </p>
+                                                {!canReview && (
+                                                    <p className="text-xs text-amber-600 mt-1">
+                                                        Anda bisa memberi ulasan setelah tanggal check-out.
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <Button onClick={() => handleOpenDialog(order)}>
-                                        Tulis Ulasan
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                        <Button
+                                            onClick={() => handleOpenDialog(order)}
+                                            disabled={!canReview} // Tombol dinonaktifkan jika belum bisa review
+                                        >
+                                            Tulis Ulasan
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })}
                     </div>
                 ) : (
                     <p className="text-gray-500">Tidak ada penginapan yang perlu diulas saat ini.</p>
