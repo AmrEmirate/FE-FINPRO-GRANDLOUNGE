@@ -92,7 +92,7 @@ function OrdersContent() {
     const handleSearch = () => {
         const filters: { orderId?: string; date?: string; propertyName?: string } = {};
         if (searchOrderId) filters.orderId = searchOrderId;
-        if (searchDate) filters.date = searchDate.toISOString().split('T')[0];
+        if (searchDate) filters.date = format(searchDate, 'yyyy-MM-dd');
         if (searchPropertyName) filters.propertyName = searchPropertyName;
         fetchOrders(filters);
     };
@@ -165,8 +165,13 @@ function OrdersContent() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Invoice Number</TableHead><TableHead>Properti</TableHead><TableHead>Check-in</TableHead>
-                            <TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Aksi</TableHead>
+                            <TableHead>Invoice Number</TableHead>
+                            <TableHead>Properti</TableHead>
+                            <TableHead>Check-in</TableHead>
+                            <TableHead>Check-out</TableHead>
+                            <TableHead>Total</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -175,6 +180,7 @@ function OrdersContent() {
                                 <TableCell className="font-medium">{order.invoiceNumber}</TableCell>
                                 <TableCell>{order.property.name}</TableCell>
                                 <TableCell>{new Date(order.checkIn).toLocaleDateString('id-ID')}</TableCell>
+                                <TableCell>{new Date(order.checkOut).toLocaleDateString('id-ID')}</TableCell>
                                 <TableCell>Rp {order.totalPrice.toLocaleString('id-ID')}</TableCell>
                                 <TableCell>
                                     <Badge>{order.status}</Badge>

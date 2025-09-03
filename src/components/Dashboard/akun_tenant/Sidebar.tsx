@@ -5,6 +5,7 @@
 import SidebarLink from '@/components/Dashboard/SidebarLink';
 import {
     CreditCard,
+    Settings,
     ShoppingCart,
     Star,
     User,

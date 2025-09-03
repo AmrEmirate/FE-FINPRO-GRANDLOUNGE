@@ -118,15 +118,28 @@ export default function Navbar() {
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
                                     <Avatar className="h-10 w-10">
-                                        <AvatarImage src={user?.profilePicture || "/placeholder-user.jpg"} alt={user?.fullName || ""} />
+
+                                        <AvatarImage
+                                            src={user?.profilePicture || "/placeholder-user.jpg"}
+                                            alt={user?.fullName || "User"}
+                                            className="w-full h-full object-cover rounded-full"
+                                        />
+
                                         <AvatarFallback>{user?.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-3 rounded-2xl shadow-xl cursor-pointer">
-                                {menuItems.map((item) => (
+
+                                {[
+                                    { label: "Akun", href: "/dashboard/akun_user/profile" },
+                                    { label: "Your Orders", href: "/dashboard/akun_user/orders" },
+                                    { label: "Metode Pembayaran", href: "/dashboard/akun_user/metode_pembayaran" },
+                                    { label: "My Review", href: "/dashboard/akun_user/review" },
+                                ].map((item) => (
+
                                     <DropdownMenuItem asChild key={item.href}>
                                         <Link href={item.href}>{item.label}</Link>
                                     </DropdownMenuItem>
