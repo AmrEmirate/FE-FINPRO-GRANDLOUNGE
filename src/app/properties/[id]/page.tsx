@@ -156,6 +156,8 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             <BookingSidebar 
               selectedRoom={selectedRoom}
               selectedRange={selectedRange}
+              propertyId={property.id}      
+              onDateChange={setSelectedRange}
             />
           </div>
         </div>
