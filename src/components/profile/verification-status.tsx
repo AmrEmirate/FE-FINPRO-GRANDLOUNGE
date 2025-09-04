@@ -19,10 +19,14 @@ export function VerificationStatus() {
   const handleResendVerification = async () => {
     setIsLoading(true);
     try {
-      await apiHelper.post("/auth/resend-verification-email");
+      // --- PERBAIKAN DI SINI ---
+      // Sekarang kita mengirimkan alamat email pengguna saat ini (yang mungkin sudah baru)
+      // ke backend, sesuai yang dibutuhkan oleh API.
+      await apiHelper.post("/auth/resend-verification-email", { email: user.email });
+      
       toast({
         title: "Email Terkirim",
-        description: "Tautan verifikasi baru telah dikirim ke email Anda.",
+        description: `Tautan verifikasi baru telah dikirim ke ${user.email}.`,
       });
     } catch (error: any) {
       toast({
