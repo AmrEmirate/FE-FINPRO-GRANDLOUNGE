@@ -20,7 +20,7 @@ export default function RoomAvailabilityPage() {
     currentMonth,
     setCurrentMonth,
     handleSave,
-  } = useRoomAvailability(roomId)
+  } = useRoomAvailability(propertyId, roomId)
 
   return (
     <div className="min-h-screen bg-gray-50">

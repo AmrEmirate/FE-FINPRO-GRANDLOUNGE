@@ -69,45 +69,47 @@ export function AvailabilityCalendar({
     }
   }
 
-  // Komponen kustom untuk merender sel tanggal
   function CustomDay(props: DayProps) {
-    // PERBAIKAN: Gunakan props.day.date untuk mengakses tanggal
     const dateString = format(props.day.date, "yyyy-MM-dd");
     const data = availabilityMap.get(dateString);
     const displayPrice = data?.isAvailable ? data.price ?? basePrice : null;
     const isUnavailable = (data && !data.isAvailable) || props.modifiers.disabled;
 
+    // PERBAIKAN: Elemen root harus <td>, bukan <div>.
+    // Kita sebarkan semua props ke <td> untuk menjaga fungsionalitas
+    // dari library react-day-picker (event handlers, classNames, ARIA attributes).
     return (
-      <div
-        className={cn(
-          "h-14 w-14 p-0 relative flex flex-col items-center justify-center rounded-md",
-          props.modifiers.selected && "bg-accent text-accent-foreground",
-          isUnavailable && "text-muted-foreground opacity-50 line-through"
-        )}
-      >
-        {/* PERBAIKAN: Gunakan props.day.date untuk memformat tanggal */}
-        <span>{format(props.day.date, "d")}</span>
-        <div className="text-[10px] mt-1">
-          {displayPrice !== null ? (
-            <Badge
-              variant={data?.price && data.price !== basePrice ? "destructive" : "secondary"}
-              className="px-1 h-auto leading-tight"
-            >
-              {displayPrice.toLocaleString("id-ID")}
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="px-1 h-auto leading-tight bg-slate-100 text-slate-400">
-              N/A
-            </Badge>
+      <td {...props}>
+        {/* Konten custom kita sekarang berada di dalam <td> yang valid */}
+        <div
+          className={cn(
+            "h-full w-full p-0 relative flex flex-col items-center justify-center rounded-md",
+            isUnavailable && "text-muted-foreground opacity-50 line-through"
           )}
+        >
+          <span>{format(props.day.date, "d")}</span>
+          <div className="text-[10px] mt-1">
+            {displayPrice !== null ? (
+              <Badge
+                variant={data?.price && data.price !== basePrice ? "destructive" : "secondary"}
+                className="px-1 h-auto leading-tight"
+              >
+                {displayPrice.toLocaleString("id-ID")}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="px-1 h-auto leading-tight bg-slate-100 text-slate-400">
+                N/A
+              </Badge>
+            )}
+          </div>
         </div>
-      </div>
+      </td>
     );
   }
 
   return (
     <>
-      <div className="flex flex-col items-center">
+      <div className="flex justify-center">
         <DayPicker
           mode="range"
           selected={selectedRange}
@@ -118,13 +120,13 @@ export function AvailabilityCalendar({
           components={{ Day: CustomDay }}
           className="border rounded-md p-4"
           classNames={{
-            day: "h-14 w-14 rounded-md", // Pastikan sel bisa diklik
+            day: "h-14 w-14 rounded-md", // Ini akan diterapkan ke <td> di CustomDay
             day_range_start: "rounded-l-full",
             day_range_end: "rounded-r-full",
           }}
         />
-        <p className="text-sm text-gray-500 mt-4">Pilih tanggal mulai lalu tanggal selesai untuk mengatur harga atau ketersediaan.</p>
       </div>
+      <p className="text-sm text-gray-500 mt-4 text-center">Pilih tanggal mulai lalu tanggal selesai untuk mengatur harga atau ketersediaan.</p>
 
       <Dialog open={isDialogOpen} onOpenChange={(open) => {
           if (!open) {

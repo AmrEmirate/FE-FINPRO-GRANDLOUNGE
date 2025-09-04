@@ -49,6 +49,7 @@ export const useReviews = () => {
         setError(null);
         try {
             const response = await api.get<{ data: OrderForReview[] }>('/orders/order-list');
+            console.log("Data mentah dari API:", response.data.data);
             const completedOrders = response.data.data.filter(
                 (order: any) => order.status === 'SELESAI'
             );

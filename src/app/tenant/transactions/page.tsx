@@ -1,65 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import api from '@/utils/api';
-import { useToast } from '@/components/ui/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import TransactionsTable from '@/components/tenant/transactions-table';
-import { TenantTransaction } from '@/lib/types';
+import { TransactionsTable } from '@/components/tenant/transactions-table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TransactionStatus } from '@/hooks/useTenantTransactions';
+
+interface StatusTab {
+    value: TransactionStatus;
+    label: string;
+}
 
 export default function TenantTransactionsPage() {
-    const [transactions, setTransactions] = useState<TenantTransaction[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const { toast } = useToast();
-
-    const fetchTransactions = async () => {
-        setIsLoading(true);
-        try {
-            // Endpoint BE untuk mengambil semua transaksi milik tenant
-            const response = await api.get('/orders/tenant-transaction-list');
-            setTransactions(response.data.data);
-        } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Gagal memuat data transaksi.',
-            });
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchTransactions();
-    }, []);
-
-    if (isLoading) {
-        return (
-            <div className="space-y-4">
-                <h1 className="text-2xl font-bold">Manajemen Transaksi</h1>
-                <div className="space-y-2">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                </div>
-            </div>
-        );
-    }
+    const statusTabs: StatusTab[] = [
+        { value: '', label: 'Semua' },
+        { value: 'MENUNGGU_PEMBAYARAN', label: 'Pembayaran' },
+        { value: 'DIKONFIRMASI', label: 'Dikonfirmasi' },
+        { value: 'SELESAI', label: 'Selesai' },
+        { value: 'DIBATALKAN', label: 'Dibatalkan' },
+    ];
 
     return (
-        <div className="space-y-4">
-            <h1 className="text-2xl font-bold">Manajemen Transaksi</h1>
-            {transactions.length > 0 ? (
-                <TransactionsTable
-                    data={transactions}
-                    refetchData={fetchTransactions} // Kirim fungsi untuk me-refresh data
-                />
-            ) : (
-                <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
-                    <p className="text-gray-500">Belum ada transaksi yang masuk.</p>
-                </div>
-            )}
+        <div>
+            <h1 className="text-2xl font-bold mb-6">Daftar Transaksi</h1>
+
+            <Tabs defaultValue="" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+                    {statusTabs.map((tab) => (
+                        <TabsTrigger key={tab.value} value={tab.value}>
+                            {tab.label}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+
+                {/* Logika yang disederhanakan dan diperbaiki */}
+                {statusTabs.map((tab) => (
+                    <TabsContent key={tab.value} value={tab.value}>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{tab.label} Transaksi</CardTitle>
+                                <CardDescription>
+                                    Daftar semua transaksi dengan status {tab.label.toLowerCase()}.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {/* Melemparkan 'value' dari tab langsung ke tabel */}
+                                <TransactionsTable status={tab.value} />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                ))}
+            </Tabs>
         </div>
     );
 }

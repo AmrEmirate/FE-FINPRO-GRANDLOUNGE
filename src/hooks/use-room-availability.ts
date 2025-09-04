@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import apiHelper from "@/lib/apiHelper"
 import { useToast } from "./use-toast"
 import { eachDayOfInterval, format } from "date-fns"
@@ -12,26 +12,32 @@ interface Availability {
   price?: number
 }
 
-export function useRoomAvailability(roomId: string) {
+// Fungsi untuk mendapatkan ketersediaan ruangan
+export function useRoomAvailability(propertyId: string, roomId: string) {
   const { toast } = useToast()
+
   const [availability, setAvailability] = useState<Availability[]>([])
   const [roomName, setRoomName] = useState<string>("")
   const [basePrice, setBasePrice] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
-  const fetchAvailability = async () => {
-    if (!roomId) return
+  const fetchAvailability = useCallback(async () => {
+    if (!roomId || !propertyId) return // Pastikan kedua ID ada
+
     setIsLoading(true)
+
     try {
-      // Fetch room details to get name and base price
-      const roomRes = await apiHelper.get(`/rooms/${roomId}`) // Asumsi endpoint ini ada
+      // Ambil detail ruangan (nama, harga dasar)
+      const roomRes = await apiHelper.get(`/properties/my-properties/${propertyId}/rooms/${roomId}`)
       setRoomName(roomRes.data.data.name)
       setBasePrice(roomRes.data.data.basePrice)
 
-      // Fetch availability for the current month
-      const month = format(currentMonth, "yyyy-MM")
-      const availabilityRes = await apiHelper.get(`/rooms/${roomId}/availability?month=${month}`)
+      // Ambil data ketersediaan untuk bulan ini
+      const year = currentMonth.getFullYear()
+      const month = currentMonth.getMonth() + 1
+
+      const availabilityRes = await apiHelper.get(`/properties/${propertyId}/availability?month=${month}&year=${year}`)
       setAvailability(availabilityRes.data.data)
     } catch (error) {
       toast({
@@ -42,11 +48,11 @@ export function useRoomAvailability(roomId: string) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [roomId, propertyId, currentMonth, toast])
 
   useEffect(() => {
     fetchAvailability()
-  }, [roomId, currentMonth])
+  }, [fetchAvailability])
 
   const handleSave = async (
     dateRange: DateRange,
@@ -54,15 +60,16 @@ export function useRoomAvailability(roomId: string) {
     price?: number
   ) => {
     if (!dateRange.from || !dateRange.to) return
-    
-    // Create an array of dates in the selected range
+
+    // Membuat array tanggal berdasarkan rentang tanggal yang dipilih
     const dates = eachDayOfInterval({
       start: dateRange.from,
       end: dateRange.to,
-    }).map(d => format(d, 'yyyy-MM-dd'));
+    }).map(d => format(d, "yyyy-MM-dd"))
 
     try {
-      await apiHelper.post(`/rooms/${roomId}/availability`, {
+      // Kirim data ketersediaan
+      await apiHelper.post(`/properties/${propertyId}/rooms/${roomId}/availability`, {
         dates,
         isAvailable,
         price: isAvailable ? (price || basePrice) : undefined,
