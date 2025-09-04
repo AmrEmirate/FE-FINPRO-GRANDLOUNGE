@@ -68,6 +68,7 @@ export default function Navbar() {
         { label: "Akun", href: "/dashboard/akun_user/profile" },
         { label: "Your Orders", href: "/dashboard/akun_user/orders" },
         { label: "My Review", href: "/dashboard/akun_user/review" },
+        { label: "Metode Pembayaran", href: "/dashboard/akun_user/metode_pembayaran" },
     ];
 
     const tenantMenuItems = [

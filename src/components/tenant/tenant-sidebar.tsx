@@ -16,7 +16,6 @@ import {
     Package,
     User, // 1. Impor ikon User
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 // 2. Tambahkan item navigasi untuk Profil
 const tenantNavItems = [
@@ -30,8 +29,6 @@ const tenantNavItems = [
 
 export default function TenantSidebar() {
     const pathname = usePathname();
-    const { logout } = useAuth();
-
     return (
         <div className="hidden border-r bg-white md:block w-64">
             <div className="flex h-full max-h-screen flex-col gap-2">
@@ -59,10 +56,6 @@ export default function TenantSidebar() {
                     </nav>
                 </div>
                 <div className="mt-auto p-4">
-                    <Button variant="ghost" className="w-full justify-start" onClick={logout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Keluar
-                    </Button>
                 </div>
             </div>
         </div>
