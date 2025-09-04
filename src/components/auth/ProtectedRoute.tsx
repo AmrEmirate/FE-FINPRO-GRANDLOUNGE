@@ -1,58 +1,59 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation" // Impor usePathname
+import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "sonner"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  role: "USER" | "TENANT" 
+  role: "USER" | "TENANT"
 }
 
 export default function ProtectedRoute({ children, role }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const pathname = usePathname() // Dapatkan path saat ini
+  const pathname = usePathname()
 
   useEffect(() => {
+    // 1. Tunggu hingga status autentikasi selesai dimuat
     if (loading) {
       return
     }
 
+    // 2. Cek apakah pengguna sudah login
     if (!user) {
-      toast.error("You must be logged in to access this page.")
+      toast.error("Anda harus login untuk mengakses halaman ini.")
       router.push("/auth/login")
       return
     }
 
-    // --- PERBAIKAN UTAMA ---
-    if (user.role !== role) {
-      toast.error("You do not have permission to access this page.")
-      
-      let targetDashboard = "/"; // Fallback ke homepage
-      if (user.role === "TENANT") {
-        targetDashboard = "/tenant/dashboard";
-      } else if (user.role === "USER") {
-        targetDashboard = "/dashboard";
-      }
+    // 3. Cek apakah email pengguna sudah terverifikasi (sesuai permintaan awal)
+    if (!user.verified) {
+      toast.error("Akun Anda belum terverifikasi. Silakan periksa email Anda.")
+      router.push("/") // Arahkan ke halaman utama jika belum terverifikasi
+      return
+    }
 
-      // Hanya redirect jika kita tidak sudah di halaman target
-      // Ini untuk mencegah redirect loop
+    // 4. Cek apakah peran pengguna sesuai dengan yang diizinkan untuk halaman ini
+    if (user.role !== role) {
+      toast.error("Anda tidak memiliki izin untuk mengakses halaman ini.")
+      
+      // Arahkan pengguna ke dashboard mereka yang benar untuk menghindari kebingungan
+      const targetDashboard = user.role === "TENANT" ? "/tenant/dashboard" : "/dashboard"
+      
+      // Mencegah redirect loop jika sudah berada di halaman dashboard yang salah
       if (pathname !== targetDashboard) {
-        router.push(targetDashboard);
+        router.push(targetDashboard)
       }
     }
-    
-  }, [user, loading, router, role, pathname]) // Tambahkan pathname
+  }, [user, loading, router, role, pathname])
 
-  if (loading || !user) {
-    return <div>Authenticating...</div>
-  }
-  
-  if (user.role === role) {
-    return <>{children}</>
+  // Tampilkan loading screen jika data belum siap atau jika pengguna tidak memenuhi kriteria
+  if (loading || !user || !user.verified || user.role !== role) {
+    return <div>Loading...</div> // Anda bisa ganti dengan komponen skeleton yang lebih bagus
   }
 
-  return null
+  // Jika semua kondisi terpenuhi, tampilkan konten halaman
+  return <>{children}</>
 }

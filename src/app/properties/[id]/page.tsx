@@ -152,6 +152,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               propertyId={property.id}
               selectedRoom={selectedRoom}
               selectedRange={selectedRange}
+
               onDateChange={setSelectedRange}
             />
           </div>

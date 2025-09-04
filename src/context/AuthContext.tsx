@@ -1,5 +1,3 @@
-// src/context/AuthContext.tsx
-
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
@@ -8,6 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 
+// Tipe User tetap sama
 interface User {
   id: string;
   fullName: string;
@@ -18,11 +17,14 @@ interface User {
   createdAt: string;
 }
 
+// --- PERUBAHAN 1: Tambahkan `setUser` ke dalam tipe context ---
+// Ini memungkinkan komponen lain untuk memodifikasi state `user`.
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (token: string) => void;
   logout: () => void;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>; // Tambahkan ini
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,16 +75,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Selamat datang kembali!",
       });
 
-      // --- PERUBAHAN UTAMA DI SINI ---
-      // Pindahkan logika redirect ke timeout singkat
-      // untuk memastikan toast sempat tampil dan DOM stabil.
       setTimeout(() => {
         if (loggedInUser.role === "TENANT") {
           router.replace("/tenant/dashboard");
         } else {
           router.replace("/");
         }
-      }, 500); // Penundaan 500ms
+      }, 500);
     }
   }, [processToken, router]);
 
@@ -93,7 +92,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/auth/login');
   };
 
-  const value = { user, loading, login, logout };
+  // --- PERUBAHAN 2: Sediakan `setUser` dalam value provider ---
+  // Ini membuat `setUser` bisa diakses oleh komponen yang menggunakan `useAuth()`.
+  const value = { user, loading, login, logout, setUser };
 
   return (
     <AuthContext.Provider value={value}>
