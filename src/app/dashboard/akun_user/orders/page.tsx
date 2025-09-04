@@ -104,6 +104,16 @@ function OrdersContent() {
         fetchOrders();
     };
 
+    const handleCompleteOrder = async (bookingId: string) => {
+        try {
+            await api.patch(`/orders/${bookingId}/complete`);
+            toast({ title: 'Sukses', description: 'Pesanan telah ditandai sebagai selesai.' });
+            fetchOrders(); // Refresh data
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Gagal menyelesaikan pesanan.' });
+        }
+    };
+
     const handleCancelOrder = async (invoiceNumber: string) => {
         try {
             await api.patch(`/order-cancel/user/cancel/invoice/${invoiceNumber}`);
@@ -210,6 +220,11 @@ function OrdersContent() {
                                                 </AlertDialogContent>
                                             </AlertDialog>
                                         </div>
+                                    )}
+                                    {order.status === 'DIPROSES' && (
+                                        <Button size="sm" onClick={() => handleCompleteOrder(order.id)}>
+                                            Selesaikan Pesanan
+                                        </Button>
                                     )}
                                 </TableCell>
                             </TableRow>

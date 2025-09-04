@@ -1,83 +1,84 @@
-import apiHelper from '@/lib/apiHelper';
-import { useState, useEffect } from 'react';
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import api from '@/utils/api';
 
-
-// Definisikan tipe data untuk ulasan sesuai dengan backend Anda
+// --- PERBAIKAN UTAMA DI SINI ---
+// Definisikan tipe data untuk ulasan agar sesuai dengan backend dan review-card.tsx
 export interface Review {
     id: string;
     rating: number;
     comment: string;
     createdAt: string;
     user: {
-        name: string;
-        avatarUrl?: string;
+        fullName: string;           // Ubah dari name
+        profilePicture?: string;    // Ubah dari avatarUrl
     };
     reply?: {
         comment: string;
         createdAt: string;
     };
 }
+// --- AKHIR DARI PERBAIKAN ---
 
+// Definisikan tipe data untuk pesanan
 export interface OrderForReview {
-    id: string;
+    id: string; // Ini adalah ID booking
     property: {
         id: string;
         name: string;
         images: { url: string }[];
     };
-    checkInDate: string;
-    checkOutDate: string;
+    checkIn: string;
+    checkOut: string;
+
     review: Review | null;
+    status: string;
 }
 
+// Hook untuk mengelola ulasan dari sisi pengguna
 export const useReviews = () => {
     const [orders, setOrders] = useState<OrderForReview[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Mengambil daftar pesanan yang bisa diulas oleh pengguna
-    const fetchOrdersForReview = async () => {
+    const fetchOrdersForReview = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
-            // Endpoint ini perlu disesuaikan jika berbeda di backend Anda
-            // Asumsinya, endpoint ini mengembalikan pesanan yang sudah selesai (completed)
-            const response = await apiHelper.get('/orders/completed-for-review');
-            setOrders(response.data);
-        } catch (err) {
-            const errorMessage =
-                err instanceof Error ? err.message : 'Gagal memuat data pesanan.';
+            const response = await api.get<{ data: OrderForReview[] }>('/orders/order-list');
+            const completedOrders = response.data.data.filter(
+                (order: any) => order.status === 'SELESAI'
+            );
+            setOrders(completedOrders);
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.message || err.message || 'Gagal memuat data pesanan.';
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    // Mengirim ulasan baru
     const submitReview = async (
-        orderId: string,
+        bookingId: string,
         propertyId: string,
         rating: number,
-        comment: string,
+        comment: string
     ) => {
         try {
-            const response = await apiHelper.post('/reviews', {
-                orderId,
+            const response = await api.post('/reviews', {
+                bookingId,
                 propertyId,
                 rating,
                 comment,
             });
             toast.success('Ulasan berhasil dikirim!');
-            // Refresh data setelah ulasan dikirim
-            fetchOrdersForReview();
+            await fetchOrdersForReview();
             return response.data;
-        } catch (err) {
-            const errorMessage =
-                err instanceof Error
-                    ? err.message
-                    : 'Gagal mengirim ulasan. Anda mungkin sudah pernah memberikan ulasan untuk pesanan ini.';
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.message || err.message || 'Gagal mengirim ulasan.';
             toast.error(errorMessage);
             throw new Error(errorMessage);
         }
@@ -85,7 +86,7 @@ export const useReviews = () => {
 
     useEffect(() => {
         fetchOrdersForReview();
-    }, []);
+    }, [fetchOrdersForReview]);
 
     return {
         orders,
@@ -102,25 +103,24 @@ export const usePublicReviews = (propertyId: string) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
+    const fetchReviews = useCallback(async () => {
         if (!propertyId) return;
-
-        const fetchReviews = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const response = await apiHelper.get(`/reviews/property/${propertyId}`);
-                setReviews(response.data);
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'Gagal memuat ulasan.';
-                setError(errorMessage);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchReviews();
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await api.get<Review[]>(`/reviews/property/${propertyId}`);
+            setReviews(response.data);
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.message || err.message || 'Gagal memuat ulasan.';
+            setError(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
     }, [propertyId]);
 
-    return { reviews, isLoading, error };
-}
+    useEffect(() => {
+        fetchReviews();
+    }, [fetchReviews]);
+
+    return { reviews, isLoading, error, refetch: fetchReviews };
+};
