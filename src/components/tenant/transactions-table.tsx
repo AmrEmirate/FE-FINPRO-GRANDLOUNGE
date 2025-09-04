@@ -1,103 +1,76 @@
 'use client';
 
-import { TenantTransaction } from '@/lib/types';
+import { useTenantTransactions, TenantTransaction, TransactionStatus } from '@/hooks/useTenantTransactions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import api from '@/utils/api';
-import { useToast } from '@/components/ui/use-toast';
-import Link from 'next/link';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
+import { Skeleton } from '../ui/skeleton';
 
-interface Props {
-    data: TenantTransaction[];
-    refetchData: () => void;
+interface TransactionsTableProps {
+   status: TransactionStatus;
 }
 
-export default function TransactionsTable({ data, refetchData }: Props) {
-    const { toast } = useToast();
+export const TransactionsTable = ({ status }: TransactionsTableProps) => {
+    const { transactions, isLoading } = useTenantTransactions(status);
 
-    const handleAction = async (action: 'approve' | 'reject', invoiceNumber: string) => {
-        const actionMessages = {
-            approve: { past: 'disetujui', present: 'menyetujui' },
-            reject: { past: 'ditolak', present: 'menolak' },
-        };
-        const message = actionMessages[action];
-
-        try {
-            await api.patch(`/payment-confirm/confirm/${invoiceNumber}`, {
-                isAccepted: action === 'approve'
-            });
-            toast({ title: 'Sukses', description: `Pembayaran berhasil ${message.past}.` });
-            refetchData();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: `Gagal ${message.present} pembayaran.` });
+    const getStatusVariant = (status: TenantTransaction['status']) => {
+        switch (status) {
+            case 'SELESAI':
+                return 'success';
+            case 'DIKONFIRMASI':
+                return 'default';
+            case 'MENUNGGU_PEMBAYARAN':
+                return 'secondary';
+            case 'DIBATALKAN':
+                return 'destructive';
+            default:
+                return 'outline';
         }
     };
 
-    const handleCancelOrder = async (id: string) => {
-        try {
-            await api.patch(`/cancel-order/tenant/${id}`);
-            toast({ title: 'Sukses', description: 'Pesanan berhasil dibatalkan.' });
-            refetchData();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Gagal membatalkan pesanan.' });
-        }
-    };
+    if (isLoading) {
+        return (
+            <div>
+                {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full mb-2" />
+                ))}
+            </div>
+        );
+    }
+
+    if (transactions.length === 0) {
+        return <p className="text-center text-gray-500 py-8">Tidak ada transaksi ditemukan.</p>;
+    }
 
     return (
-        <div className="border rounded-lg">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Penyewa</TableHead>
-                        <TableHead>Properti</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>No. Invoice</TableHead>
+                    <TableHead>Properti</TableHead>
+                    <TableHead>Pemesan</TableHead>
+                    <TableHead>Check-in</TableHead>
+                    <TableHead>Total Harga</TableHead>
+                    <TableHead>Status</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {transactions.map((trx) => (
+                    <TableRow key={trx.id}>
+                        <TableCell className="font-medium">{trx.invoiceNumber}</TableCell>
+                        <TableCell>{trx.property.name}</TableCell>
+                        <TableCell>{trx.user.fullName}</TableCell>
+                        <TableCell>{format(new Date(trx.checkIn), 'd MMM yyyy', { locale: id })}</TableCell>
+                        <TableCell>
+                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(trx.totalPrice)}
+                        </TableCell>
+                        <TableCell>
+                            <Badge variant={getStatusVariant(trx.status)}>{trx.status.replace('_', ' ')}</Badge>
+                        </TableCell>
                     </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.map((item) => (
-                        <TableRow key={item.id}>
-                            <TableCell className="font-medium">{item.invoiceNumber}</TableCell>
-                            <TableCell>{item.user.name}</TableCell>
-                            <TableCell>{item.property.name}</TableCell>
-                            <TableCell><Badge>{item.status}</Badge></TableCell>
-                            <TableCell className="text-right space-x-2">
-                                {item.status === 'MENUNGGU_KONFIRMASI' && (
-                                    <>
-                                        <Button asChild variant="outline" size="sm">
-                                            <Link href={item.paymentProof || '#'} target="_blank" rel="noopener noreferrer">Lihat Bukti</Link>
-                                        </Button>
-                                        <Button size="sm" onClick={() => handleAction('approve', item.invoiceNumber)}>Setujui</Button>
-                                        <Button variant="destructive" size="sm" onClick={() => handleAction('reject', item.invoiceNumber)}>Tolak</Button>
-                                    </>
-                                )}
-                                {item.status === 'MENUNGGU_PEMBAYARAN' && (
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="destructive" size="sm">Batalkan</Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Anda Yakin?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    Tindakan ini akan membatalkan pesanan pengguna secara permanen. Pengguna akan diberi notifikasi.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Tidak</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleCancelOrder(item.id)}>Ya, Batalkan</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                )}
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
+                ))}
+            </TableBody>
+        </Table>
     );
-}
+};
