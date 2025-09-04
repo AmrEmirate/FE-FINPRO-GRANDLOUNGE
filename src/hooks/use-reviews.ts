@@ -15,10 +15,11 @@ export interface Review {
         fullName: string;           // Ubah dari name
         profilePicture?: string;    // Ubah dari avatarUrl
     };
-    reply?: {
-        comment: string;
-        createdAt: string;
-    };
+    reply?: string | null;
+    property: {
+        id: string;
+        name: string;
+    }
 }
 // --- AKHIR DARI PERBAIKAN ---
 

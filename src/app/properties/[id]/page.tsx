@@ -1,3 +1,5 @@
+// src/app/properties/[id]/page.tsx (SUDAH DIPERBAIKI & DILENGKAPI)
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -11,39 +13,36 @@ import { BookingSidebar } from "@/components/property/booking-sidebar"
 import { PropertyAvailabilityCalendar } from "@/components/property/property-availability-calendar"
 import type { Property, Room } from "@/lib/types"
 import type { DateRange } from "react-day-picker"
-import apiHelper from "@/lib/apiHelper" // Pastikan apiHelper diimpor
+import apiHelper from "@/lib/apiHelper"
 import { format } from "date-fns"
+// --- TAMBAHKAN IMPORT INI ---
+import PropertyReviews from "@/components/property/PropertyReviews"
 
-// Fungsi untuk mengambil data properti awal (tidak berubah)
 async function getProperty(id: string): Promise<Property | null> {
-    try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/properties/${id}`)
-        if (!res.ok) return null
-        const data = await res.json()
-        return data.data
-    } catch (error) {
-        console.error("Failed to fetch property:", error)
-        return null
-    }
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/properties/${id}`)
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.data
+  } catch (error) {
+    console.error("Failed to fetch property:", error)
+    return null
+  }
 }
 
 export default function PropertyDetailPage({ params }: { params: { id: string } }) {
   const [property, setProperty] = useState<Property | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  
-  // --- PERUBAHAN STATE ---
   const [availableRooms, setAvailableRooms] = useState<Room[]>([])
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>()
 
-  // Efek untuk mengambil data properti saat pertama kali halaman dimuat
   useEffect(() => {
     const fetchProperty = async () => {
       setIsLoading(true)
       const data = await getProperty(params.id)
       setProperty(data)
-      // Awalnya, tampilkan semua kamar
       if (data?.rooms) {
         setAvailableRooms(data.rooms)
         if (data.rooms.length > 0) {
@@ -55,26 +54,24 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
     fetchProperty()
   }, [params.id])
 
-  // --- LOGIKA BARU: Efek untuk mengambil kamar yang tersedia saat rentang tanggal berubah ---
   useEffect(() => {
     const fetchAvailableRooms = async () => {
       if (selectedRange?.from && selectedRange?.to && property) {
         setIsCheckingAvailability(true)
-        setAvailableRooms([]) // Kosongkan daftar saat memeriksa
-        setSelectedRoom(null) // Reset pilihan kamar
+        setAvailableRooms([])
+        setSelectedRoom(null)
         try {
           const checkIn = format(selectedRange.from, "yyyy-MM-dd")
           const checkOut = format(selectedRange.to, "yyyy-MM-dd")
-          
+
           const response = await apiHelper.get(
             `/properties/${property.id}/available-rooms?checkIn=${checkIn}&checkOut=${checkOut}`
           )
-          
+
           setAvailableRooms(response.data.data)
           if (response.data.data.length > 0) {
             setSelectedRoom(response.data.data[0])
           }
-
         } catch (error) {
           console.error("Failed to fetch available rooms:", error)
           setAvailableRooms([])
@@ -83,17 +80,14 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
         }
       }
     }
-
     fetchAvailableRooms()
   }, [selectedRange, property])
 
-
-  // Tampilan loading awal
   if (isLoading) {
     return (
-        <div className="min-h-screen flex items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+      </div>
     )
   }
 
@@ -120,43 +114,45 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
             Back to Properties
           </Button>
         </Link>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-8">
             <PropertyImageGallery images={galleryImages} propertyName={property.name} />
             <PropertyInfo property={property} />
-            
-            {/* Kalender untuk memilih tanggal */}
+
             <PropertyAvailabilityCalendar
               propertyId={property.id}
               selectedRange={selectedRange}
               onSelectRange={setSelectedRange}
             />
 
-            {/* Tampilkan loading saat cek ketersediaan */}
             {isCheckingAvailability && (
-                <div className="flex items-center justify-center p-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                    <p className="ml-4">Mengecek ketersediaan kamar...</p>
-                </div>
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <p className="ml-4">Mengecek ketersediaan kamar...</p>
+              </div>
             )}
-            
-            {/* Hanya tampilkan RoomSelection jika pengecekan selesai */}
+
             {!isCheckingAvailability && (
-              <RoomSelection 
-                rooms={availableRooms} // Gunakan state kamar yang tersedia
-                selectedRoomId={selectedRoom?.id || null} 
-                onRoomSelect={setSelectedRoom} 
+              <RoomSelection
+                rooms={availableRooms}
+                selectedRoomId={selectedRoom?.id || null}
+                onRoomSelect={setSelectedRoom}
               />
+            )}
+
+            {/* --- BAGIAN ULASAN DITAMBAHKAN DI SINI --- */}
+            {property.reviews && property.reviews.length > 0 && (
+              <PropertyReviews reviews={property.reviews} />
             )}
           </div>
 
           <div className="lg:col-span-1 sticky top-24">
-            {/* Sidebar Booking sekarang menerima properti yang sudah difilter */}
-            <BookingSidebar 
+            <BookingSidebar
+              propertyId={property.id}
               selectedRoom={selectedRoom}
               selectedRange={selectedRange}
-              propertyId={property.id}      
+
               onDateChange={setSelectedRange}
             />
           </div>
