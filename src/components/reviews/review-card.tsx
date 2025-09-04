@@ -1,36 +1,18 @@
-'use client'; // Pastikan ini ada di baris paling atas
+// src/components/reviews/review-card.tsx (SUDAH DIPERBAIKI)
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star } from 'lucide-react';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-
-// Definisikan tipe data yang lebih akurat
-interface ReviewData {
-    id: string;
-    rating: number;
-    comment: string | null;
-    createdAt: string;
-    user: {
-        fullName: string;
-        profilePicture?: string | null;
-    };
-    reply?: {
-        comment: string;
-        createdAt: string;
-    } | null;
-}
+import { Review } from '@/hooks/use-reviews';
 
 interface ReviewCardProps {
-    review: ReviewData;
+    review: Review;
 }
 
 export const ReviewCard = ({ review }: ReviewCardProps) => {
-    // Pengaman jika data user tidak ada
-    const userName = review.user?.fullName || 'Anonymous';
-    const userAvatar = review.user?.profilePicture;
-    const userInitial = userName.charAt(0).toUpperCase();
 
     return (
         <Card>
@@ -38,13 +20,22 @@ export const ReviewCard = ({ review }: ReviewCardProps) => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Avatar>
-                            {/* --- PERBAIKAN 1 --- */}
-                            <AvatarImage src={userAvatar || undefined} alt={userName} />
-                            <AvatarFallback>{userInitial}</AvatarFallback>
+                            <AvatarImage src={review.user.profilePicture} alt={review.user.fullName} />
+                            <AvatarFallback>{review.user.fullName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            {/* --- PERBAIKAN 2 --- */}
-                            <CardTitle className="text-base font-semibold">{userName}</CardTitle>
+                            <CardTitle className="text-base font-semibold">{review.user.fullName}</CardTitle>
+                            {review.property && (
+                                <p className="text-xs text-gray-500">
+                                    Ulasan untuk:{' '}
+                                    <Link
+                                        href={`/properties/${review.property.id}`}
+                                        className="hover:underline text-blue-600 font-medium"
+                                    >
+                                        {review.property.name}
+                                    </Link>
+                                </p>
+                            )}
                             <p className="text-xs text-gray-500">
                                 {format(new Date(review.createdAt), 'd MMMM yyyy', { locale: id })}
                             </p>
@@ -63,15 +54,16 @@ export const ReviewCard = ({ review }: ReviewCardProps) => {
             </CardHeader>
             <CardContent>
                 <p className="text-sm text-gray-700">{review.comment}</p>
+
+                {/* --- BAGIAN INI YANG DIPERBAIKI --- */}
                 {review.reply && (
-                    <div className="mt-4 rounded-md bg-gray-100 p-4">
-                        <p className="text-sm font-semibold">Balasan dari Tenant</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                            {/* Pastikan `createdAt` ada di objek `reply` jika Anda ingin menampilkannya */}
-                            {review.reply.createdAt && format(new Date(review.reply.createdAt), 'd MMMM yyyy', { locale: id })}
-                        </p>
-                        <p className="text-sm text-gray-700 mt-2">{review.reply.comment}</p>
-                    </div>
+                    <Card className="mt-3 ml-10 bg-gray-100">
+                        <CardContent className="p-4">
+                            <p className="font-semibold text-sm">Balasan dari pemilik:</p>
+                            {/* Cukup tampilkan 'review.reply' secara langsung */}
+                            <p className="text-sm text-gray-600">{review.reply}</p>
+                        </CardContent>
+                    </Card>
                 )}
             </CardContent>
         </Card>

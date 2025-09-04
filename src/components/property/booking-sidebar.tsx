@@ -58,6 +58,7 @@ export function BookingSidebar({
         const query = new URLSearchParams({
             propertyId,
             roomId: selectedRoom.id,
+            roomName: selectedRoom.name,
             checkIn: format(selectedRange!.from!, 'yyyy-MM-dd'),
             checkOut: format(selectedRange!.to!, 'yyyy-MM-dd'),
             guests: "1",

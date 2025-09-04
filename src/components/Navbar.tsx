@@ -23,12 +23,12 @@ export default function Navbar() {
     const router = useRouter();
     const { user, logout } = useAuth();
 
-    const isHome = pathname === "/";
-    const placeholders = ["Cari Hotel...", "Cari Villa...", "Cari Apartemen..."];
-    const [index, setIndex] = useState(0);
     const [isFocused, setIsFocused] = useState(false);
     const [value, setValue] = useState("");
 
+    // Logika untuk placeholder search bar
+    const placeholders = ["Cari Hotel...", "Cari Villa...", "Cari Apartemen..."];
+    const [index, setIndex] = useState(0);
     useEffect(() => {
         const interval = setInterval(() => {
             setIndex((prev) => (prev + 1) % placeholders.length);
@@ -43,16 +43,26 @@ export default function Navbar() {
         params.set('q', value);
         router.push(`/properties?${params.toString()}`);
     };
-    
-    // --- PERBAIKAN UTAMA DI SINI ---
-    // Logika untuk menyembunyikan Navbar diperbarui
+
+    // Jangan tampilkan navbar di halaman otentikasi
     if (pathname.startsWith("/auth")) return null;
-    // Baris yang menyembunyikan navbar di dashboard sudah dihapus
-    
+
+    // --- PERBAIKAN UTAMA ADA DI SINI ---
     const isDashboardPage = pathname.startsWith("/dashboard") || pathname.startsWith("/tenant");
-    const navbarBg = isHome ? "bg-transparent" : (isDashboardPage ? "bg-white shadow-md text-black" : "bg-black shadow-md text-white");
+    const isHome = pathname === "/";
+
+    // 1. Logika untuk background navbar
+    // Jika di homepage -> transparan. Jika di halaman lain (termasuk dashboard) -> hitam.
+    const navbarBg = isHome ? "bg-transparent" : "bg-black shadow-md";
+
+    // 2. Logika untuk warna teks navbar
+    // Di semua halaman, teks akan berwarna putih.
+    const textColor = "text-white";
+
+    // 3. Logika untuk posisi navbar
+    // Di homepage -> absolut. Di halaman lain -> menempel di atas (fixed).
     const navbarPosition = isHome ? "absolute" : "fixed";
-    const textColor = isHome || !isDashboardPage ? "text-white" : "text-black";
+    // --- AKHIR DARI PERBAIKAN ---
 
     const userMenuItems = [
         { label: "Akun", href: "/dashboard/akun_user/profile" },
@@ -70,13 +80,12 @@ export default function Navbar() {
     return (
         <>
             <nav
-                className={`${navbarPosition} top-0 left-0 w-full flex items-center h-20 px-6 lg:px-12 z-50 gap-6 transition-all duration-300 ${navbarBg}`}
+                className={`${navbarPosition} top-0 left-0 w-full flex items-center h-20 px-6 lg:px-12 z-50 gap-6 transition-all duration-300 ${navbarBg} ${textColor}`}
             >
                 <Link href="/" className="flex items-center">
                     <img src="/assets/LONGE.png" alt="Logo" className="h-12 w-auto" />
                 </Link>
 
-                {/* Search Bar hanya tampil di halaman non-dashboard */}
                 {!isDashboardPage && (
                     <form onSubmit={handleSearchSubmit} className="flex items-center mx-4 flex-1 max-w-md relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -106,40 +115,29 @@ export default function Navbar() {
                     </form>
                 )}
 
-                {/* Navigasi Link */}
-                <div className={`hidden lg:flex gap-6 ${textColor} ${isDashboardPage ? 'ml-auto' : ''}`}>
+                <div className={`hidden lg:flex gap-6 ${isDashboardPage ? 'ml-auto' : ''}`}>
                     <Link href="/properties">Properti</Link>
                     <Link href="/about">Tentang Kami</Link>
                     <Link href="/contact">Kontak</Link>
                 </div>
 
-                {/* Auth Section */}
-                <div className={`ml-auto hidden lg:flex gap-3 items-center`}>
+                <div className="ml-auto hidden lg:flex gap-3 items-center">
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
                                     <Avatar className="h-10 w-10">
-
                                         <AvatarImage
                                             src={user?.profilePicture || "/placeholder-user.jpg"}
                                             alt={user?.fullName || "User"}
                                             className="w-full h-full object-cover rounded-full"
                                         />
-
                                         <AvatarFallback>{user?.fullName?.charAt(0).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-3 rounded-2xl shadow-xl cursor-pointer">
-
-                                {[
-                                    { label: "Akun", href: "/dashboard/akun_user/profile" },
-                                    { label: "Your Orders", href: "/dashboard/akun_user/orders" },
-                                    { label: "Metode Pembayaran", href: "/dashboard/akun_user/metode_pembayaran" },
-                                    { label: "My Review", href: "/dashboard/akun_user/review" },
-                                ].map((item) => (
-
+                                {menuItems.map((item) => (
                                     <DropdownMenuItem asChild key={item.href}>
                                         <Link href={item.href}>{item.label}</Link>
                                     </DropdownMenuItem>
@@ -160,11 +158,10 @@ export default function Navbar() {
                 </div>
 
                 <div className="ml-auto lg:hidden">
-                    <button onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X className={textColor + " w-7 h-7"} /> : <Menu className={textColor + " w-7 h-7"} />}</button>
+                    <button onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}</button>
                 </div>
             </nav>
 
-            {/* Mobile Menu */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div

@@ -1,102 +1,114 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import apiHelper from "@/utils/api";
 import { useAuth } from '@/context/AuthContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import api from '@/utils/api'; // Gunakan satu instance API saja
 
 function ReservationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuth();
+  // Ambil juga 'loading' dari useAuth untuk menunggu data user siap
+  const { user, loading } = useAuth();
 
   const [paymentMethod, setPaymentMethod] = useState('manual');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Ambil semua parameter dari URL
   const propertyId = searchParams.get('propertyId');
   const roomId = searchParams.get('roomId');
+  const roomName = searchParams.get('roomName');
   const checkIn = searchParams.get('checkIn');
   const checkOut = searchParams.get('checkOut');
   const nights = searchParams.get('nights');
-  const totalCost = searchParams.get('totalCost');
+  const totalPrice = searchParams.get('totalPrice');
 
-  const handleCreateReservation = async () => {
-    if (!propertyId || !roomId || !checkIn || !checkOut || !user) {
+  // Cek status login setelah loading selesai
+  useEffect(() => {
+    // Jika proses loading auth selesai dan ternyata user tidak ada (belum login)
+    if (!loading && !user) {
       toast({
-        title: 'Error',
-        description: 'Data reservasi tidak lengkap atau Anda belum login.',
+        title: 'Sesi Tidak Ditemukan',
+        description: 'Anda harus login untuk melanjutkan reservasi.',
         variant: 'destructive',
       });
+      // Arahkan ke halaman login
+      router.push('/auth/login');
+    }
+  }, [user, loading, router, toast]);
+
+  const handleCreateReservation = async () => {
+    // Validasi yang lebih kuat, pastikan user sudah termuat
+    if (loading || !user) {
+      toast({
+        title: 'Harap Tunggu',
+        description: 'Sesi Anda sedang dimuat. Silakan coba lagi.',
+      });
+      return;
+    }
+
+    if (!propertyId || !roomId || !roomName || !checkIn || !checkOut || !totalPrice) {
+      toast({
+        title: 'Error',
+        description: 'Data reservasi tidak lengkap. Coba ulangi dari halaman properti.',
+        variant: 'destructive',
+      });
+      router.push('/properties');
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      const roomName = searchParams.get('roomName');
-      if (!roomName) {
-        toast({ variant: "destructive", title: "Error", description: "Nama kamar tidak ditemukan." });
-        setIsProcessing(false);
-        return;
-      }
-
-      const guests = searchParams.get('guests');
-
       const payload = {
-        propertyId: propertyId,
-        roomName: roomName,
+        propertyId,
+        roomName,
         checkIn: new Date(checkIn).toISOString(),
         checkOut: new Date(checkOut).toISOString(),
-        paymentMethod: paymentMethod,
-        userId: user.id,
-        guestCount: guests ? parseInt(guests, 10) : 1,
+        paymentMethod,
         guestInfo: {
-          name: user?.fullName,
-          email: user?.email,
+          name: user.fullName,
+          email: user.email,
         },
       };
-      console.log("Payload yang dikirim:", payload);
-      
-      const response = await apiHelper.post('/reservations/by-room-name', payload);
+
+      const response = await api.post('/reservations/by-room-name', payload);
 
       if (paymentMethod === 'gateway' && response.data.data.paymentUrl) {
         window.location.href = response.data.data.paymentUrl;
       } else {
         toast({
           title: 'Reservasi Berhasil Dibuat',
-          description: 'Silakan unggah bukti pembayaran Anda.',
+          description: 'Silakan unggah bukti pembayaran Anda di halaman pesanan.',
         });
         router.push('/dashboard/akun_user/orders');
       }
     } catch (error: any) {
-      console.error('Failed to create reservation:', error);
       toast({
         title: 'Gagal Membuat Reservasi',
-        description: error.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan Anda.',
+        description: error.response?.data?.message || 'Terjadi kesalahan.',
         variant: 'destructive',
       });
     } finally {
       setIsProcessing(false);
     }
   };
-  console.log("DATA USER SAAT INI:", user);
 
-  // Periksa apakah semua parameter ada sebelum menampilkan konten utama
-  console.log({ propertyId, roomId, checkIn, checkOut, user });
-  if (!propertyId || !checkIn || !checkOut || !nights || !totalCost) {
+  // Tampilkan loading jika data user belum siap atau parameter URL tidak ada
+  if (loading || !propertyId || !checkIn || !checkOut || !nights || !totalPrice) {
     return (
-      <div className="text-center container mx-auto py-12">
-        <p className="text-red-500">Data reservasi tidak valid.</p>
-        <Button onClick={() => router.push('/')} className="mt-4">Kembali ke Beranda</Button>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <p className="ml-4">Memuat detail reservasi...</p>
       </div>
     );
   }
@@ -111,7 +123,6 @@ function ReservationContent() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Detail Pesanan */}
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold">Detail Tanggal Menginap</h3>
@@ -127,40 +138,25 @@ function ReservationContent() {
                 <div className="flex justify-between">
                   <span>Total Biaya</span>
                   <span className="font-bold">
-                    Rp {parseInt(totalCost).toLocaleString('id-ID')}
+                    Rp {parseInt(totalPrice).toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Pilihan Metode Pembayaran */}
           <div>
             <h3 className="font-semibold mb-2">Metode Pembayaran</h3>
-            <RadioGroup
-              defaultValue="manual"
-              className="space-y-2"
-              onValueChange={setPaymentMethod}
-              value={paymentMethod}
-            >
+            <RadioGroup defaultValue="manual" className="space-y-2" onValueChange={setPaymentMethod} value={paymentMethod}>
               <Label htmlFor="manual" className="flex items-center space-x-3 border p-4 rounded-md cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-600">
                 <RadioGroupItem value="manual" id="manual" />
                 <span>Transfer Bank Manual (Upload Bukti)</span>
               </Label>
-              <Label htmlFor="gateway" className="flex items-center space-x-3 border p-4 rounded-md cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-600">
-                <RadioGroupItem value="gateway" id="gateway" />
-                <span>Payment Gateway (Kartu Kredit, Virtual Account, dll.)</span>
-              </Label>
+              
             </RadioGroup>
           </div>
         </CardContent>
         <CardFooter>
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleCreateReservation}
-            disabled={isProcessing}
-          >
+          <Button className="w-full" size="lg" onClick={handleCreateReservation} disabled={isProcessing || loading || !user}>
             {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isProcessing ? 'Memproses...' : 'Lanjutkan ke Pembayaran'}
           </Button>
