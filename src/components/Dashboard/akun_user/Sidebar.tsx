@@ -2,18 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import {
     CreditCard,
-    Settings,
     Star,
     User,
     Wallet,
-    LogOut,
     Package,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const navItems = [
     { href: "/dashboard/akun_user/profile", label: "Profil", icon: User },
@@ -24,7 +20,6 @@ const navItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { logout } = useAuth();
 
     return (
         <div className="hidden border-r bg-white md:block w-64">

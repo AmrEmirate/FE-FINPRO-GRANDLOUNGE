@@ -14,7 +14,8 @@ import {
     Calendar,
     LogOut,
     Package,
-    User, // 1. Impor ikon User
+    User,
+    Star, // 1. Impor ikon User
 } from "lucide-react";
 
 // 2. Tambahkan item navigasi untuk Profil
@@ -24,6 +25,7 @@ const tenantNavItems = [
     { href: "/tenant/transactions", label: "Transaksi", icon: CreditCard },
     { href: "/tenant/reports/sales", label: "Laporan Penjualan", icon: LineChart },
     { href: "/tenant/reports/availability", label: "Ketersediaan", icon: Calendar },
+    { href: "/tenant/reviews", label: "Ulasan", icon: Star },
     { href: "/tenant/profile", label: "Profil", icon: User }, // Item baru
 ];
 

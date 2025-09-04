@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRange } from 'react-day-picker';
 import { DateRangePicker } from '@/components/reports/DateRangePicker';
-import { SalesChart } from '@/components/reports/SalesChart';
+import SalesChart from '@/components/reports/SalesChart'; // <-- PERBAIKAN DI SINI
 import { SalesDataTable } from '@/components/reports/SalesDataTable';
 import apiHelper from '@/lib/apiHelper';
 import { useToast } from '@/components/ui/use-toast';
@@ -18,7 +18,6 @@ export interface SalesReportItem {
     total: number;
 }
 
-// --- PENJELASAN 1: Definisikan tipe spesifik untuk groupBy ---
 type GroupByOption = 'property' | 'user' | 'transaction';
 
 export default function SalesReportPage() {
@@ -28,7 +27,6 @@ export default function SalesReportPage() {
     const { toast } = useToast();
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
-    // --- PENJELASAN 2: Gunakan tipe spesifik pada state ---
     const [groupBy, setGroupBy] = useState<GroupByOption>('property');
     const [sortBy, setSortBy] = useState('total-desc');
 
@@ -63,9 +61,9 @@ export default function SalesReportPage() {
         }
     };
 
-    useEffect(() => {
-        fetchReport();
-    }, []);
+    // useEffect(() => {
+    //     fetchReport();
+    // }, []); // Dihapus agar tidak fetch otomatis saat load
 
     return (
         <div className="space-y-6">
@@ -79,7 +77,6 @@ export default function SalesReportPage() {
             <Card>
                 <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center">
                     <DateRangePicker date={dateRange} onDateChange={setDateRange} />
-                    {/* --- PENJELASAN 3: Pastikan onValueChange di-handle dengan benar --- */}
                     <Select value={groupBy} onValueChange={(value) => setGroupBy(value as GroupByOption)}>
                         <SelectTrigger className="w-full md:w-[180px]">
                             <SelectValue placeholder="Kelompokkan berdasarkan" />
@@ -147,4 +144,3 @@ export default function SalesReportPage() {
         </div>
     );
 }
-
