@@ -6,15 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TransactionStatus } from '@/hooks/useTenantTransactions';
 
 interface StatusTab {
-    value: TransactionStatus;
+    value: TransactionStatus | 'MENUNGGU_KONFIRMASI' | '';
     label: string;
 }
 
 export default function TenantTransactionsPage() {
     const statusTabs: StatusTab[] = [
         { value: '', label: 'Semua' },
-        { value: 'MENUNGGU_PEMBAYARAN', label: 'Pembayaran' },
-        { value: 'DIKONFIRMASI', label: 'Dikonfirmasi' },
+        { value: 'MENUNGGU_PEMBAYARAN', label: 'Menunggu Pembayaran' },
+        { value: 'MENUNGGU_KONFIRMASI', label: 'Di Konfirmasi' },
         { value: 'SELESAI', label: 'Selesai' },
         { value: 'DIBATALKAN', label: 'Dibatalkan' },
     ];
@@ -44,7 +44,7 @@ export default function TenantTransactionsPage() {
                             </CardHeader>
                             <CardContent>
                                 {/* Melemparkan 'value' dari tab langsung ke tabel */}
-                                <TransactionsTable status={tab.value} />
+                                <TransactionsTable status={tab.value as TransactionStatus} />
                             </CardContent>
                         </Card>
                     </TabsContent>
