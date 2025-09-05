@@ -32,7 +32,7 @@ export default function TenantDashboardPage() {
         basePrice: 1200000, 
         capacity: 2, 
         name: "Deluxe", 
-        category: RoomCategory.DELUXE, // Gunakan enum
+        category: RoomCategory.DELUXE, // Gunakan en
         bedOption: BedOption.DOUBLE,    // Gunakan enum
         description: "", 
         propertyId: "1" 

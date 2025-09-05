@@ -3,12 +3,15 @@
 import { TransactionsTable } from '@/components/tenant/transactions-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// 1. TAMBAHKAN IMPOR INI
+import { TransactionStatus } from '@/hooks/useTenantTransactions';
 
 export default function TenantTransactionsPage() {
   const statusTabs = [
     { value: '', label: 'Semua' },
     { value: 'MENUNGGU_PEMBAYARAN', label: 'Menunggu Pembayaran' },
-    { value: 'DIKONFIRMASI', label: 'Dikonfirmasi' },
+    // 2. PERBAIKI VALUE DI BAWAH INI
+    { value: 'MENUNGGU_KONFIRMASI', label: 'Dikonfirmasi' },
     { value: 'SELESAI', label: 'Selesai' },
     { value: 'DIBATALKAN', label: 'Dibatalkan' },
   ];
@@ -36,8 +39,8 @@ export default function TenantTransactionsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Komponen tabel akan menerima status sebagai prop */}
-                <TransactionsTable status={tab.value} />
+                {/* 3. PERBAIKI PROPS STATUS DI SINI */}
+                <TransactionsTable status={tab.value as TransactionStatus} />
               </CardContent>
             </Card>
           </TabsContent>

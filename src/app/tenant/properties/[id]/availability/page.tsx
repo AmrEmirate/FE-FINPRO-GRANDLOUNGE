@@ -10,9 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-// Import komponen baru
-import { PeakSeasonDialog, PeakSeason } from "@/components/tenant/PeakSeasonDialog";
+import { PeakSeasonDialog, PeakSeason, PeakSeasonPayload } from "@/components/tenant/PeakSeasonDialog";
 import { PeakSeasonList } from "@/components/tenant/PeakSeasonList";
 
 // Mock data untuk simulasi
@@ -26,13 +24,13 @@ const mockAvailability = [
     { date: "2025-10-11", isAvailable: false },
 ];
 
-// Mock data untuk Peak Seasons
 const mockPeakSeasons: PeakSeason[] = [
     {
         id: 'ps1',
         name: 'New Year 2026',
-        dateRange: { from: new Date('2025-12-28'), to: new Date('2026-01-05') },
-        adjustmentType: 'percentage',
+        startDate: new Date('2025-12-28'),
+        endDate: new Date('2026-01-05'),
+        adjustmentType: 'PERCENTAGE',
         adjustmentValue: 30,
     }
 ];
@@ -40,54 +38,27 @@ const mockPeakSeasons: PeakSeason[] = [
 export default function ManageAvailabilityPage({ params }: { params: { id: string } }) {
     const [selectedRoom, setSelectedRoom] = useState(mockRooms[0]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-
-    // State untuk Peak Season
     const [peakSeasons, setPeakSeasons] = useState<PeakSeason[]>(mockPeakSeasons);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingSeason, setEditingSeason] = useState<PeakSeason | null>(null);
 
     const handleSaveCalendar = (dates: DateRange, isAvailable: boolean, price?: number) => {
-        if (dates.from && dates.to) {
-            alert(
-                `Saved for Room ID ${selectedRoom.id}:\n` +
-                `Dates: ${dates.from.toDateString()} to ${dates.to.toDateString()}\n` +
-                `Available: ${isAvailable}\n` +
-                `Price: ${price || 'Not set'}`
-            );
-        } else {
-            alert("Something went wrong with the selected date range.");
-        }
+        // Logika untuk menyimpan data kalender
     };
 
-    // Fungsi untuk menyimpan Peak Season
-    const handleSavePeakSeason = (season: PeakSeason) => {
-        setPeakSeasons(prev => {
-            const existing = prev.find(s => s.id === season.id);
-            if (existing) {
-                // Update
-                return prev.map(s => s.id === season.id ? season : s);
-            } else {
-                // Tambah baru
-                return [...prev, season];
-            }
-        });
-        setEditingSeason(null);
+    const handleSavePeakSeason = (season: PeakSeasonPayload) => {
+        // Logika untuk menyimpan data peak season
     };
 
-    // Fungsi untuk menghapus Peak Season
     const handleDeletePeakSeason = (seasonId: string) => {
-        if(confirm('Are you sure you want to delete this peak season?')) {
-            setPeakSeasons(prev => prev.filter(s => s.id !== seasonId));
-        }
+        // Logika untuk menghapus data peak season
     };
     
-    // Fungsi untuk membuka dialog dalam mode edit
     const handleEditPeakSeason = (season: PeakSeason) => {
         setEditingSeason(season);
         setIsDialogOpen(true);
     };
     
-    // Fungsi untuk membuka dialog dalam mode tambah baru
     const openAddDialog = () => {
         setEditingSeason(null);
         setIsDialogOpen(true);
@@ -95,7 +66,6 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
 
     return (
         <div className="min-h-screen bg-gray-50 p-8 space-y-8">
-            {/* Bagian Kalender */}
             <Card className="max-w-4xl mx-auto">
                 <CardHeader>
                     <CardTitle>Manage Daily Availability & Pricing</CardTitle>
@@ -121,10 +91,12 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
                             </SelectContent>
                         </Select>
                     </div>
+                    {/* PERBAIKAN: Pastikan semua prop yang dibutuhkan dikirim ke kalender */}
                     <AvailabilityCalendar
                         basePrice={selectedRoom.basePrice}
                         availabilityData={mockAvailability}
-                        currentMonth={currentMonth}
+                        peakSeasons={peakSeasons}
+                        month={currentMonth}
                         onMonthChange={setCurrentMonth}
                         onSave={handleSaveCalendar}
                     />
@@ -133,7 +105,6 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
 
             <Separator className="max-w-4xl mx-auto" />
             
-            {/* Bagian Peak Season */}
             <div className="max-w-4xl mx-auto space-y-4">
                 <div className="flex justify-between items-center">
                     <div>
@@ -149,7 +120,6 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
                 />
             </div>
             
-            {/* Dialog untuk Tambah/Edit */}
             <PeakSeasonDialog 
                 isOpen={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}

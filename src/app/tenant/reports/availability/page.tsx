@@ -1,3 +1,5 @@
+// src/app/tenant/reports/availability/page.tsx
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -9,7 +11,6 @@ import api from '@/utils/api';
 import { AvailabilityCalendar } from '@/components/tenant/availability-calendar';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Property } from '@/lib/types';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 
 interface BookedDate {
@@ -20,11 +21,13 @@ interface BookedDate {
 
 export default function AvailabilityReportPage() {
     const { properties: allProperties, isLoading: isLoadingProperties } = useTenantProperties();
+    const { toast } = useToast();
+
     const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
     const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
     const [bookedDates, setBookedDates] = useState<BookedDate[]>([]);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
-    const { toast } = useToast();
 
     useEffect(() => {
         if (!isLoadingProperties && allProperties.length > 0 && !selectedPropertyId) {
@@ -36,7 +39,7 @@ export default function AvailabilityReportPage() {
         }
     }, [isLoadingProperties, allProperties, selectedPropertyId]);
 
-    const fetchBookedDates = useCallback(async () => {
+    const fetchBookedDates = useCallback(async (month: Date) => {
         if (!selectedPropertyId || !selectedRoomId) {
             setBookedDates([]);
             return;
@@ -44,20 +47,20 @@ export default function AvailabilityReportPage() {
 
         setIsLoadingBookedDates(true);
         try {
-            // **PERBAIKAN UTAMA: Selalu kirim startDate dan endDate**
-            const startDate = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-            const endDate = format(endOfMonth(new Date()), 'yyyy-MM-dd');
+            const startDate = format(startOfMonth(month), 'yyyy-MM-dd');
+            const endDate = format(endOfMonth(month), 'yyyy-MM-dd');
 
             const response = await api.get(`/calendar-report/${selectedPropertyId}/${selectedRoomId}`, {
                 params: { startDate, endDate }
             });
-            setBookedDates(response.data.data);
+            
+            setBookedDates(response.data.data || []);
         } catch (error) {
             toast({
                 title: 'Gagal mengambil data ketersediaan.',
+                description: 'Terjadi kesalahan saat berkomunikasi dengan server.',
                 variant: 'destructive',
             });
-            console.error('Error fetching booked dates:', error);
             setBookedDates([]);
         } finally {
             setIsLoadingBookedDates(false);
@@ -65,8 +68,8 @@ export default function AvailabilityReportPage() {
     }, [selectedPropertyId, selectedRoomId, toast]);
 
     useEffect(() => {
-        fetchBookedDates();
-    }, [fetchBookedDates]);
+        fetchBookedDates(currentMonth);
+    }, [fetchBookedDates, currentMonth]);
 
     const handlePropertyChange = (propertyId: string) => {
         setSelectedPropertyId(propertyId);
@@ -83,53 +86,32 @@ export default function AvailabilityReportPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold">Laporan Ketersediaan Properti</h1>
+            <h1 className="text-2xl font-bold">Laporan Ketersediaan</h1>
             <p className="text-gray-500">Lihat ketersediaan kamar properti Anda dalam tampilan kalender.</p>
 
             <Card>
                 <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center">
-                    {isLoadingProperties ? (
-                        <Skeleton className="h-10 w-full md:w-[250px]" />
-                    ) : (
-                        <Select
-                            onValueChange={handlePropertyChange}
-                            value={selectedPropertyId || ''}
-                            disabled={allProperties.length === 0}
-                        >
-                            <SelectTrigger className="w-full md:w-[250px]">
-                                <SelectValue placeholder="Pilih Properti" />
-                            </SelectTrigger>
+                    {isLoadingProperties ? <Skeleton className="h-10 w-full md:w-[250px]" /> : (
+                        <Select onValueChange={handlePropertyChange} value={selectedPropertyId || ''} disabled={allProperties.length === 0}>
+                            <SelectTrigger className="w-full md:w-[250px]"><SelectValue placeholder="Pilih Properti" /></SelectTrigger>
                             <SelectContent>
                                 {allProperties.map(property => (
-                                    <SelectItem key={property.id} value={property.id}>
-                                        {property.name}
-                                    </SelectItem>
+                                    <SelectItem key={property.id} value={property.id}>{property.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     )}
-
                     {selectedPropertyId && (
-                        isLoadingProperties ? (
-                            <Skeleton className="h-10 w-full md:w-[250px]" />
-                        ) : (
-                            <Select
-                                onValueChange={setSelectedRoomId}
-                                value={selectedRoomId || ''}
-                                disabled={rooms.length === 0}
-                            >
-                                <SelectTrigger className="w-full md:w-[250px]">
-                                    <SelectValue placeholder="Pilih Kamar" />
-                                </SelectTrigger>
+                        isLoadingProperties ? <Skeleton className="h-10 w-full md:w-[250px]" /> : (
+                            <Select onValueChange={setSelectedRoomId} value={selectedRoomId || ''} disabled={rooms.length === 0}>
+                                <SelectTrigger className="w-full md:w-[250px]"><SelectValue placeholder="Pilih Kamar" /></SelectTrigger>
                                 <SelectContent>
                                     {rooms.length > 0 ? (
                                         rooms.map(room => (
-                                            <SelectItem key={room.id} value={room.id}>
-                                                Kamar {room.roomNumber}
-                                            </SelectItem>
+                                            <SelectItem key={room.id} value={room.id}>{room.name}</SelectItem>
                                         ))
                                     ) : (
-                                        <SelectItem value="no-rooms" disabled>Tidak ada kamar tersedia</SelectItem>
+                                        <SelectItem value="no-rooms" disabled>Tidak ada kamar</SelectItem>
                                     )}
                                 </SelectContent>
                             </Select>
@@ -140,7 +122,7 @@ export default function AvailabilityReportPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Tampilan Kalender Ketersediaan</CardTitle>
+                    <CardTitle>Kalender Ketersediaan</CardTitle>
                     <CardDescription>Tanggal yang ditandai adalah tanggal yang sudah dipesan.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center p-6">
@@ -149,7 +131,11 @@ export default function AvailabilityReportPage() {
                             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
                         </div>
                     ) : selectedPropertyId && selectedRoomId ? (
-                        <AvailabilityCalendar bookedDates={bookedDates} />
+                        <AvailabilityCalendar 
+                            bookedDates={bookedDates}
+                            month={currentMonth}
+                            onMonthChange={setCurrentMonth}
+                        />
                     ) : (
                         <p className="text-gray-500">Pilih properti dan kamar untuk melihat ketersediaan.</p>
                     )}

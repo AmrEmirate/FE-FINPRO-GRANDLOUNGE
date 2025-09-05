@@ -55,7 +55,7 @@ export interface Room {
   bedOption: BedOption;
   capacity: number; // Menggantikan 'maxGuests'
   basePrice: number; 
-  roomNumber: string; 
+  roomNumber?: string; 
 }
 
 export interface Review {
