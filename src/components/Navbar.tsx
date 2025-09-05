@@ -74,6 +74,10 @@ export default function Navbar() {
     const tenantMenuItems = [
         { label: "Tenant Dashboard", href: "/tenant/dashboard" },
         { label: "Profil Tenant", href: "/tenant/profile" },
+        { label: "Properti Saya", href: "/tenant/properties" },
+        { label: "Tambah Properti", href: "/tenant/properties/new" },   
+        { label: "Pesanan", href: "/tenant/orders" },
+        { label: "Ulasan", href: "/tenant/reviews" },
     ];
 
     const menuItems = user?.role === 'TENANT' ? tenantMenuItems : userMenuItems;
