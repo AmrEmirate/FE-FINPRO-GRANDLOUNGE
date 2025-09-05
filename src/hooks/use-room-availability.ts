@@ -1,89 +1,107 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import apiHelper from "@/lib/apiHelper"
-import { useToast } from "./use-toast"
-import { eachDayOfInterval, format } from "date-fns"
+import api from "@/utils/api"
+import { useToast } from "@/components/ui/use-toast"
 import { DateRange } from "react-day-picker"
+import { format } from "date-fns"
 
 interface Availability {
-  date: string
-  isAvailable: boolean
-  price?: number
+  date: string;
+  isAvailable: boolean;
+  price?: number;
 }
 
-// Fungsi untuk mendapatkan ketersediaan ruangan
 export function useRoomAvailability(propertyId: string, roomId: string) {
-  const { toast } = useToast()
-
-  const [availability, setAvailability] = useState<Availability[]>([])
-  const [roomName, setRoomName] = useState<string>("")
-  const [basePrice, setBasePrice] = useState<number>(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const { toast } = useToast();
+  const [roomName, setRoomName] = useState<string>("");
+  const [basePrice, setBasePrice] = useState<number>(0);
+  const [availability, setAvailability] = useState<Availability[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const fetchAvailability = useCallback(async () => {
-    if (!roomId || !propertyId) return // Pastikan kedua ID ada
+    if (!roomId || !propertyId) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      // Ambil detail ruangan (nama, harga dasar)
-      const roomRes = await apiHelper.get(`/properties/my-properties/${propertyId}/rooms/${roomId}`)
-      setRoomName(roomRes.data.data.name)
-      setBasePrice(roomRes.data.data.basePrice)
+      const roomRes = await api.get(`/properties/my-properties/${propertyId}/rooms/${roomId}`);
+      if (roomRes.data && roomRes.data.data) {
+        setRoomName(roomRes.data.data.name);
+        setBasePrice(roomRes.data.data.basePrice);
+      }
 
-      // Ambil data ketersediaan untuk bulan ini
-      const year = currentMonth.getFullYear()
-      const month = currentMonth.getMonth() + 1
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth() + 1;
 
-      const availabilityRes = await apiHelper.get(`/properties/${propertyId}/availability?month=${month}&year=${year}`)
-      setAvailability(availabilityRes.data.data)
+      // --- PERBAIKAN URL API ---
+      // Endpoint yang benar seharusnya ada di dalam room, bukan property
+      const availabilityRes = await api.get(`/properties/my-properties/${propertyId}/rooms/${roomId}/availability-by-month?month=${month}&year=${year}`);
+      
+      if (availabilityRes.data && availabilityRes.data.data) {
+        setAvailability(availabilityRes.data.data);
+      }
     } catch (error) {
+      console.error("Failed to fetch room availability data:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Could not fetch room availability data.",
-      })
+        title: "Gagal Mengambil Data",
+        description: "Tidak dapat memuat data ketersediaan kamar.",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [roomId, propertyId, currentMonth, toast])
+  }, [roomId, propertyId, currentMonth, toast]);
 
   useEffect(() => {
-    fetchAvailability()
-  }, [fetchAvailability])
+    fetchAvailability();
+  }, [fetchAvailability]);
 
   const handleSave = async (
     dateRange: DateRange,
     isAvailable: boolean,
     price?: number
   ) => {
-    if (!dateRange.from || !dateRange.to) return
-
-    // Membuat array tanggal berdasarkan rentang tanggal yang dipilih
-    const dates = eachDayOfInterval({
-      start: dateRange.from,
-      end: dateRange.to,
-    }).map(d => format(d, "yyyy-MM-dd"))
-
-    try {
-      // Kirim data ketersediaan
-      await apiHelper.post(`/properties/${propertyId}/rooms/${roomId}/availability`, {
-        dates,
-        isAvailable,
-        price: isAvailable ? (price || basePrice) : undefined,
-      })
-      toast({ title: "Success", description: "Availability updated successfully." })
-      fetchAvailability() // Refresh data
-    } catch (error: any) {
+    if (!dateRange.from || !dateRange.to) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update availability.",
-      })
+        title: "Tanggal Tidak Valid",
+        description: "Harap pilih tanggal mulai dan selesai.",
+      });
+      return;
     }
-  }
+
+    // --- PERBAIKAN PAYLOAD ---
+    const payload = {
+      startDate: format(dateRange.from, "yyyy-MM-dd"),
+      endDate: format(dateRange.to, "yyyy-MM-dd"),
+      isAvailable,
+      // Jika tidak tersedia, harga tidak perlu dikirim.
+      // Jika tersedia, gunakan harga yang diberikan atau harga dasar.
+      price: isAvailable ? (price !== undefined ? price : basePrice) : undefined,
+    };
+
+    try {
+      // Endpoint untuk menyimpan data
+      await api.post(`/properties/my-properties/${propertyId}/rooms/${roomId}/availability`, payload);
+      
+      toast({
+        title: "Sukses",
+        description: "Ketersediaan dan harga berhasil diperbarui.",
+      });
+
+      // Muat ulang data untuk me-refresh kalender
+      fetchAvailability();
+    } catch (error: any) {
+      console.error("Failed to update availability:", error);
+      toast({
+        variant: "destructive",
+        title: "Gagal Menyimpan",
+        description: error.response?.data?.message || "Terjadi kesalahan saat menyimpan perubahan.",
+      });
+    }
+  };
 
   return {
     roomName,
@@ -93,5 +111,6 @@ export function useRoomAvailability(propertyId: string, roomId: string) {
     currentMonth,
     setCurrentMonth,
     handleSave,
-  }
+    fetchAvailability, 
+  };
 }

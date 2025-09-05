@@ -1,5 +1,4 @@
 // src/components/tenant/PeakSeasonDialog.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -23,47 +22,51 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "../ui/use-toast";
 
-// Definisikan tipe data untuk PeakSeason
+// Interface ini akan kita gunakan di seluruh aplikasi
 export interface PeakSeason {
   id: string;
   name: string;
-  dateRange: DateRange;
-  adjustmentType: 'percentage' | 'fixed';
+  startDate: Date;
+  endDate: Date;
+  adjustmentType: 'PERCENTAGE' | 'NOMINAL';
   adjustmentValue: number;
 }
+
+export type PeakSeasonPayload = Omit<PeakSeason, 'id'> & { id?: string };
 
 interface PeakSeasonDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (season: PeakSeason) => void;
-  initialData?: PeakSeason | null; // Untuk mode edit
+  onSave: (season: PeakSeasonPayload) => void;
+  initialData?: PeakSeason | null;
 }
 
 export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakSeasonDialogProps) {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [adjustmentType, setAdjustmentType] = useState<'percentage' | 'fixed'>('percentage');
+  const [adjustmentType, setAdjustmentType] = useState<'PERCENTAGE' | 'NOMINAL'>('PERCENTAGE');
   const [adjustmentValue, setAdjustmentValue] = useState(0);
 
-  // Jika ada initialData (mode edit), set state form
   useEffect(() => {
-    if (initialData) {
-      setName(initialData.name);
-      setDateRange(initialData.dateRange);
-      setAdjustmentType(initialData.adjustmentType);
-      setAdjustmentValue(initialData.adjustmentValue);
-    } else {
-      // Reset form jika tidak ada initialData (mode tambah baru)
-      setName("");
-      setDateRange(undefined);
-      setAdjustmentType("percentage");
-      setAdjustmentValue(0);
+    if (isOpen) {
+      if (initialData) {
+        setName(initialData.name);
+        setDateRange({ from: new Date(initialData.startDate), to: new Date(initialData.endDate) });
+        setAdjustmentType(initialData.adjustmentType);
+        setAdjustmentValue(initialData.adjustmentValue);
+      } else {
+        // Reset form saat dialog dibuka untuk data baru
+        setName("");
+        setDateRange(undefined);
+        setAdjustmentType('PERCENTAGE');
+        setAdjustmentValue(0);
+      }
     }
   }, [initialData, isOpen]);
 
   const handleSave = () => {
-    if (!name || !dateRange?.from || !dateRange?.to || adjustmentValue <= 0) {
+    if (!name || !dateRange?.from || !dateRange?.to || !adjustmentValue || adjustmentValue <= 0) {
       toast({
         title: "Validation Error",
         description: "Please fill all fields and ensure adjustment value is positive.",
@@ -72,15 +75,15 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
       return;
     }
 
-    const newSeason: PeakSeason = {
-      id: initialData?.id || new Date().toISOString(), // Gunakan id lama atau buat baru
+    const payload: PeakSeasonPayload = {
+      id: initialData?.id,
       name,
-      dateRange,
+      startDate: dateRange.from,
+      endDate: dateRange.to,
       adjustmentType,
       adjustmentValue,
     };
-    onSave(newSeason);
-    onClose();
+    onSave(payload);
   };
 
   return (
@@ -93,10 +96,13 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          {/* Input Name */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" placeholder="e.g., Lebaran Holiday" />
           </div>
+
+          {/* Date Range Picker */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Date Range</Label>
             <Popover>
@@ -129,25 +135,42 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
                 </PopoverContent>
             </Popover>
           </div>
+
+          {/* Adjustment Type Radio Group */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Adjustment</Label>
-            <RadioGroup defaultValue="percentage" value={adjustmentType} onValueChange={(value) => setAdjustmentType(value as any)} className="col-span-3 flex items-center space-x-4">
+            <RadioGroup value={adjustmentType} onValueChange={(value) => setAdjustmentType(value as any)} className="col-span-3 flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="percentage" id="r1" />
+                <RadioGroupItem value="PERCENTAGE" id="r1" />
                 <Label htmlFor="r1">Percentage</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="fixed" id="r2" />
-                <Label htmlFor="r2">Fixed</Label>
+                <RadioGroupItem value="NOMINAL" id="r2" />
+                <Label htmlFor="r2">Nominal</Label>
               </div>
             </RadioGroup>
           </div>
+
+          {/* PERBAIKAN PADA VALUE INPUT */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="value" className="text-right">Value</Label>
             <div className="col-span-3 relative">
-                <Input id="value" type="number" value={adjustmentValue} onChange={(e) => setAdjustmentValue(parseFloat(e.target.value) || 0)} placeholder="e.g., 20 or 500000" />
-                {adjustmentType === 'percentage' && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>}
-                {adjustmentType === 'fixed' && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>}
+              {/* Simbol ditempatkan di dalam div, bukan di dalam input */}
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                {adjustmentType === 'NOMINAL' ? 'Rp' : ''}
+              </span>
+              <Input
+                id="value"
+                type="number"
+                value={adjustmentValue || ''}
+                onChange={(e) => setAdjustmentValue(Number(e.target.value))}
+                // Padding kiri ditambahkan jika tipenya nominal agar tidak tumpang tindih
+                className={cn(adjustmentType === 'NOMINAL' && "pl-8")}
+                placeholder={adjustmentType === 'PERCENTAGE' ? "e.g., 20" : "e.g., 50000"}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                {adjustmentType === 'PERCENTAGE' ? '%' : ''}
+              </span>
             </div>
           </div>
         </div>
