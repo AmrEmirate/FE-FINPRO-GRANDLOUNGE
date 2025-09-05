@@ -11,13 +11,6 @@ import api from '@/utils/api';
 import { AvailabilityCalendar } from '@/components/tenant/availability-calendar';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
-
-interface BookedDate {
-    roomId: string;
-    checkIn: string;
-    checkOut: string;
-}
 
 export default function AvailabilityReportPage() {
     const { properties: allProperties, isLoading: isLoadingProperties } = useTenantProperties();
@@ -25,9 +18,12 @@ export default function AvailabilityReportPage() {
 
     const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
     const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-    const [bookedDates, setBookedDates] = useState<BookedDate[]>([]);
+    
+    const [availabilityData, setAvailabilityData] = useState<any[]>([]);
+    const [peakSeasons, setPeakSeasons] = useState<any[]>([]);
+    
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(false);
 
     useEffect(() => {
         if (!isLoadingProperties && allProperties.length > 0 && !selectedPropertyId) {
@@ -39,37 +35,46 @@ export default function AvailabilityReportPage() {
         }
     }, [isLoadingProperties, allProperties, selectedPropertyId]);
 
-    const fetchBookedDates = useCallback(async (month: Date) => {
+    const fetchCalendarData = useCallback(async (month: Date) => {
         if (!selectedPropertyId || !selectedRoomId) {
-            setBookedDates([]);
+            setAvailabilityData([]);
+            setPeakSeasons([]);
             return;
         }
 
-        setIsLoadingBookedDates(true);
+        setIsLoadingData(true);
         try {
-            const startDate = format(startOfMonth(month), 'yyyy-MM-dd');
-            const endDate = format(endOfMonth(month), 'yyyy-MM-dd');
-
-            const response = await api.get(`/calendar-report/${selectedPropertyId}/${selectedRoomId}`, {
-                params: { startDate, endDate }
+            const availabilityRes = await api.get(`/properties/my-properties/${selectedPropertyId}/rooms/${selectedRoomId}/availability-by-month`, {
+                params: { 
+                    month: month.getMonth() + 1,
+                    year: month.getFullYear()
+                }
             });
-            
-            setBookedDates(response.data.data || []);
+            setAvailabilityData(availabilityRes.data.data || []);
+
+            const peakSeasonRes = await api.get(`/peak-seasons/by-room/${selectedRoomId}`);
+            setPeakSeasons(peakSeasonRes.data.data.map((s: any) => ({
+                ...s,
+                startDate: new Date(s.startDate),
+                endDate: new Date(s.endDate),
+            })) || []);
+
         } catch (error) {
             toast({
-                title: 'Gagal mengambil data ketersediaan.',
+                title: 'Gagal mengambil data kalender.',
                 description: 'Terjadi kesalahan saat berkomunikasi dengan server.',
                 variant: 'destructive',
             });
-            setBookedDates([]);
+            setAvailabilityData([]);
+            setPeakSeasons([]);
         } finally {
-            setIsLoadingBookedDates(false);
+            setIsLoadingData(false);
         }
     }, [selectedPropertyId, selectedRoomId, toast]);
 
     useEffect(() => {
-        fetchBookedDates(currentMonth);
-    }, [fetchBookedDates, currentMonth]);
+        fetchCalendarData(currentMonth);
+    }, [fetchCalendarData, currentMonth]);
 
     const handlePropertyChange = (propertyId: string) => {
         setSelectedPropertyId(propertyId);
@@ -123,18 +128,21 @@ export default function AvailabilityReportPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Kalender Ketersediaan</CardTitle>
-                    <CardDescription>Tanggal yang ditandai adalah tanggal yang sudah dipesan.</CardDescription>
+                    <CardDescription>Tanggal yang ditandai adalah tanggal yang sudah dipesan atau tidak tersedia.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center p-6">
-                    {isLoadingBookedDates ? (
+                    {isLoadingData ? (
                         <div className="flex items-center justify-center h-80 w-full">
                             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
                         </div>
                     ) : selectedPropertyId && selectedRoomId ? (
                         <AvailabilityCalendar 
-                            bookedDates={bookedDates}
-                            month={currentMonth}
+                            basePrice={selectedProperty?.rooms?.find(r => r.id === selectedRoomId)?.basePrice || 0}
+                            availabilityData={availabilityData}
+                            peakSeasons={peakSeasons}
+                            currentMonth={currentMonth}
                             onMonthChange={setCurrentMonth}
+                            onSave={() => {}}
                         />
                     ) : (
                         <p className="text-gray-500">Pilih properti dan kamar untuk melihat ketersediaan.</p>
@@ -144,5 +152,3 @@ export default function AvailabilityReportPage() {
         </div>
     );
 }
-
-//error
