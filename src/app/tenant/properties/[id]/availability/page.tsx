@@ -96,7 +96,7 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
                         basePrice={selectedRoom.basePrice}
                         availabilityData={mockAvailability}
                         peakSeasons={peakSeasons}
-                        month={currentMonth}
+                        currentMonth={currentMonth}
                         onMonthChange={setCurrentMonth}
                         onSave={handleSaveCalendar}
                     />
@@ -129,3 +129,5 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
         </div>
     );
 }
+
+//error
