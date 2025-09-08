@@ -22,8 +22,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
 
     <div className="flex min-h-screen w-full">
-      <aside className="hidden w-64 flex-col border-r bg-gray-100/40 p-4 dark:bg-gray-800/40 md:flex">
-        <SidebarComponent/>
+      <aside className="hidden flex-col border-r dark:bg-gray-800/40 md:flex">
+        <SidebarComponent />
       </aside>
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">

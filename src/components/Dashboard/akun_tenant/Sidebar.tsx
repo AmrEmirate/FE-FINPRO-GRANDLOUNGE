@@ -5,7 +5,6 @@
 import SidebarLink from '@/components/Dashboard/SidebarLink';
 import {
     CreditCard,
-    Settings,
     ShoppingCart,
     Star,
     User,
@@ -22,7 +21,6 @@ const UserSidebar = () => {
     return (
         <nav className="flex flex-col gap-2">
             {links.map((link) => (
-                // Sesuaikan cara pemanggilan SidebarLink di sini
                 <SidebarLink
                     key={link.href}
                     href={link.href}

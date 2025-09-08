@@ -21,9 +21,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Navbar />
-      {/* PERBAIKAN UTAMA:
-        Kelas pt-20 hanya ditambahkan jika BUKAN halaman utama.
-      */}
       <main className={!isHome ? 'pt-20' : ''}>{children}</main>
     </>
   )
