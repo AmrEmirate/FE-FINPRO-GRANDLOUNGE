@@ -90,3 +90,103 @@
     @apply bg-background text-foreground;
   }
 }
+
+.rdp {
+  --rdp-cell-size: 38px; /* Ukuran sel tanggal */
+  --rdp-accent-color: hsl(var(--primary)); /* Warna aksen untuk seleksi */
+  --rdp-background-color: hsl(var(--primary));
+  --rdp-outline: 2px solid var(--rdp-accent-color);
+  --rdp-outline-selected: 3px solid var(--rdp-accent-color);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Jarak antar bulan */
+}
+
+.rdp-months {
+  display: flex;
+  flex-wrap: wrap; /* Untuk responsive jika banyak bulan */
+  justify-content: center;
+  gap: 1rem;
+}
+
+.rdp-month {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rdp-caption_header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rdp-head_row, .rdp-row {
+  display: flex;
+}
+
+.rdp-head_cell, .rdp-cell {
+  flex-grow: 1;
+  text-align: center;
+  padding: 0.25rem;
+}
+
+.rdp-day {
+  /* Pastikan ini tidak display: block */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: var(--rdp-cell-size);
+  width: var(--rdp-cell-size);
+  border-radius: var(--rdp-border-radius);
+  position: relative;
+  transition: background-color 0.2s, color 0.2s;
+  cursor: pointer;
+}
+
+/* Modifikasi agar harga bisa masuk di bawah angka tanggal */
+.rdp-day_selected {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.rdp-day_today {
+  font-weight: bold;
+}
+
+.rdp-button:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Modifier class styles (pastikan ini tidak konflik) */
+.rdp-day_booked {
+    background-color: #fee2e2; /* red-100 */
+    color: #991b1b; /* red-800 */
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+.rdp-day_booked:hover {
+    background-color: #fecaca !important; /* red-200 */
+}
+
+.rdp-day_available {
+    background-color: #dcfce7; /* green-100 */
+    color: #14532d; /* green-900 */
+    font-weight: 500;
+}
+.rdp-day_available:hover {
+    background-color: #bbf7d0 !important; /* green-200 */
+}
+
+.rdp-day_peak {
+    background-color: #ffedd5 !important; /* orange-100 */
+    color: #7c2d12 !important; /* orange-900 */
+    font-weight: 700;
+    border: 1px solid #fdba74; /* orange-300 */
+}
+.rdp-day_peak:hover {
+    background-color: #fed7aa !important; /* orange-200 */
+}

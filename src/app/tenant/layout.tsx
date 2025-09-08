@@ -2,7 +2,7 @@
 
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 // PERBAIKAN: Impor dari file sidebar tenant yang baru
-import TenantSidebar from "@/components/tenant/tenant-sidebar"; 
+import TenantSidebar from "@/components/tenant/tenant-sidebar";
 
 export default function TenantLayout({
   children,
@@ -13,7 +13,7 @@ export default function TenantLayout({
     <ProtectedRoute role="TENANT">
       <div className="flex min-h-screen">
         <TenantSidebar />
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-950">
           {children}
         </main>
       </div>

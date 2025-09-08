@@ -1,116 +1,75 @@
-"use client"
+import { useState, useEffect, useCallback } from 'react';
+import api from '@/utils/api';
+import { toast } from 'sonner';
 
-import { useState, useEffect, useCallback } from "react"
-import api from "@/utils/api"
-import { useToast } from "@/components/ui/use-toast"
-import { DateRange } from "react-day-picker"
-import { format } from "date-fns"
-
+// --- Tipe Data ---
 interface Availability {
   date: string;
   isAvailable: boolean;
-  price?: number;
+  price: number | null;
 }
 
-export function useRoomAvailability(propertyId: string, roomId: string) {
-  const { toast } = useToast();
-  const [roomName, setRoomName] = useState<string>("");
-  const [basePrice, setBasePrice] = useState<number>(0);
+interface PeakSeasonFromApi {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  adjustmentType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  adjustmentValue: number;
+}
+
+export interface PeakSeason {
+  id: string;
+  name: string;
+  startDate: Date; // Di UI kita gunakan tipe Date
+  endDate: Date;   // Di UI kita gunakan tipe Date
+  adjustmentType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  adjustmentValue: number;
+}
+
+export const useRoomAvailability = (roomId: string) => {
+  const [roomName, setRoomName] = useState<string>('');
   const [availability, setAvailability] = useState<Availability[]>([]);
+  const [peakSeasons, setPeakSeasons] = useState<PeakSeason[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [error, setError] = useState<Error | null>(null);
 
-  const fetchAvailability = useCallback(async () => {
-    if (!roomId || !propertyId) return;
-
+  const fetchData = useCallback(async () => {
+    if (!roomId) return;
     setIsLoading(true);
-
+    setError(null);
     try {
-      const roomRes = await api.get(`/properties/my-properties/${propertyId}/rooms/${roomId}`);
-      if (roomRes.data && roomRes.data.data) {
-        setRoomName(roomRes.data.data.name);
-        setBasePrice(roomRes.data.data.basePrice);
-      }
+      const [availabilityRes, peakSeasonsRes, roomDetailsRes] = await Promise.all([
+        api.get(`/tenant/rooms/${roomId}/availability`),
+        api.get(`/tenant/rooms/${roomId}/peak-seasons`),
+        api.get(`/tenant/rooms/${roomId}`),
+      ]);
 
-      const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth() + 1;
+      setAvailability(availabilityRes.data.data || []);
 
-      // --- PERBAIKAN URL API ---
-      // Endpoint yang benar seharusnya ada di dalam room, bukan property
-      const availabilityRes = await api.get(`/properties/my-properties/${propertyId}/rooms/${roomId}/availability-by-month?month=${month}&year=${year}`);
-      
-      if (availabilityRes.data && availabilityRes.data.data) {
-        setAvailability(availabilityRes.data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch room availability data:", error);
-      toast({
-        variant: "destructive",
-        title: "Gagal Mengambil Data",
-        description: "Tidak dapat memuat data ketersediaan kamar.",
-      });
+      const processedPeakSeasons = (peakSeasonsRes.data.data || []).map((season: PeakSeasonFromApi) => ({
+        ...season,
+        startDate: new Date(season.startDate),
+        endDate: new Date(season.endDate),
+      }));
+      setPeakSeasons(processedPeakSeasons);
+
+      setRoomName(roomDetailsRes.data.data.name || '');
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(new Error(errorMessage));
+      toast.error("Gagal memuat data", { description: errorMessage });
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, propertyId, currentMonth, toast]);
+  }, [roomId]);
 
   useEffect(() => {
-    fetchAvailability();
-  }, [fetchAvailability]);
+    fetchData();
+  }, [fetchData]);
 
-  const handleSave = async (
-    dateRange: DateRange,
-    isAvailable: boolean,
-    price?: number
-  ) => {
-    if (!dateRange.from || !dateRange.to) {
-      toast({
-        variant: "destructive",
-        title: "Tanggal Tidak Valid",
-        description: "Harap pilih tanggal mulai dan selesai.",
-      });
-      return;
-    }
+  const refetch = () => fetchData();
 
-    // --- PERBAIKAN PAYLOAD ---
-    const payload = {
-      startDate: format(dateRange.from, "yyyy-MM-dd"),
-      endDate: format(dateRange.to, "yyyy-MM-dd"),
-      isAvailable,
-      // Jika tidak tersedia, harga tidak perlu dikirim.
-      // Jika tersedia, gunakan harga yang diberikan atau harga dasar.
-      price: isAvailable ? (price !== undefined ? price : basePrice) : undefined,
-    };
-
-    try {
-      // Endpoint untuk menyimpan data
-      await api.post(`/properties/my-properties/${propertyId}/rooms/${roomId}/availability`, payload);
-      
-      toast({
-        title: "Sukses",
-        description: "Ketersediaan dan harga berhasil diperbarui.",
-      });
-
-      // Muat ulang data untuk me-refresh kalender
-      fetchAvailability();
-    } catch (error: any) {
-      console.error("Failed to update availability:", error);
-      toast({
-        variant: "destructive",
-        title: "Gagal Menyimpan",
-        description: error.response?.data?.message || "Terjadi kesalahan saat menyimpan perubahan.",
-      });
-    }
-  };
-
-  return {
-    roomName,
-    basePrice,
-    availability,
-    isLoading,
-    currentMonth,
-    setCurrentMonth,
-    handleSave,
-    fetchAvailability, 
-  };
-}
+  return { roomName, availability, peakSeasons, isLoading, error, refetch };
+};
