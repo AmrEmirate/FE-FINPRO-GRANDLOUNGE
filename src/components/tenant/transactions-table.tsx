@@ -1,4 +1,4 @@
-// amremirate/fe-finpro-grandlounge/FE-FINPRO-GRANDLOUNGE-4e37e69ccc87104868c4c82ed3e46f4cc9610da0/src/components/tenant/transactions-table.tsx
+// src/components/tenant/transactions-table.tsx
 
 'use client';
 
@@ -8,16 +8,77 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { Eye, Check, X } from 'lucide-react';
+import { Eye, Check, X, MoreHorizontal, Clock } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface TransactionsTableProps {
     status: TransactionStatus;
 }
+
+// Komponen Aksi agar tidak duplikasi kode antara mobile dan desktop
+const ActionMenu = ({ trx, onProofSelect, onAction }: { trx: TenantTransaction, onProofSelect: (proof: string) => void, onAction: (invoice: string, accepted: boolean) => void }) => {
+    return (
+        <AlertDialog>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Buka menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                        onClick={() => {
+                            if (trx.paymentProof) { 
+                                onProofSelect(trx.paymentProof);
+                            }
+                        }}
+                        disabled={!trx.paymentProof}
+                    >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Lihat Bukti
+                    </DropdownMenuItem>
+
+                    <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Check className="mr-2 h-4 w-4 text-green-500" />
+                            Setuju
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+
+                    <AlertDialogTrigger asChild>
+                        <DropdownMenuItem className="text-red-500" onSelect={(e) => e.preventDefault()}>
+                            <X className="mr-2 h-4 w-4" />
+                            Tolak
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Konten dialog tetap di sini, dipicu dari item menu */}
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Konfirmasi Tindakan</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Apakah Anda yakin ingin melanjutkan tindakan ini? Pastikan Anda telah memeriksa bukti pembayaran dengan benar.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onAction(trx.invoiceNumber, true)}>Setuju</AlertDialogAction>
+                    <AlertDialogAction onClick={() => onAction(trx.invoiceNumber, false)} className="bg-red-500 hover:bg-red-600">Tolak</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+};
+
 
 export const TransactionsTable = ({ status }: TransactionsTableProps) => {
     const { transactions, isLoading, refetch } = useTenantTransactions(status);
@@ -28,10 +89,9 @@ export const TransactionsTable = ({ status }: TransactionsTableProps) => {
         const toastId = toast.loading(`Sedang ${action} pembayaran...`);
 
         try {
-            // Endpoint untuk konfirmasi pembayaran
             await api.patch(`/payment-confirm/confirm/${invoiceNumber}`, { isAccepted });
             toast.success(`Pembayaran berhasil ${isAccepted ? 'disetujui' : 'ditolak'}.`, { id: toastId });
-            refetch(); // Memuat ulang data setelah aksi berhasil
+            refetch();
         } catch (error: any) {
             toast.error(`Gagal ${action} pembayaran`, {
                 id: toastId,
@@ -44,6 +104,7 @@ export const TransactionsTable = ({ status }: TransactionsTableProps) => {
         switch (status) {
             case 'SELESAI': return 'success';
             case 'MENUNGGU_KONFIRMASI': return 'default';
+            case 'DIPROSES': return 'default';
             case 'MENUNGGU_PEMBAYARAN': return 'secondary';
             case 'DIBATALKAN': return 'destructive';
             default: return 'outline';
@@ -54,7 +115,7 @@ export const TransactionsTable = ({ status }: TransactionsTableProps) => {
         return (
             <div>
                 {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full mb-2" />
+                    <Skeleton key={i} className="h-20 w-full mb-4" />
                 ))}
             </div>
         );
@@ -66,7 +127,33 @@ export const TransactionsTable = ({ status }: TransactionsTableProps) => {
 
     return (
         <>
-            <Table>
+            {/* Tampilan Mobile: Daftar Kartu (tersembunyi di layar medium ke atas) */}
+            <div className="grid gap-4 md:hidden">
+                {transactions.map((trx) => (
+                    <Card key={trx.id}>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-medium flex justify-between items-center">
+                                <span>{trx.invoiceNumber}</span>
+                                {trx.status === 'MENUNGGU_KONFIRMASI' && <ActionMenu trx={trx} onProofSelect={setSelectedProof} onAction={handleAction} />}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-sm">
+                            <p><strong>Properti:</strong> {trx.property.name}</p>
+                            <p><strong>Pemesan:</strong> {trx.user.fullName}</p>
+                            <div className="flex items-center">
+                                <strong className="mr-2">Status:</strong>
+                                <Badge variant={getStatusVariant(trx.status)}>
+                                    {trx.status === 'MENUNGGU_KONFIRMASI' && <Clock className="h-3 w-3 mr-1" />}
+                                    {trx.status.replace(/_/g, ' ')}
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {/* Tampilan Desktop: Tabel (tersembunyi di layar kecil) */}
+            <Table className="hidden md:table">
                 <TableHeader>
                     <TableRow>
                         <TableHead>Invoice</TableHead>
@@ -83,89 +170,25 @@ export const TransactionsTable = ({ status }: TransactionsTableProps) => {
                             <TableCell>{trx.property.name}</TableCell>
                             <TableCell>{trx.user.fullName}</TableCell>
                             <TableCell>
-                                <Badge variant={getStatusVariant(trx.status)}>{trx.status.replace(/_/g, ' ')}</Badge>
+                                <Badge variant={getStatusVariant(trx.status)}>
+                                    {trx.status === 'MENUNGGU_KONFIRMASI' && <Clock className="h-3 w-3 mr-1" />}
+                                    {trx.status.replace(/_/g, ' ')}
+                                </Badge>
                             </TableCell>
-                            <TableCell className="text-right space-x-2">
-                                {trx.status === 'MENUNGGU_KONFIRMASI' && (
-                                    <>
-                                        {/* Tombol Lihat Bukti Pembayaran */}
-                                        <Button variant="outline" size="sm" onClick={() => setSelectedProof(trx.paymentProof)}>
-                                            <Eye className="h-4 w-4 mr-1" /> Lihat Payment
-                                        </Button>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
-                                                    <Check className="h-4 w-4 mr-1" /> Setuju
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Anda yakin ingin menyetujui pembayaran ini?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Tindakan ini akan memproses pesanan dan mengubah status transaksi menjadi "Diproses". Pastikan Anda telah memeriksa bukti pembayaran dengan benar.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Tutup</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleAction(trx.invoiceNumber, true)}>
-                                                        Ya, Setujui Pembayaran
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-
-                                        {/* Tombol Batalkan/Tolak */}
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="destructive" size="sm">
-                                                    <X className="h-4 w-4 mr-1" /> Batalkan
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Anda yakin ingin menolak pembayaran ini?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Tindakan ini akan membatalkan konfirmasi dan mengubah status transaksi. Pastikan Anda telah memeriksa bukti pembayaran dengan seksama.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Tutup</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleAction(trx.invoiceNumber, false)}>
-                                                        Ya, Tolak Pembayaran
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </>
-                                )}
+                            <TableCell className="text-right">
+                                {trx.status === 'MENUNGGU_KONFIRMASI' && <ActionMenu trx={trx} onProofSelect={setSelectedProof} onAction={handleAction} />}
                             </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
 
-            {/* Dialog untuk menampilkan bukti pembayaran */}
+            {/* Dialog untuk menampilkan bukti pembayaran (tidak berubah) */}
             <Dialog open={!!selectedProof} onOpenChange={(isOpen) => !isOpen && setSelectedProof(null)}>
-                <DialogContent className="sm:max-w-xs">
-                    <DialogHeader>
-                        <DialogTitle>Bukti Pembayaran</DialogTitle>
-                    </DialogHeader>
-                    <div className="mt-4">
-                        {selectedProof ? (
-                            <Image
-                                src={selectedProof}
-                                alt="Bukti Pembayaran"
-                                width={600}  // Beri nilai width & height agar Next.js bisa optimasi
-                                height={800}
-                                className="rounded-md w-full h-auto"
-                            />
-                        ) : (
-                            <p>Tidak ada bukti pembayaran yang diunggah.</p>
-                        )}
-                    </div>
-                    <DialogClose asChild>
-                        <Button type="button" variant="secondary" className="mt-4 w-full">Tutup</Button>
-                    </DialogClose>
+                <DialogContent>
+                    <DialogHeader><DialogTitle>Bukti Pembayaran</DialogTitle></DialogHeader>
+                    {selectedProof && <Image src={selectedProof} alt="Bukti Pembayaran" width={600} height={800} className="rounded-md w-full h-auto" />}
+                    <DialogClose asChild><Button type="button" variant="secondary" className="mt-4 w-full">Tutup</Button></DialogClose>
                 </DialogContent>
             </Dialog>
         </>

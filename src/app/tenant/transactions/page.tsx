@@ -15,6 +15,7 @@ export default function TenantTransactionsPage() {
         { value: '', label: 'Semua' },
         { value: 'MENUNGGU_PEMBAYARAN', label: 'Menunggu Pembayaran' },
         { value: 'MENUNGGU_KONFIRMASI', label: 'Di Konfirmasi' },
+        { value: 'DIPROSES', label: 'Di Proses'},
         { value: 'SELESAI', label: 'Selesai' },
         { value: 'DIBATALKAN', label: 'Dibatalkan' },
     ];
