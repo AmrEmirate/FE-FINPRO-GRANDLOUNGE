@@ -1,4 +1,3 @@
-// src/app/auth/forgot-password/page.tsx
 "use client"
 
 import type React from "react"
@@ -26,7 +25,6 @@ export default function ForgotPasswordPage() {
       await apiHelper.post("/auth/password-reset/request", { email })
       setIsEmailSent(true)
     } catch (error: any) {
-      // Backend sengaja tidak mengembalikan error jika email tidak ada, jadi ini hanya untuk kesalahan server
       toast({
         variant: "destructive",
         title: "Error",
