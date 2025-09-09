@@ -162,7 +162,6 @@ function LoginContent() {
     </div>
   )
 }
-// ... sisa kode tidak berubah ...
 
 export default function LoginPage() {
   return (

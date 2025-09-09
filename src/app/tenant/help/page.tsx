@@ -1,12 +1,10 @@
 "use client"
-
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, MessageCircle, Phone, Mail, Video, FileText, Users, TrendingUp } from "lucide-react"
 import Link from "next/link"
-
 export default function TenantHelpPage() {
   const quickActions = [
     {
