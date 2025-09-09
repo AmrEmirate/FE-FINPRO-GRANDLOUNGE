@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 
 // 1. Definisikan tipe Status secara terpisah agar bisa diekspor
-export type TransactionStatus = 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'SELESAI' | 'DIBATALKAN' | '';
+export type TransactionStatus = 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'SELESAI' | 'DIBATALKAN' | '';
 
 // Definisikan tipe data untuk setiap transaksi
 export interface TenantTransaction {

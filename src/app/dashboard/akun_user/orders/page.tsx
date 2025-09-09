@@ -1,5 +1,3 @@
-// src/app/dashboard/akun_user/orders/page.tsx
-
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -19,6 +17,7 @@ import { Calendar as CalendarIcon, Search, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { CountdownTimer } from '@/components/bookings/CountdownTimer';
 
 const formatDeadline = (isoString: string) => {
     try {
@@ -195,9 +194,10 @@ function OrdersContent() {
                                 <TableCell>
                                     <Badge>{order.status}</Badge>
                                     {order.status === 'MENUNGGU_PEMBAYARAN' && (
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Bayar sebelum: {formatDeadline(order.paymentDeadline)}
-                                        </p>
+                                        <CountdownTimer
+                                            expiryTimestamp={order.paymentDeadline}
+                                            onTimerEnd={fetchOrders}
+                                        />
                                     )}
                                 </TableCell>
                                 <TableCell className="text-right">

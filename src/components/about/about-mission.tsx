@@ -1,6 +1,6 @@
 export function AboutMission() {
   return (
-    <div className="py-20 bg-blue-600 text-white">
+    <div className="py-20 bg-black/70 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Mission</h2>
         <p className="text-xl md:text-2xl opacity-90 max-w-4xl mx-auto leading-relaxed">

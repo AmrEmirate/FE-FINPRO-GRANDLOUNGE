@@ -5,21 +5,21 @@ import { Badge } from "@/components/ui/badge"
 export function AboutTeam() {
   const team = [
     {
-      name: "Sarah Johnson",
+      name: "Gabriel Johnson",
       role: "CEO & Founder",
-      image: "/team-ceo.png",
+      image: "/assets/CTO1.png",
       description: "Hospitality industry veteran with 15+ years of experience.",
     },
     {
       name: "Michael Chen",
       role: "CTO",
-      image: "/team-cto.png",
+      image: "/assets/CTO2.png",
       description: "Technology leader focused on creating seamless user experiences.",
     },
     {
-      name: "Emily Rodriguez",
+      name: "John Rodriguez",
       role: "Head of Operations",
-      image: "/team-operations.png",
+      image: "/assets/CTO3.png",
       description: "Ensures smooth operations and exceptional customer service.",
     },
   ]

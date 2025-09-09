@@ -75,7 +75,7 @@ export default function Navbar() {
         { label: "Tenant Dashboard", href: "/tenant/dashboard" },
         { label: "Profil Tenant", href: "/tenant/profile" },
         { label: "Properti Saya", href: "/tenant/properties" },
-        { label: "Tambah Properti", href: "/tenant/properties/new" },   
+        { label: "Tambah Properti", href: "/tenant/properties/new" },
         { label: "Pesanan", href: "/tenant/orders" },
         { label: "Ulasan", href: "/tenant/reviews" },
     ];
@@ -122,8 +122,9 @@ export default function Navbar() {
 
                 <div className={`hidden lg:flex gap-6 ${isDashboardPage ? 'ml-auto' : ''}`}>
                     <Link href="/properties">Properti</Link>
-                    <Link href="/about">Tentang Kami</Link>
-                    <Link href="/contact">Kontak</Link>
+                    <Link href="/about">Hotel</Link>
+                    <Link href="/contact">Villa</Link>
+                    <Link href="/apartemen">Apartemen</Link>
                 </div>
 
                 <div className="ml-auto hidden lg:flex gap-3 items-center">
