@@ -21,7 +21,6 @@ const navItems = [
     { href: "/dashboard/akun_user/metode_pembayaran", label: "Metode Pembayaran", icon: CreditCard },
     { href: "/dashboard/akun_user/orders", label: "Pesanan Saya", icon: ShoppingCart },
     { href: "/dashboard/akun_user/review", label: "Ulasan Saya", icon: Star },
-    { href: "/dashboard/akun_user/wishlist", label: "Wishlist", icon: Heart },
 ];
 
 export default function Sidebar() {
