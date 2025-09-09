@@ -86,17 +86,11 @@ export const TransactionsTable = ({ status }: TransactionsTableProps) => {
                                 <Badge variant={getStatusVariant(trx.status)}>{trx.status.replace(/_/g, ' ')}</Badge>
                             </TableCell>
                             <TableCell className="text-right space-x-2">
-                                {/* Tampilkan tombol hanya jika status MENUNGGU_KONFIRMASI */}
                                 {trx.status === 'MENUNGGU_KONFIRMASI' && (
                                     <>
                                         {/* Tombol Lihat Bukti Pembayaran */}
                                         <Button variant="outline" size="sm" onClick={() => setSelectedProof(trx.paymentProof)}>
                                             <Eye className="h-4 w-4 mr-1" /> Lihat Payment
-                                        </Button>
-
-                                        {/* Tombol Setuju */}
-                                        <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleAction(trx.invoiceNumber, true)}>
-                                            <Check className="h-4 w-4 mr-1" /> Setuju
                                         </Button>
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
@@ -152,13 +146,19 @@ export const TransactionsTable = ({ status }: TransactionsTableProps) => {
 
             {/* Dialog untuk menampilkan bukti pembayaran */}
             <Dialog open={!!selectedProof} onOpenChange={(isOpen) => !isOpen && setSelectedProof(null)}>
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="sm:max-w-xs">
                     <DialogHeader>
                         <DialogTitle>Bukti Pembayaran</DialogTitle>
                     </DialogHeader>
                     <div className="mt-4">
                         {selectedProof ? (
-                            <Image src={selectedProof} alt="Bukti Pembayaran" width={500} height={700} className="rounded-md w-full h-auto" />
+                            <Image
+                                src={selectedProof}
+                                alt="Bukti Pembayaran"
+                                width={600}  // Beri nilai width & height agar Next.js bisa optimasi
+                                height={800}
+                                className="rounded-md w-full h-auto"
+                            />
                         ) : (
                             <p>Tidak ada bukti pembayaran yang diunggah.</p>
                         )}

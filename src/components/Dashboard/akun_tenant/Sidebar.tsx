@@ -13,9 +13,9 @@ import {
 const UserSidebar = () => {
     const links = [
         { href: '/dashboard/akun_user/profile', label: 'Profil Saya', icon: User },
+        { href: '/dashboard/akun_user/metode_pembayaran', label: 'Metode Pembayaran', icon: CreditCard },
         { href: '/dashboard/akun_user/orders', label: 'Riwayat Pesanan', icon: ShoppingCart },
         { href: '/dashboard/akun_user/review', label: 'Ulasan Saya', icon: Star },
-        { href: '/dashboard/akun_user/metode_pembayaran', label: 'Metode Pembayaran', icon: CreditCard },
     ];
 
     return (

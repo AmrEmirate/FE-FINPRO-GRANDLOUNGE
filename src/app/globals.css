@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import 'react-day-picker/dist/style.css'; 
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -89,104 +87,97 @@
   body {
     @apply bg-background text-foreground;
   }
-}
 
-.rdp {
-  --rdp-cell-size: 38px; /* Ukuran sel tanggal */
-  --rdp-accent-color: hsl(var(--primary)); /* Warna aksen untuk seleksi */
-  --rdp-background-color: hsl(var(--primary));
-  --rdp-outline: 2px solid var(--rdp-accent-color);
-  --rdp-outline-selected: 3px solid var(--rdp-accent-color);
+  /* ======================================= */
+  /* == STYLING BARU UNTUK REACT-DAY-PICKER == */
+  /* ======================================= */
 
-  display: flex;
-  flex-direction: column;
-  gap: 1rem; /* Jarak antar bulan */
-}
+  .rdp {
+    --rdp-cell-size: 40px;
+    --rdp-accent-color: hsl(var(--primary));
+    --rdp-background-color: hsl(var(--primary-foreground));
+    --rdp-accent-color-dark: hsl(var(--primary-foreground));
+    --rdp-background-color-dark: hsl(var(--primary));
+    --rdp-outline: 2px solid hsl(var(--primary));
+    --rdp-outline-selected: 2px solid hsl(var(--primary));
+    --rdp-border-radius: 6px;
+    margin: 1em 0;
+  }
 
-.rdp-months {
-  display: flex;
-  flex-wrap: wrap; /* Untuk responsive jika banyak bulan */
-  justify-content: center;
-  gap: 1rem;
-}
-
-.rdp-month {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.rdp-caption_header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.rdp-head_row, .rdp-row {
-  display: flex;
-}
-
-.rdp-head_cell, .rdp-cell {
-  flex-grow: 1;
-  text-align: center;
-  padding: 0.25rem;
-}
-
-.rdp-day {
-  /* Pastikan ini tidak display: block */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: var(--rdp-cell-size);
-  width: var(--rdp-cell-size);
-  border-radius: var(--rdp-border-radius);
-  position: relative;
-  transition: background-color 0.2s, color 0.2s;
-  cursor: pointer;
-}
-
-/* Modifikasi agar harga bisa masuk di bawah angka tanggal */
-.rdp-day_selected {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-.rdp-day_today {
-  font-weight: bold;
-}
-
-.rdp-button:hover {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
-}
-
-/* Modifier class styles (pastikan ini tidak konflik) */
-.rdp-day_booked {
-    background-color: #fee2e2; /* red-100 */
-    color: #991b1b; /* red-800 */
-    text-decoration: line-through;
-    opacity: 0.7;
-}
-.rdp-day_booked:hover {
-    background-color: #fecaca !important; /* red-200 */
-}
-
-.rdp-day_available {
-    background-color: #dcfce7; /* green-100 */
-    color: #14532d; /* green-900 */
+  /* Sembunyikan caption (Month year) bawaan, karena shadcn/ui sudah membuat yang kustom */
+  .rdp-caption_label,
+  .rdp-nav_button_previous,
+  .rdp-nav_button_next {
+    display: none;
+  }
+  
+  .rdp-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--rdp-cell-size);
+    height: var(--rdp-cell-size);
+    border-radius: var(--rdp-border-radius);
+    transition: background-color 0.1s ease-in-out;
+  }
+  
+  .rdp-day_selected,
+  .rdp-day_range_start,
+  .rdp-day_range_end {
+    background-color: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
     font-weight: 500;
-}
-.rdp-day_available:hover {
-    background-color: #bbf7d0 !important; /* green-200 */
-}
+  }
+  
+  .rdp-day_range_middle {
+    background-color: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+    border-radius: 0;
+  }
 
-.rdp-day_peak {
-    background-color: #ffedd5 !important; /* orange-100 */
-    color: #7c2d12 !important; /* orange-900 */
-    font-weight: 700;
-    border: 1px solid #fdba74; /* orange-300 */
-}
-.rdp-day_peak:hover {
-    background-color: #fed7aa !important; /* orange-200 */
+  .rdp-day_today {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+  
+  .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
+    background-color: hsl(var(--accent));
+  }
+
+  .rdp-button:focus-visible:not([disabled]) {
+     outline: 2px solid hsl(var(--primary));
+     outline-offset: 1px;
+  }
+
+  .rdp-day_outside {
+    color: hsl(var(--muted-foreground));
+  }
+  
+  .rdp-day_disabled {
+    opacity: 0.5;
+  }
+
+  /* MODIFIER KUSTOM ANDA */
+  .rdp-day_booked {
+      background-color: hsl(var(--destructive) / 0.1);
+      color: hsl(var(--destructive));
+      text-decoration: line-through;
+  }
+  .rdp-day_booked:hover {
+      background-color: hsl(var(--destructive) / 0.2) !important;
+  }
+
+  .rdp-day_available {
+      background-color: hsl(var(--chart-2) / 0.1);
+      color: hsl(var(--chart-2));
+      font-weight: 500;
+  }
+  .rdp-day_available:hover {
+      background-color: hsl(var(--chart-2) / 0.2) !important;
+  }
+
+  .rdp-day_peak {
+      font-weight: 700;
+      border: 1px solid hsl(var(--primary));
+  }
 }
