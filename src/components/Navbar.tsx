@@ -26,7 +26,6 @@ export default function Navbar() {
     const [isFocused, setIsFocused] = useState(false);
     const [value, setValue] = useState("");
 
-    // Logika untuk placeholder search bar
     const placeholders = ["Cari Hotel...", "Cari Villa...", "Cari Apartemen..."];
     const [index, setIndex] = useState(0);
     useEffect(() => {
@@ -44,40 +43,33 @@ export default function Navbar() {
         router.push(`/properties?${params.toString()}`);
     };
 
-    // Jangan tampilkan navbar di halaman otentikasi
     if (pathname.startsWith("/auth")) return null;
 
-    // --- PERBAIKAN UTAMA ADA DI SINI ---
     const isDashboardPage = pathname.startsWith("/dashboard") || pathname.startsWith("/tenant");
     const isHome = pathname === "/";
 
-    // 1. Logika untuk background navbar
-    // Jika di homepage -> transparan. Jika di halaman lain (termasuk dashboard) -> hitam.
-    const navbarBg = isHome ? "bg-transparent" : "bg-black shadow-md";
+    const navbarBg = isHome ? "bg-transparent" : "bg-gray-900 shadow-md border-b border-gray-800";
 
-    // 2. Logika untuk warna teks navbar
-    // Di semua halaman, teks akan berwarna putih.
     const textColor = "text-white";
 
-    // 3. Logika untuk posisi navbar
-    // Di homepage -> absolut. Di halaman lain -> menempel di atas (fixed).
     const navbarPosition = isHome ? "absolute" : "fixed";
-    // --- AKHIR DARI PERBAIKAN ---
+
 
     const userMenuItems = [
         { label: "Akun", href: "/dashboard/akun_user/profile" },
-        { label: "Your Orders", href: "/dashboard/akun_user/orders" },
-        { label: "My Review", href: "/dashboard/akun_user/review" },
         { label: "Metode Pembayaran", href: "/dashboard/akun_user/metode_pembayaran" },
+        { label: "Pesanan Saya", href: "/dashboard/akun_user/orders" },
+        { label: "Ulasan Saya", href: "/dashboard/akun_user/review" },
     ];
 
     const tenantMenuItems = [
-        { label: "Tenant Dashboard", href: "/tenant/dashboard" },
-        { label: "Profil Tenant", href: "/tenant/profile" },
-        { label: "Properti Saya", href: "/tenant/properties" },
-        { label: "Tambah Properti", href: "/tenant/properties/new" },
-        { label: "Pesanan", href: "/tenant/orders" },
+        { label: "Dashboard", href: "/tenant/dashboard" },
+        { label: "Profil", href: "/tenant/profile" },
+        { label: "Properti", href: "/tenant/properties" },
+        { label: "Transaksi", href: "/tenant/transactions" },
         { label: "Ulasan", href: "/tenant/reviews" },
+        { label: "Laporan Penjualan", href: "/tenant/reports/sales" },
+        { label: "Laporan Ketersediaan", href: "/tenant/reports/availability" },
     ];
 
     const menuItems = user?.role === 'TENANT' ? tenantMenuItems : userMenuItems;
@@ -174,12 +166,12 @@ export default function Navbar() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="fixed top-20 left-0 w-full bg-white shadow-md p-6 flex flex-col gap-4 lg:hidden z-40"
+                        className="fixed top-20 left-0 w-full bg-gray-900 border-t border-gray-800 shadow-md p-6 flex flex-col gap-4 lg:hidden z-40"
                     >
                         {user ? (
                             <div className="mt-4">
                                 {menuItems.map((item) => (
-                                    <Link key={item.href} href={item.href} className="block py-2 text-gray-700" onClick={() => setIsOpen(false)}>{item.label}</Link>
+                                    <Link key={item.href} href={item.href} className="block py-2 text-gray-300 hover:text-yellow-400" onClick={() => setIsOpen(false)}>{item.label}</Link>
                                 ))}
                                 <button onClick={() => { logout(); setIsOpen(false); }} className="text-red-500 mt-3">Keluar</button>
                             </div>

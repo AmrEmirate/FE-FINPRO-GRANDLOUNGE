@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import api from '@/utils/api';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,49 +9,119 @@ import UploadPaymentDialog from '@/components/orders/upload-payment-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { UserOrder } from '@/lib/types';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { Calendar as CalendarIcon, Search, X } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Calendar, Building2, Wallet, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { CountdownTimer } from '@/components/bookings/CountdownTimer';
+import WriteReviewDialog from '@/components/orders/WriteReviewDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Image from 'next/image'; // <-- TAMBAHKAN BARIS INI
+import Link from 'next/link';
 
-const formatDeadline = (isoString: string) => {
-    try {
-        const date = new Date(isoString);
-        return date.toLocaleTimeString('id-ID', {
-            hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta', hour12: false
-        }) + ' WIB';
-    } catch (error) {
-        return "Invalid time";
-    }
+// Komponen Card untuk setiap pesanan
+const OrderCard = ({ order, onCancel, onComplete, onUploadSuccess }: { order: UserOrder, onCancel: (invoice: string) => void, onComplete: (id: string) => void, onUploadSuccess: () => void }) => {
+
+    const getStatusVariant = (status: UserOrder['status']) => {
+        switch (status) {
+            case 'SELESAI': return 'success';
+            case 'DIPROSES': return 'default';
+            case 'MENUNGGU_PEMBAYARAN':
+            case 'MENUNGGU_KONFIRMASI':
+                return 'secondary';
+            case 'DIBATALKAN': return 'destructive';
+            default: return 'outline';
+        }
+    };
+
+    return (
+        <Card className="overflow-hidden">
+            <CardContent className="p-4 flex flex-col md:flex-row gap-4">
+                {/* Gambar Properti */}
+                <div className="w-full md:w-48 h-40 flex-shrink-0 relative">
+                    <Image src={order.property.mainImage || '/placeholder.jpg'} alt={order.property.name} layout="fill" className="rounded-md object-cover" />
+                </div>
+
+                {/* Detail Pesanan */}
+                <div className="flex-grow space-y-3">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="font-bold text-lg">{order.property.name}</h3>
+                            <p className="text-xs text-gray-500">INV: {order.invoiceNumber}</p>
+                        </div>
+                        <Badge variant={getStatusVariant(order.status)}>{order.status.replace(/_/g, ' ')}</Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <div>
+                                <p className="font-semibold">Check-in</p>
+                                <p>{format(new Date(order.checkIn), 'dd MMM yyyy', { locale: id })}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <div>
+                                <p className="font-semibold">Check-out</p>
+                                <p>{format(new Date(order.checkOut), 'dd MMM yyyy', { locale: id })}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Wallet className="h-4 w-4 text-gray-500" />
+                            <div>
+                                <p className="font-semibold">Total Bayar</p>
+                                <p>Rp {order.totalPrice.toLocaleString('id-ID')}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {order.status === 'MENUNGGU_PEMBAYARAN' && (
+                        <CountdownTimer
+                            expiryTimestamp={order.paymentDeadline}
+                            onTimerEnd={onUploadSuccess} // Refresh data saat waktu habis
+                        />
+                    )}
+                </div>
+
+                {/* Tombol Aksi */}
+                <div className="flex flex-col md:items-end justify-between gap-2 pt-2 border-t md:border-none md:pt-0">
+                    <Link href={`/properties/${order.property.id}`} passHref>
+                        <Button variant="outline" size="sm" className="w-full md:w-auto">Lihat Properti</Button>
+                    </Link>
+
+                    {order.status === 'MENUNGGU_PEMBAYARAN' && (
+                        <div className="flex gap-2 w-full">
+                            <UploadPaymentDialog invoiceNumber={order.invoiceNumber} onUploadSuccess={onUploadSuccess} />
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild><Button variant="destructive" size="sm" className="flex-grow">Batalkan</Button></AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader><AlertDialogTitle>Anda yakin?</AlertDialogTitle><AlertDialogDescription>Tindakan ini akan membatalkan pesanan Anda.</AlertDialogDescription></AlertDialogHeader>
+                                    <AlertDialogFooter><AlertDialogCancel>Tidak</AlertDialogCancel><AlertDialogAction onClick={() => onCancel(order.invoiceNumber)}>Ya, Batalkan</AlertDialogAction></AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    )}
+                    {order.status === 'DIPROSES' && <Button size="sm" onClick={() => onComplete(order.id)}>Selesaikan Pesanan</Button>}
+                    {order.status === 'SELESAI' && !order.review && <WriteReviewDialog bookingId={order.id} propertyId={order.property.id} onReviewSubmit={onUploadSuccess} />}
+                </div>
+            </CardContent>
+        </Card>
+    );
 };
 
+
 function OrdersContent() {
-    const [orders, setOrders] = useState<UserOrder[]>([]);
+    const [allOrders, setAllOrders] = useState<UserOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
-    const [searchOrderId, setSearchOrderId] = useState('');
-    const [searchDate, setSearchDate] = useState<Date | undefined>();
-    const [searchPropertyName, setSearchPropertyName] = useState('');
 
-    const fetchOrders = useCallback(async (filters: { orderId?: string; date?: string; propertyName?: string } = {}) => {
+    const fetchOrders = useCallback(async () => {
         setIsLoading(true);
         try {
-            const params = new URLSearchParams();
-            if (filters.orderId) params.append('invoiceNumber', filters.orderId);
-            if (filters.date) params.append('checkIn', filters.date);
-            if (filters.propertyName) params.append('propertyName', filters.propertyName);
-
-            const response = await api.get(`/orders/order-list?${params.toString()}`);
-
-            if (Array.isArray(response.data.data)) {
-                setOrders(response.data.data);
-            } else {
-                setOrders([]);
-            }
+            const response = await api.get('/orders/order-list');
+            setAllOrders(Array.isArray(response.data.data) ? response.data.data : []);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat daftar pesanan.' });
         } finally {
@@ -64,183 +133,77 @@ function OrdersContent() {
         fetchOrders();
     }, [fetchOrders]);
 
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-            setOrders(currentOrders => {
-                let hasChanged = false;
-                const updatedOrders = currentOrders.map(order => {
-                    if (order.status === 'MENUNGGU_PEMBAYARAN') {
-                        const isExpired = new Date() > new Date(order.paymentDeadline);
-                        if (isExpired) {
-                            hasChanged = true;
-                            return { ...order, status: 'DIBATALKAN' as const };
-                        }
-                    }
-                    return order;
-                });
-                if (hasChanged) {
-                    return updatedOrders;
-                }
-                return currentOrders;
-            });
-        }, 5000);
-
-        return () => clearInterval(intervalId);
-    }, []);
-
-    const handleSearch = () => {
-        const filters: { orderId?: string; date?: string; propertyName?: string } = {};
-        if (searchOrderId) filters.orderId = searchOrderId;
-        if (searchDate) filters.date = format(searchDate, 'yyyy-MM-dd');
-        if (searchPropertyName) filters.propertyName = searchPropertyName;
-        fetchOrders(filters);
+    // Fungsi handleCancelOrder dan handleCompleteOrder perlu didefinisikan atau di-pass sebagai props jika ada
+    const handleCancelOrder = (invoice: string) => {
+        console.log('Cancelling order:', invoice);
+        // Implementasi logika pembatalan di sini
     };
 
-    const handleReset = () => {
-        setSearchOrderId('');
-        setSearchDate(undefined);
-        setSearchPropertyName('');
-        fetchOrders();
+    const handleCompleteOrder = (id: string) => {
+        console.log('Completing order:', id);
+        // Implementasi logika penyelesaian di sini
     };
 
-    const handleCompleteOrder = async (bookingId: string) => {
-        try {
-            await api.patch(`/orders/${bookingId}/complete`);
-            toast({ title: 'Sukses', description: 'Pesanan telah ditandai sebagai selesai.' });
-            fetchOrders(); // Refresh data
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Gagal menyelesaikan pesanan.' });
-        }
-    };
-
-    const handleCancelOrder = async (invoiceNumber: string) => {
-        try {
-            await api.patch(`/order-cancel/user/cancel/invoice/${invoiceNumber}`);
-            toast({ title: 'Sukses', description: 'Pesanan berhasil dibatalkan.' });
-            fetchOrders();
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Gagal membatalkan pesanan.' });
-        }
-    };
-
-    if (isLoading && orders.length === 0) {
+    if (isLoading) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-10 w-1/3" />
-                <div className="space-y-2">
-                    <Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" />
-                </div>
+                <Skeleton className="h-8 w-48 mb-4" />
+                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-40 w-full" />
             </div>
-        );
+        )
+    }
+
+    const tabs = [
+        { value: "semua", label: "Semua" },
+        { value: "MENUNGGU_PEMBAYARAN", label: "Menunggu Bayar" },
+        { value: "MENUNGGU_KONFIRMASI", label: "Menunggu Konfirmasi" },
+        { value: "DIPROSES", label: "Di Proses" },
+        { value: "SELESAI", label: "Selesai" },
+        { value: "DIBATALKAN", label: "Di Batalkan" },
+    ];
+
+    const filterOrders = (status: string) => {
+        if (status === 'semua') return allOrders;
+        return allOrders.filter(order => order.status === status);
     }
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold">Riwayat Pesanan Saya</h1>
-
-            <div className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg bg-gray-50/50">
-                <Input
-                    placeholder="Cari berdasarkan Invoice Number..."
-                    value={searchOrderId}
-                    onChange={(e) => setSearchOrderId(e.target.value)}
-                    className="md:max-w-xs"
-                />
-                <Input
-                    placeholder="Cari nama properti..."
-                    value={searchPropertyName}
-                    onChange={(e) => setSearchPropertyName(e.target.value)}
-                    className="md:max-w-xs"
-                />
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant={"outline"} className="w-full md:w-[240px] justify-start text-left font-normal">
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {searchDate ? format(searchDate, "dd MMMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={searchDate} onSelect={setSearchDate} initialFocus />
-                    </PopoverContent>
-                </Popover>
-                <div className="flex gap-2">
-                    <Button onClick={handleSearch} disabled={isLoading}><Search className="mr-2 h-4 w-4" /> Cari</Button>
-                    <Button onClick={handleReset} variant="ghost" disabled={isLoading}><X className="mr-2 h-4 w-4" /> Reset</Button>
-                </div>
+            <div>
+                <h1 className="text-2xl font-bold">Riwayat Pesanan Saya</h1>
+                <p className="text-gray-500">Lihat dan kelola semua riwayat pesanan Anda di sini.</p>
             </div>
 
-            {!isLoading && orders.length === 0 ? (
-                <p className="text-center py-8">Tidak ada pesanan yang ditemukan.</p>
-            ) : (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Invoice Number</TableHead>
-                            <TableHead>Properti</TableHead>
-                            <TableHead>Check-in</TableHead>
-                            <TableHead>Check-out</TableHead>
-                            <TableHead>Total</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Aksi</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {orders.map((order) => (
-                            <TableRow key={order.id}>
-                                <TableCell className="font-medium">{order.invoiceNumber}</TableCell>
-                                <TableCell>{order.property.name}</TableCell>
-                                <TableCell>{new Date(order.checkIn).toLocaleDateString('id-ID')}</TableCell>
-                                <TableCell>{new Date(order.checkOut).toLocaleDateString('id-ID')}</TableCell>
-                                <TableCell>Rp {order.totalPrice.toLocaleString('id-ID')}</TableCell>
-                                <TableCell>
-                                    <Badge>{order.status}</Badge>
-                                    {order.status === 'MENUNGGU_PEMBAYARAN' && (
-                                        <CountdownTimer
-                                            expiryTimestamp={order.paymentDeadline}
-                                            onTimerEnd={fetchOrders}
-                                        />
-                                    )}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    {order.status === 'MENUNGGU_PEMBAYARAN' && (
-                                        <div className="flex justify-end space-x-2">
-                                            <UploadPaymentDialog invoiceNumber={order.invoiceNumber} onUploadSuccess={fetchOrders} />
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="destructive" size="sm">Batalkan</Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Apakah Anda Yakin?</AlertDialogTitle>
-                                                        <AlertDialogDescription>Tindakan ini akan membatalkan pesanan Anda.</AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Tidak</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleCancelOrder(order.invoiceNumber)}>Ya, Batalkan</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
-                                    )}
-                                    {order.status === 'DIPROSES' && (
-                                        <Button size="sm" onClick={() => handleCompleteOrder(order.id)}>
-                                            Selesaikan Pesanan
-                                        </Button>
-                                    )}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            )}
+            <Tabs defaultValue="semua" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
+                    {tabs.map(tab => (
+                        <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+                    ))}
+                </TabsList>
+
+                {tabs.map(tab => (
+                    <TabsContent key={tab.value} value={tab.value} className="space-y-4">
+                        {filterOrders(tab.value).length > 0 ? (
+                            filterOrders(tab.value).map(order => (
+                                <OrderCard key={order.id} order={order} onCancel={handleCancelOrder} onComplete={handleCompleteOrder} onUploadSuccess={fetchOrders} />
+                            ))
+                        ) : (
+                            <div className="text-center py-16 bg-gray-50 rounded-lg">
+                                <p className="text-gray-500">Tidak ada pesanan dengan status ini.</p>
+                            </div>
+                        )}
+                    </TabsContent>
+                ))}
+            </Tabs>
         </div>
     );
 }
 
 export default function UserOrdersPage() {
     return (
-        // --- PERBAIKAN DI SINI ---
         <ProtectedRoute role="USER">
             <OrdersContent />
         </ProtectedRoute>
-    )
+    );
 }

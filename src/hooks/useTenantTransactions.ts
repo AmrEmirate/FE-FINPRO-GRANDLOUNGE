@@ -4,14 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '@/utils/api';
 import { toast } from 'sonner';
 
-// --- BAGIAN YANG DIPERBARUI ---
+export type TransactionStatus = 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'SELESAI' | 'DIBATALKAN' | 'Semua';
 
-
-
-// 1. Definisikan tipe Status secara terpisah agar bisa diekspor
-export type TransactionStatus = 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'SELESAI' | 'DIBATALKAN' | '';
-
-// Definisikan tipe data untuk setiap transaksi
 export interface TenantTransaction {
     id: string;
     invoiceNumber: string;
@@ -19,30 +13,30 @@ export interface TenantTransaction {
     checkOut: string;
     totalPrice: number;
     paymentProof: string | null;
-    status: Exclude<TransactionStatus, ''>;
+    status: Exclude<TransactionStatus, 'Semua' | ''>;
     user: {
         fullName: string;
-    };
+    } | null;
     property: {
+        id: string;
         name: string;
+        mainImage: string | null;
     };
     createdAt: string;
 }
 
-// Custom hook untuk mengambil data transaksi tenant
-// 2. Perbarui tipe parameter initialStatus
-export const useTenantTransactions = (initialStatus: TransactionStatus = '') => {
+export const useTenantTransactions = (status: TransactionStatus) => {
     const [transactions, setTransactions] = useState<TenantTransaction[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [status, setStatus] = useState<TransactionStatus>(initialStatus);
 
     const fetchTransactions = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await api.get('/orders/tenant-transactions', {
-                // Cek jika status bukan string kosong sebelum dikirim
-                params: { status: status || undefined },
-            });
+            let url = '/orders/tenant-transactions';
+            if (status && status !== 'Semua') {
+                url += `?status=${status}`;
+            }
+            const response = await api.get(url);
             setTransactions(response.data.data ?? []);
         } catch (error) {
             toast.error('Gagal memuat data transaksi.');
@@ -59,9 +53,6 @@ export const useTenantTransactions = (initialStatus: TransactionStatus = '') => 
     return {
         transactions,
         isLoading,
-        setStatus,
         refetch: fetchTransactions,
     };
 };
-
-// --- AKHIR DARI PEMBARUAN ---
