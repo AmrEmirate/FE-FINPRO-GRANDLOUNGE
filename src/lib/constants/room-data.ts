@@ -19,3 +19,4 @@ export const getBedOptionLabel = (bedOption: BedOption): string => {
 export const getRoomCategoryLabel = (category: RoomCategory): string => {
   return ROOM_CATEGORY_LABELS[category] || category
 }
+//dummy

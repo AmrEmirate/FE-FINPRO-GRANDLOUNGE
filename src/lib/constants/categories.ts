@@ -9,3 +9,4 @@ export const mockCategories: Category[] = [
   { id: "4", name: "Apartment" },
   { id: "5", name: "Resort" },
 ]
+//dummy

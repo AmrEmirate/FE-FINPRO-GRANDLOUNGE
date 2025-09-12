@@ -28,7 +28,7 @@ import type { PeakSeason } from "./PeakSeasonDialog"
 interface Availability {
   date: string
   isAvailable: boolean
-  price?: number
+  price?: number;
 }
 
 interface AvailabilityCalendarProps {
@@ -245,3 +245,4 @@ export function AvailabilityCalendar({
     </>
   )
 }
+//kelebihan

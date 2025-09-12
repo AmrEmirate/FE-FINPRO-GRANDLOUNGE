@@ -18,3 +18,4 @@ export const heroSlides = [
     image: "/luxury-downtown-hotel.png",
   },
 ]
+//dummy

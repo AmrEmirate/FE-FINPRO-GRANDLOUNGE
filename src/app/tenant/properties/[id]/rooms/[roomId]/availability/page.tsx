@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 import { AvailabilityCalendar } from "@/components/tenant/availability-calendar";
 import { PeakSeasonDialog, PeakSeason, PeakSeasonPayload } from "@/components/tenant/PeakSeasonDialog";
 import { PeakSeasonList } from "@/components/tenant/PeakSeasonList";
@@ -23,22 +23,24 @@ export default function ManageAvailabilityPage() {
   const roomId = params.roomId as string;
   const { toast } = useToast();
 
-  const { roomName, availability, peakSeasons, isLoading, error, refetch } = useRoomAvailability(roomId);
-  const [isAvailabilityDialogOpen, setIsAvailabilityDialogOpen] = useState(false);
+  // --- PERBAIKAN 1: Ambil 'room' bukan 'roomName' ---
+  const { room, availability, peakSeasons, isLoading, error, refetch } = useRoomAvailability(roomId);
+  
   const [isPeakSeasonDialogOpen, setIsPeakSeasonDialogOpen] = useState(false);
   const [editingSeason, setEditingSeason] = useState<PeakSeason | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
 
   if (isLoading) return <div>Memuat data...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  // --- LOGIKA UNTUK MENYIMPAN DATA (HANDLE FUNCTIONS) ---
   const handleSaveAvailability = async (range: DateRange, isAvailable: boolean, price?: number) => {
     if (!range.from) {
       toast({ title: "Error", description: "Tanggal mulai harus dipilih.", variant: "destructive" });
       return;
     }
     try {
-      await api.post(`/tenant/rooms/${roomId}/availability`, {
+      // Endpoint ini mungkin perlu disesuaikan dengan BE Anda
+      await api.post(`/properties/my-properties/${propertyId}/rooms/${roomId}/availability`, {
         startDate: format(range.from, "yyyy-MM-dd"),
         endDate: format(range.to || range.from, "yyyy-MM-dd"),
         isAvailable,
@@ -53,11 +55,16 @@ export default function ManageAvailabilityPage() {
 
   const handleSavePeakSeason = async (season: PeakSeasonPayload) => {
     try {
-      const payload = { ...season, roomId, startDate: format(season.startDate, 'yyyy-MM-dd'), endDate: format(season.endDate, 'yyyy-MM-dd') };
+      const payload = { 
+        ...season, 
+        roomId, 
+        startDate: format(season.startDate, 'yyyy-MM-dd'), 
+        endDate: format(season.endDate, 'yyyy-MM-dd') 
+      };
       if (season.id) {
-        await api.put(`/tenant/peak-seasons/${season.id}`, payload);
+        await api.put(`/peak-seasons/${season.id}`, payload);
       } else {
-        await api.post('/tenant/peak-seasons', payload);
+        await api.post('/peak-seasons', payload);
       }
       toast({ title: "Success", description: "Peak season saved." });
       refetch();
@@ -70,7 +77,7 @@ export default function ManageAvailabilityPage() {
   const handleDeletePeakSeason = async (id: string) => {
     if (confirm('Anda yakin ingin menghapus peak season ini?')) {
       try {
-        await api.delete(`/tenant/peak-seasons/${id}`);
+        await api.delete(`/peak-seasons/${id}`);
         toast({ title: 'Success', description: 'Peak season dihapus.' });
         refetch();
       } catch (error) {
@@ -90,13 +97,21 @@ export default function ManageAvailabilityPage() {
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
             <div>
               <CardTitle>Manajemen Ketersediaan & Harga Harian</CardTitle>
-              <CardDescription>Kamar: <strong>{roomName || "Memuat..."}</strong></CardDescription>
+              {/* --- PERBAIKAN 2: Gunakan room.name --- */}
+              <CardDescription>Kamar: <strong>{room?.name || "Memuat..."}</strong></CardDescription>
             </div>
-            <Button onClick={() => setIsAvailabilityDialogOpen(true)}>Atur Ketersediaan</Button>
           </div>
         </CardHeader>
         <CardContent>
-          <AvailabilityCalendar availability={availability} peakSeasons={peakSeasons} />
+          {/* --- PERBAIKAN 3: Kirim props yang benar ke Kalender --- */}
+          <AvailabilityCalendar
+            basePrice={room?.basePrice || 0}
+            availabilityData={availability}
+            peakSeasons={peakSeasons}
+            currentMonth={currentMonth}
+            onMonthChange={setCurrentMonth}
+            onSave={handleSaveAvailability}
+          />
         </CardContent>
       </Card>
       <Separator />
@@ -112,8 +127,14 @@ export default function ManageAvailabilityPage() {
         </div>
         <PeakSeasonList seasons={peakSeasons} onEdit={(season) => { setEditingSeason(season); setIsPeakSeasonDialogOpen(true); }} onDelete={handleDeletePeakSeason} />
       </div>
-      <AvailabilityDialog isOpen={isAvailabilityDialogOpen} onClose={() => setIsAvailabilityDialogOpen(false)} onSave={handleSaveAvailability} roomId={roomId} onSuccess={refetch} />
-      <PeakSeasonDialog isOpen={isPeakSeasonDialogOpen} onClose={() => setIsPeakSeasonDialogOpen(false)} onSave={handleSavePeakSeason} initialData={editingSeason} roomId={roomId} onSuccess={refetch} />
+      <PeakSeasonDialog 
+          isOpen={isPeakSeasonDialogOpen} 
+          onClose={() => setIsPeakSeasonDialogOpen(false)} 
+          onSave={handleSavePeakSeason} 
+          initialData={editingSeason} 
+          roomId={roomId} 
+          onSuccess={refetch} 
+      />
     </div>
   );
 }

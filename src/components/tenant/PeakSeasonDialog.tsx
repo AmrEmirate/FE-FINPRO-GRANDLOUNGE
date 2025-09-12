@@ -39,6 +39,8 @@ interface PeakSeasonDialogProps {
   onClose: () => void;
   onSave: (season: PeakSeasonPayload) => void;
   initialData?: PeakSeason | null;
+  roomId: string; // Tambahkan ini
+  onSuccess: () => void; // Tambahkan ini
 }
 
 export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakSeasonDialogProps) {

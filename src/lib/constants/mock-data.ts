@@ -11,3 +11,4 @@ import { cities } from "./cities";
  */
 
 export { mockProperties, mockCategories, cities };
+//dummy

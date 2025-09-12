@@ -12,16 +12,17 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PeakSeasonDialog, PeakSeason, PeakSeasonPayload } from "@/components/tenant/PeakSeasonDialog";
 import { PeakSeasonList } from "@/components/tenant/PeakSeasonList";
+import { useToast } from "@/components/ui/use-toast";
 
 // Mock data untuk simulasi
 const mockRooms = [
-    { id: "1", name: "Mountain View Suite", basePrice: 2500000 },
-    { id: "2", name: "Family Room", basePrice: 1750000 },
+    { id: "room_1", name: "Mountain View Suite", basePrice: 2500000 },
+    { id: "room_2", name: "Family Room", basePrice: 1750000 },
 ];
 
 const mockAvailability = [
-    { date: "2025-10-10", isAvailable: true, price: 2700000 },
-    { date: "2025-10-11", isAvailable: false },
+    { date: new Date("2025-10-10").toISOString(), isAvailable: true, price: 2700000 },
+    { date: new Date("2025-10-11").toISOString(), isAvailable: false },
 ];
 
 const mockPeakSeasons: PeakSeason[] = [
@@ -36,22 +37,48 @@ const mockPeakSeasons: PeakSeason[] = [
 ];
 
 export default function ManageAvailabilityPage({ params }: { params: { id: string } }) {
+    const { toast } = useToast();
     const [selectedRoom, setSelectedRoom] = useState(mockRooms[0]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [peakSeasons, setPeakSeasons] = useState<PeakSeason[]>(mockPeakSeasons);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingSeason, setEditingSeason] = useState<PeakSeason | null>(null);
 
+    // Fungsi ini akan dijalankan setelah operasi simpan/edit/hapus berhasil
+    const handleSuccess = () => {
+        console.log("Operation successful! Refetching data...");
+        // Di aplikasi nyata, Anda akan memanggil fungsi refetch data dari hook Anda di sini
+        toast({
+            title: "Success",
+            description: "Data has been updated successfully.",
+        });
+    };
+
     const handleSaveCalendar = (dates: DateRange, isAvailable: boolean, price?: number) => {
-        // Logika untuk menyimpan data kalender
+        console.log("Saving calendar data:", { dates, isAvailable, price });
+        // Logika untuk menyimpan data kalender...
+        handleSuccess();
     };
 
     const handleSavePeakSeason = (season: PeakSeasonPayload) => {
-        // Logika untuk menyimpan data peak season
+        console.log("Saving peak season for room:", selectedRoom.id, season);
+        // Logika untuk menyimpan data peak season...
+        if (season.id) {
+            // Edit
+            setPeakSeasons(prev => prev.map(s => s.id === season.id ? { ...s, ...season, id: s.id } as PeakSeason : s));
+        } else {
+            // Tambah baru
+            setPeakSeasons(prev => [...prev, { ...season, id: `ps_${Date.now()}` } as PeakSeason]);
+        }
+        setIsDialogOpen(false);
+        handleSuccess();
     };
 
     const handleDeletePeakSeason = (seasonId: string) => {
-        // Logika untuk menghapus data peak season
+        console.log("Deleting peak season:", seasonId);
+        // Logika untuk menghapus data peak season...
+        setPeakSeasons(prev => prev.filter(s => s.id !== seasonId));
+        handleSuccess();
     };
     
     const handleEditPeakSeason = (season: PeakSeason) => {
@@ -65,7 +92,7 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8 space-y-8">
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 space-y-8">
             <Card className="max-w-4xl mx-auto">
                 <CardHeader>
                     <CardTitle>Manage Daily Availability & Pricing</CardTitle>
@@ -83,7 +110,7 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
                                 if (room) setSelectedRoom(room);
                             }}
                         >
-                            <SelectTrigger id="room-select"><SelectValue /></SelectTrigger>
+                            <SelectTrigger id="room-select"><SelectValue placeholder="Select a room" /></SelectTrigger>
                             <SelectContent>
                                 {mockRooms.map((room) => (
                                     <SelectItem key={room.id} value={room.id}>{room.name}</SelectItem>
@@ -91,7 +118,6 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
                             </SelectContent>
                         </Select>
                     </div>
-                    {/* PERBAIKAN: Pastikan semua prop yang dibutuhkan dikirim ke kalender */}
                     <AvailabilityCalendar
                         basePrice={selectedRoom.basePrice}
                         availabilityData={mockAvailability}
@@ -106,7 +132,7 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
             <Separator className="max-w-4xl mx-auto" />
             
             <div className="max-w-4xl mx-auto space-y-4">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Peak Season Management</h2>
                         <p className="text-muted-foreground">Define special pricing periods like holidays or events.</p>
@@ -120,14 +146,16 @@ export default function ManageAvailabilityPage({ params }: { params: { id: strin
                 />
             </div>
             
+            {/* --- PERBAIKAN DI SINI --- */}
+            {/* Tambahkan props 'roomId' dan 'onSuccess' yang wajib ada */}
             <PeakSeasonDialog 
                 isOpen={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}
                 onSave={handleSavePeakSeason}
                 initialData={editingSeason}
+                roomId={selectedRoom.id}
+                onSuccess={handleSuccess}
             />
         </div>
     );
 }
-
-//error

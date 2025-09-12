@@ -1,51 +1,49 @@
 'use client';
 
-import { TransactionsTable } from '@/components/tenant/transactions-table';
+import { TransactionsContent } from '@/components/tenant/transactions-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// 1. TAMBAHKAN IMPOR INI
-import { TransactionStatus } from '@/hooks/useTenantTransactions';
+import { useTenantTransactions, TransactionStatus } from '@/hooks/useTenantTransactions';
+import { useState } from 'react';
 
-export default function TenantTransactionsPage() {
-  const statusTabs = [
-    { value: '', label: 'Semua' },
-    { value: 'MENUNGGU_PEMBAYARAN', label: 'Menunggu Pembayaran' },
-    // 2. PERBAIKI VALUE DI BAWAH INI
-    { value: 'MENUNGGU_KONFIRMASI', label: 'Dikonfirmasi' },
-    { value: 'SELESAI', label: 'Selesai' },
-    { value: 'DIBATALKAN', label: 'Dibatalkan' },
-  ];
+export default function TermsPage() {
+    const [statusFilter, setStatusFilter] = useState<TransactionStatus>('Semua');
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Daftar Transaksi</h1>
+    const statusTabs: { value: TransactionStatus, label: string }[] = [
+        { value: 'Semua', label: 'Semua' },
+        { value: 'MENUNGGU_PEMBAYARAN', label: 'Menunggu Pembayaran' },
+        { value: 'MENUNGGU_KONFIRMASI', label: 'Konfirmasi' },
+        { value: 'DIPROSES', label: 'Diproses' },
+        { value: 'SELESAI', label: 'Selesai' },
+        { value: 'DIBATALKAN', label: 'Dibatalkan' },
+    ];
 
-      <Tabs defaultValue="" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          {statusTabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+    return (
+        <div>
+            <h1 className="text-3xl font-bold mb-4">Syarat dan Ketentuan</h1>
+            <p className="mb-8 text-muted-foreground">
+                Berikut adalah syarat dan ketentuan penggunaan platform Grand Lodge.
+            </p>
+            
+            <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as TransactionStatus)} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 mb-4">
+                    {statusTabs.map(tab => (
+                        <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+                    ))}
+                </TabsList>
 
-        {statusTabs.map((tab) => (
-          <TabsContent key={tab.value} value={tab.value}>
-            <Card>
-              <CardHeader>
-                <CardTitle>{tab.label} Transaksi</CardTitle>
-                <CardDescription>
-                  Daftar semua transaksi dengan status {tab.label.toLowerCase()}.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* 3. PERBAIKI PROPS STATUS DI SINI */}
-                <TransactionsTable status={tab.value as TransactionStatus} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
-  );
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Daftar Transaksi</CardTitle>
+                        <CardDescription>
+                            Menampilkan transaksi dengan status: {statusTabs.find(t => t.value === statusFilter)?.label}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <TransactionsContent />
+                    </CardContent>
+                </Card>
+            </Tabs>
+        </div>
+    );
 }
