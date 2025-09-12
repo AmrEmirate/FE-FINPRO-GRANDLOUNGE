@@ -118,10 +118,13 @@ export interface User {
 }
 
 export interface UserOrder {
+  review: any;
   id: string;
   orderId: string;
   invoiceNumber: string;
-  property: { name: string };
+  property: {
+      id: any; name: string; mainImage: string;
+};
   checkIn: string;
   checkOut: string;
   totalPrice: number;

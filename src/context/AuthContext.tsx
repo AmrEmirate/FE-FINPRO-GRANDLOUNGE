@@ -17,14 +17,12 @@ interface User {
   createdAt: string;
 }
 
-// --- PERUBAHAN 1: Tambahkan `setUser` ke dalam tipe context ---
-// Ini memungkinkan komponen lain untuk memodifikasi state `user`.
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (token: string) => void;
   logout: () => void;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>; // Tambahkan ini
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
