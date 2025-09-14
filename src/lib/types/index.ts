@@ -86,15 +86,17 @@ export interface Property {
   description: string;
   mainImage?: string;
   deletedAt?: string;
-  createdAt: string; // Tambahkan createdAt untuk sorting atau info
-
-  // Relasi sebagai objek/array objek
+  createdAt: string;
   category: Category;
   city: City;
   tenant: TenantInfo;
   rooms?: Room[];
   reviews?: Review[];
-  images?: PropertyImage[];
+  latitude?: number | string 
+  longitude?: number | string 
+  reviews_avg_rating?: number
+  reviews_count?: number 
+  images?: { id: string, url: string }[] 
 }
 
 // --- PERBAIKAN 1: Tambahkan tipe PropertyFilters ---

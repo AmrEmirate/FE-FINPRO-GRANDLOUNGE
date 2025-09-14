@@ -24,14 +24,14 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
   return (
     <Link href={`/properties/${property.id}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
+      <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl">
         <div className="relative">
           <Image
             src={property.mainImage || "/placeholder.svg"}
             alt={property.name}
             width={400}
             height={300}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-cover w-full h-48 transition-transform duration-300 ease-in-out hover:scale-105"
           />
           <Badge className="absolute top-3 left-3 bg-blue-600">{property.category.name}</Badge>
           {property.deletedAt && (

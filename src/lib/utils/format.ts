@@ -60,3 +60,34 @@ export function slugify(text: string): string {
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "")
 }
+
+export function formatPrice(
+  price: number | string,
+  compact = false
+): string {
+  const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+
+  if (isNaN(numericPrice)) {
+    return 'N/A';
+  }
+
+  if (compact) {
+    if (numericPrice >= 1_000_000_000) {
+      return `Rp${(numericPrice / 1_000_000_000).toFixed(1).replace('.0', '')}m`;
+    }
+    if (numericPrice >= 1_000_000) {
+      return `Rp${(numericPrice / 1_000_000).toFixed(1).replace('.0', '')}jt`;
+    }
+    if (numericPrice >= 1_000) {
+      return `Rp${(numericPrice / 1_000).toFixed(1).replace('.0', '')}rb`;
+    }
+    return `Rp${numericPrice}`;
+  }
+
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(numericPrice);
+}

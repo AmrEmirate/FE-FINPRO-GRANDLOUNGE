@@ -89,9 +89,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     delete api.defaults.headers.common['Authorization'];
     router.push('/auth/login');
   };
-
-  // --- PERUBAHAN 2: Sediakan `setUser` dalam value provider ---
-  // Ini membuat `setUser` bisa diakses oleh komponen yang menggunakan `useAuth()`.
   const value = { user, loading, login, logout, setUser };
 
   return (
