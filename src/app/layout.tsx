@@ -1,18 +1,20 @@
-// src/app/layout.tsx
+"use client"
 
-"use client" // Tambahkan ini di baris pertama
-
-import { Inter } from 'next/font/google'
+import { Roboto } from "next/font/google";
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import Navbar from '@/components/Navbar'
 import { AuthProvider } from '@/context/AuthContext'
-import { usePathname } from 'next/navigation' // Impor usePathname
+import { usePathname } from 'next/navigation'
+import Template from "./template";
 
-const inter = Inter({ subsets: ['latin'] })
 
-// Hapus metadata dari sini karena Client Component tidak mendukungnya
-// export const metadata: Metadata = { ... };
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-roboto",
+});
+
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -40,9 +42,11 @@ export default function RootLayout({
         <meta name="description" content="Find and book premium accommodations for your perfect stay" />
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className={inter.className}>
+      <body className={`${roboto.variable} font-sans`}>
         <AuthProvider>
-          <MainLayout>{children}</MainLayout>
+          <MainLayout>
+            <Template>{children}</Template>
+          </MainLayout>
           <Toaster />
         </AuthProvider>
       </body>

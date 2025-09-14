@@ -5,6 +5,7 @@ const apiHelper = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 apiHelper.interceptors.request.use((config) => {

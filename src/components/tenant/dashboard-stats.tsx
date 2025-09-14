@@ -1,65 +1,108 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Building2, Users, Calendar, TrendingUp } from "lucide-react"
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import api from '@/lib/apiHelper';
+import { formatPrice } from '@/lib/utils/format';
+import { TrendingUp, Briefcase, Percent, BedDouble } from 'lucide-react';
 
+// Tipe data untuk statistik
 interface Stats {
-  totalProperties: number
-  totalRooms: number
-  activeListings: number
-  monthlyViews: number
+  totalRevenue: number;
+  totalBookings: number;
+  occupancyRate: number;
+  totalRooms: number;
 }
 
-interface DashboardStatsProps {
-  stats: Stats
-}
-
-export function DashboardStats({ stats }: DashboardStatsProps) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <Card>
+// Komponen Skeleton untuk tampilan loading
+const StatsSkeleton = () => (
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    {[...Array(4)].map((_, i) => (
+      <Card key={i}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
-          <Building2 className="h-4 w-4 text-muted-foreground" />
+          <Skeleton className="h-4 w-2/3" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats.totalProperties}</div>
-          <p className="text-xs text-muted-foreground">Properties listed</p>
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-3 w-1/3 mt-1" />
         </CardContent>
       </Card>
+    ))}
+  </div>
+);
 
-      <Card>
+// PASTIKAN FUNGSI INI TIDAK MEMILIKI '{ stats }' DI DALAM KURUNG
+export function DashboardStats() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setIsLoading(true);
+      try {
+        const response = await api.get('/report/stats'); // Pastikan alamat API ini benar
+        setStats(response.data.data);
+      } catch (error) {
+        console.error("Gagal mengambil data statistik:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (isLoading) {
+    return <StatsSkeleton />;
+  }
+
+  if (!stats) {
+    return <p className="col-span-4 text-center text-muted-foreground">Gagal memuat data statistik.</p>;
+  }
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <Card className='bg-gray-900 text-white'>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 ">
+          <CardTitle className="text-sm font-medium text-white">Total Pendapatan</CardTitle>
+          <TrendingUp className="h-4 w-4 text-muted-foreground text-white" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold bg-">{formatPrice(stats.totalRevenue)}</div>
+          <p className="text-xs text-muted-foreground text-white">Dari semua pemesanan</p>
+        </CardContent>
+      </Card>
+      <Card className='bg-gray-900 text-white'>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium">Total Pemesanan</CardTitle>
+          <Briefcase className="h-4 w-4 text-muted-foreground bg-gray-900 text-white " />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.totalBookings}</div>
+          <p className="text-xs text-muted-foreground text-white">Jumlah transaksi berhasil</p>
+        </CardContent>
+      </Card>
+      <Card className='bg-gray-900 text-white'>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Tingkat Hunian</CardTitle>
+          <Percent className="h-4 w-4 text-muted-foreground bg-gray-900 text-white" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{stats.occupancyRate.toFixed(1)}%</div>
+          <p className="text-xs text-muted-foreground text-white">Bulan ini</p>
+        </CardContent>
+      </Card>
+      <Card className='bg-gray-900 text-white'>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Kamar</CardTitle>
+          <BedDouble className="h-4 w-4 text-muted-foreground bg-gray-900 text-white" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.totalRooms}</div>
-          <p className="text-xs text-muted-foreground">Rooms available</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.activeListings}</div>
-          <p className="text-xs text-muted-foreground">Currently active</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Monthly Views</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.monthlyViews}</div>
-          <p className="text-xs text-muted-foreground">This month</p>
+          <p className="text-xs text-muted-foreground text-white">Di semua properti aktif</p>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
