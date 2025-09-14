@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -84,7 +85,7 @@ export default function Navbar() {
                 </Link>
 
                 {!isDashboardPage && (
-                    <form onSubmit={handleSearchSubmit} className="flex items-center mx-4 flex-1 max-w-md relative">
+                    <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center mx-4 flex-1 max-w-md relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <Input
                             value={value}
@@ -114,9 +115,9 @@ export default function Navbar() {
 
                 <div className={`hidden lg:flex gap-6 ${isDashboardPage ? 'ml-auto' : ''}`}>
                     <Link href="/properties">Properti</Link>
-                    <Link href="/about">Hotel</Link>
-                    <Link href="/contact">Villa</Link>
-                    <Link href="/apartemen">Apartemen</Link>
+                    <Link href="/properties?category=Hotel">Hotel</Link>
+                    <Link href="/properties?category=Villa">Villa</Link>
+                    <Link href="/properties?category=Apartemen">Apartemen</Link>
                 </div>
 
                 <div className="ml-auto hidden lg:flex gap-3 items-center">

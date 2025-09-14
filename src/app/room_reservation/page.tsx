@@ -83,15 +83,13 @@ function ReservationContent() {
 
       const response = await api.post('/reservations/by-room-name', payload);
 
-      if (paymentMethod === 'gateway' && response.data.data.paymentUrl) {
-        window.location.href = response.data.data.paymentUrl;
-      } else {
+      
         toast({
           title: 'Reservasi Berhasil Dibuat',
           description: 'Silakan unggah bukti pembayaran Anda di halaman pesanan.',
         });
         router.push('/dashboard/akun_user/orders');
-      }
+      
     } catch (error: any) {
       toast({
         title: 'Gagal Membuat Reservasi',
@@ -151,7 +149,6 @@ function ReservationContent() {
                 <RadioGroupItem value="manual" id="manual" />
                 <span>Transfer Bank Manual (Upload Bukti)</span>
               </Label>
-              
             </RadioGroup>
           </div>
         </CardContent>
