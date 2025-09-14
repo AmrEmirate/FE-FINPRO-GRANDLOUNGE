@@ -15,6 +15,8 @@ import { AboutTeam } from '@/components/about/about-team';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { MessageSquare } from 'lucide-react';
+import UserLocationMap from '@/components/home/user-location-map';
+import FullScreenUserMap from '@/components/home/full-screen-map';
 
 export default function HomePage() {
   // State untuk menyimpan kriteria pencarian
@@ -28,6 +30,9 @@ export default function HomePage() {
       <SearchForm onSearch={setSearchQuery} />
       {/* Kirim state searchQuery ke FeaturedProperties */}
       <FeaturedProperties filter={searchQuery} />
+      <section id="location-map" className="py-12 md:py-24 bg-gray-50">
+        <FullScreenUserMap />
+      </section>
       <section id="about" className="py-12">
         <div className="container mx-auto">
           <AboutStory />
@@ -36,6 +41,7 @@ export default function HomePage() {
           <AboutValues />
         </div>
       </section>
+
       <Link href="/contact" passHref>
         <Button
           className="fixed bottom-8 right-8 bg-black hover:bg-black/80 text-white rounded-full p-4 transition-all duration-300 ease-in-out shadow-lg"

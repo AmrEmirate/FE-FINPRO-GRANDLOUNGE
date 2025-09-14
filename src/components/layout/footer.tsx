@@ -9,8 +9,9 @@ export function Footer() {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <Building2 className="h-8 w-8 text-blue-400" />
-              <span className="text-xl font-bold">Grand Lodge</span>
+              <Link href="/" className="flex items-center">
+                <img src="/assets/LONGE.png" alt="Logo" className="h-12 w-auto" />
+              </Link>
             </div>
             <p className="text-gray-300 mb-4">
               Your trusted partner for finding the perfect accommodation. Experience comfort and luxury in every stay.
