@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useForm, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import apiHelper from "@/lib/apiHelper"
@@ -16,12 +16,13 @@ import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 import { MultiSelect, OptionType } from "@/components/ui/multi-select"
 import { ImageUpload } from "@/components/tenant/image-upload"
+import { LocationPicker } from "@/components/tenant/LocationPicker" // Import LocationPicker
 
 // Tipe data untuk dropdown
 interface Category { id: string; name: string; }
-interface City { id: string; name: string; }
+interface City { id: string; name: string; latitude: number; longitude: number; }
 
-// Skema validasi baru
+// Skema validasi baru dengan latitude dan longitude
 const propertyFormSchema = z.object({
   name: z.string().min(5, { message: "Property name must be at least 5 characters." }),
   description: z.string().min(20, { message: "Description must be at least 20 characters." }),
@@ -31,6 +32,8 @@ const propertyFormSchema = z.object({
   amenityIds: z.array(z.string()).min(1, { message: "Select at least one amenity." }),
   mainImage: z.instanceof(File, { message: "Main image is required." }),
   galleryImages: z.array(z.instanceof(File)).optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 })
 
 export default function NewPropertyPage() {
@@ -40,6 +43,8 @@ export default function NewPropertyPage() {
   const [cities, setCities] = useState<City[]>([])
   const [amenities, setAmenities] = useState<OptionType[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+
 
   // Fetch data untuk dropdowns
   useEffect(() => {
@@ -82,6 +87,8 @@ export default function NewPropertyPage() {
     formData.append('categoryId', values.categoryId);
     formData.append('cityId', values.cityId);
     formData.append('zipCode', values.zipCode);
+    if (values.latitude) formData.append('latitude', values.latitude.toString());
+    if (values.longitude) formData.append('longitude', values.longitude.toString());
     
     values.amenityIds.forEach(id => formData.append('amenityIds', id));
     
@@ -89,8 +96,6 @@ export default function NewPropertyPage() {
       formData.append('mainImage', values.mainImage);
     }
     
-    // --- PERBAIKAN KUNCI DI SINI ---
-    // Nama field harus 'galleryImages', bukan 'galleryImages[]'
     if (values.galleryImages) {
       values.galleryImages.forEach(file => formData.append('galleryImages', file));
     }
@@ -116,6 +121,12 @@ export default function NewPropertyPage() {
     }
   }
 
+  const handleCityChange = (cityId: string) => {
+    const city = cities.find(c => c.id === cityId);
+    setSelectedCity(city || null);
+    form.setValue("cityId", cityId);
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <Card className="max-w-4xl mx-auto">
@@ -137,12 +148,31 @@ export default function NewPropertyPage() {
                   <FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent>{categories.map(cat => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="cityId" render={({ field }) => (
-                  <FormItem><FormLabel>City</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a city" /></SelectTrigger></FormControl><SelectContent>{cities.map(city => (<SelectItem key={city.id} value={city.id}>{city.name}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                    <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <Select onValueChange={handleCityChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Select a city" /></SelectTrigger></FormControl>
+                            <SelectContent>{cities.map(city => (<SelectItem key={city.id} value={city.id}>{city.name}</SelectItem>))}</SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
                 )} />
               </div>
               <FormField control={form.control} name="zipCode" render={({ field }) => (
                 <FormItem><FormLabel>Zip Code</FormLabel><FormControl><Input placeholder="e.g., 12345" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
+
+              <FormItem>
+                <FormLabel>Location</FormLabel>
+                <LocationPicker 
+                  onLocationSelect={({ lat, lng }) => {
+                    form.setValue("latitude", lat);
+                    form.setValue("longitude", lng);
+                  }}
+                  cityCoordinates={selectedCity ? { lat: selectedCity.latitude, lng: selectedCity.longitude } : undefined}
+                />
+              </FormItem>
+
               <FormField control={form.control} name="amenityIds" render={({ field }) => (
                 <FormItem><FormLabel>Amenities</FormLabel><FormControl><MultiSelect options={amenities} selected={field.value} onChange={field.onChange} placeholder="Select amenities..." /></FormControl><FormMessage /></FormItem>
               )} />

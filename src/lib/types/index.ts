@@ -91,6 +91,8 @@ export interface Property {
   name: string;
   description: string;
   mainImage?: string;
+  latitude?: number;
+  longitude?: number;
   deletedAt?: string;
   createdAt: string;
   category: Category;

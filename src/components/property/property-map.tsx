@@ -10,12 +10,19 @@ import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
 import iconUrl from 'leaflet/dist/images/marker-icon.png'
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
 
-delete (L.Icon.Default.prototype as any)._getIconUrl
-L.Icon.Default.mergeOptions({
+// Hapus bagian `delete` dan gabungkan options di luar komponen utama
+// untuk memastikan ini hanya dievaluasi sekali.
+const DefaultIcon = L.icon({
   iconRetinaUrl: iconRetinaUrl.src,
   iconUrl: iconUrl.src,
   shadowUrl: shadowUrl.src,
-})
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
 
 interface PropertyMapProps {
   latitude: number
@@ -24,10 +31,11 @@ interface PropertyMapProps {
 }
 
 export function PropertyMap({ latitude, longitude, propertyName }: PropertyMapProps) {
-  if (typeof window === 'undefined' || !latitude || !longitude) {
+  // Pemeriksaan ini sekarang aman karena komponen hanya akan dirender di client.
+  if (!latitude || !longitude) {
     return (
         <div className="h-96 w-full bg-gray-200 flex items-center justify-center rounded-lg">
-            <p className="text-gray-500">Peta tidak tersedia.</p>
+            <p className="text-gray-500">Koordinat lokasi tidak tersedia.</p>
         </div>
     );
   }

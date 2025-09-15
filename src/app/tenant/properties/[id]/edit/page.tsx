@@ -1,3 +1,5 @@
+// src/app/tenant/properties/[id]/edit/page.tsx
+
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -17,16 +19,11 @@ import { Loader2, Trash2 } from "lucide-react"
 import { MultiSelect, OptionType } from "@/components/ui/multi-select"
 import { ImageUpload } from "@/components/tenant/image-upload"
 import Image from "next/image"
+import { LocationPicker } from "@/components/tenant/LocationPicker" // Import LocationPicker
 
 // Interface untuk tipe data yang diterima dari API
-interface Amenity {
-  id: string;
-  name: string;
-}
-interface PropertyImage {
-  id: string;
-  imageUrl: string;
-}
+interface Amenity { id: string; name: string; }
+interface PropertyImage { id: string; imageUrl: string; }
 interface PropertyData {
   id: string;
   name: string;
@@ -37,15 +34,11 @@ interface PropertyData {
   mainImage: string | null;
   amenities: Amenity[];
   images: PropertyImage[];
+  latitude?: number;
+  longitude?: number;
 }
-interface Category {
-  id: string;
-  name: string;
-}
-interface City {
-  id: string;
-  name: string;
-}
+interface Category { id: string; name: string; }
+interface City { id: string; name: string; latitude: number; longitude: number; }
 
 // Skema validasi form menggunakan Zod
 const propertyFormSchema = z.object({
@@ -57,6 +50,8 @@ const propertyFormSchema = z.object({
   amenityIds: z.array(z.string()).min(1, { message: "Please select at least one amenity." }),
   mainImage: z.instanceof(File).optional(),
   galleryImages: z.array(z.instanceof(File)).optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 })
 
 export default function EditPropertyPage({ params }: { params: { id: string } }) {
@@ -69,6 +64,7 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
 
   const form = useForm<z.infer<typeof propertyFormSchema>>({
     resolver: zodResolver(propertyFormSchema),
@@ -86,10 +82,14 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
         ]);
         
         const propData = propRes.data.data;
+        const fetchedCities = cityRes.data.data;
         setProperty(propData)
         setCategories(catRes.data.data);
-        setCities(cityRes.data.data);
+        setCities(fetchedCities);
         setAmenities(amenityRes.data.data.map((a: Amenity) => ({ value: a.id, label: a.name })));
+        
+        const cityOfProperty = fetchedCities.find((c: City) => c.id === propData.cityId);
+        setSelectedCity(cityOfProperty || null);
 
         // Mengisi form dengan data yang sudah ada
         form.reset({
@@ -99,6 +99,8 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
           cityId: propData.cityId,
           zipCode: propData.zipCode,
           amenityIds: propData.amenities.map((a: Amenity) => a.id),
+          latitude: propData.latitude,
+          longitude: propData.longitude,
         });
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Failed to load property data. You may not have access." });
@@ -128,6 +130,8 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
     formData.append('categoryId', values.categoryId);
     formData.append('cityId', values.cityId);
     formData.append('zipCode', values.zipCode);
+    if (values.latitude) formData.append('latitude', values.latitude.toString());
+    if (values.longitude) formData.append('longitude', values.longitude.toString());
 
     // Append array amenityIds (kunci harus sama untuk setiap elemen)
     if (values.amenityIds && Array.isArray(values.amenityIds)) {
@@ -166,6 +170,12 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
       setIsLoading(false);
     }
   }
+  
+    const handleCityChange = (cityId: string) => {
+        const city = cities.find(c => c.id === cityId);
+        setSelectedCity(city || null);
+        form.setValue("cityId", cityId);
+    }
 
   // Tampilan loading saat data sedang diambil
   if (isFetching) {
@@ -221,7 +231,7 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
                 <FormField control={form.control} name="cityId" render={({ field }) => ( 
                   <FormItem>
                     <FormLabel>City</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={handleCityChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Select a city" /></SelectTrigger></FormControl>
                       <SelectContent>{cities.map(city => (<SelectItem key={city.id} value={city.id}>{city.name}</SelectItem>))}</SelectContent>
                     </Select>
@@ -238,6 +248,19 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
                   <FormMessage />
                 </FormItem> 
               )} />
+
+              {/* Location Picker */}
+              <FormItem>
+                <FormLabel>Location</FormLabel>
+                <LocationPicker 
+                  onLocationSelect={({ lat, lng }) => {
+                    form.setValue("latitude", lat);
+                    form.setValue("longitude", lng);
+                  }}
+                  initialPosition={form.getValues("latitude") && form.getValues("longitude") ? { lat: form.getValues("latitude")!, lng: form.getValues("longitude")! } : undefined}
+                  cityCoordinates={selectedCity ? { lat: selectedCity.latitude, lng: selectedCity.longitude } : undefined}
+                />
+              </FormItem>
               
               {/* Amenities */}
               <FormField control={form.control} name="amenityIds" render={({ field }) => ( 
@@ -308,4 +331,3 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
     </div>
   )
 }
-//kelebihan
