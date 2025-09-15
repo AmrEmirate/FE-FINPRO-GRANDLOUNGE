@@ -1,4 +1,4 @@
-// src/app/properties/[id]/page.tsx (SUDAH DIPERBAIKI & DILENGKAPI)
+// src/app/properties/[id]/page.tsx
 
 "use client"
 
@@ -15,7 +15,7 @@ import type { Property, Room } from "@/lib/types"
 import type { DateRange } from "react-day-picker"
 import apiHelper from "@/lib/apiHelper"
 import { format } from "date-fns"
-// --- TAMBAHKAN IMPORT INI ---
+import { PropertyMap } from "@/components/property/property-map"
 import PropertyReviews from "@/components/property/PropertyReviews"
 
 async function getProperty(id: string): Promise<Property | null> {
@@ -100,10 +100,17 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
     )
   }
 
+  // --- PERBAIKAN DI SINI ---
+  // Ganti `img.url` menjadi `img.imageUrl` agar sesuai dengan tipe data yang baru
   const galleryImages = [
     property.mainImage,
     ...(property.images?.map(img => img.imageUrl) || [])
   ].filter(Boolean) as string[]
+
+  // --- PERBAIKAN DI SINI ---
+  // Akses latitude & longitude dari `property.city`
+  const latitude = property.city?.latitude ? parseFloat(String(property.city.latitude)) : null;
+  const longitude = property.city?.longitude ? parseFloat(String(property.city.longitude)) : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -119,6 +126,14 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
           <div className="lg:col-span-2 space-y-8">
             <PropertyImageGallery images={galleryImages} propertyName={property.name} />
             <PropertyInfo property={property} />
+
+            {latitude && longitude && (
+              <PropertyMap 
+                latitude={latitude} 
+                longitude={longitude} 
+                propertyName={property.name} 
+              />
+            )}
 
             <PropertyAvailabilityCalendar
               propertyId={property.id}
@@ -140,8 +155,7 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
                 onRoomSelect={setSelectedRoom}
               />
             )}
-
-            {/* --- BAGIAN ULASAN DITAMBAHKAN DI SINI --- */}
+            
             {property.reviews && property.reviews.length > 0 && (
               <PropertyReviews reviews={property.reviews} />
             )}
@@ -152,7 +166,6 @@ export default function PropertyDetailPage({ params }: { params: { id: string } 
               propertyId={property.id}
               selectedRoom={selectedRoom}
               selectedRange={selectedRange}
-
               onDateChange={setSelectedRange}
             />
           </div>

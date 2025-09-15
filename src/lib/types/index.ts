@@ -35,27 +35,33 @@ export interface Category {
   name: string;
 }
 
+// --- PERBAIKAN ---
+// latitude & longitude sekarang menjadi bagian dari City
 export interface City {
   id: string;
   name: string;
   provinsi: string;
+  latitude?: number | string;
+  longitude?: number | string;
 }
 
+// --- PERBAIKAN ---
+// Interface untuk gambar properti
 export interface PropertyImage {
   id: string;
-  imageUrl: string;
+  imageUrl: string; // Menggunakan imageUrl agar konsisten
 }
 
 export interface Room {
   id: string;
   propertyId: string;
-  name: string; // Menggantikan 'type' dari mock data
+  name: string;
   category: RoomCategory;
   description: string;
   bedOption: BedOption;
-  capacity: number; // Menggantikan 'maxGuests'
-  basePrice: number; 
-  roomNumber?: string; 
+  capacity: number;
+  basePrice: number;
+  roomNumber?: string;
 }
 
 export interface Review {
@@ -70,7 +76,6 @@ export interface Review {
   };
 }
 
-// Interface untuk data Tenant yang di-embed di dalam Property
 export interface TenantInfo {
   user: {
     fullName: string;
@@ -79,6 +84,7 @@ export interface TenantInfo {
   createdAt: string;
 }
 
+// --- PERBAIKAN UTAMA DI SINI ---
 export interface Property {
   id: string;
   tenantId: string;
@@ -88,25 +94,22 @@ export interface Property {
   deletedAt?: string;
   createdAt: string;
   category: Category;
-  city: City;
+  city: City; // Objek City sekarang berisi data geolokasi
   tenant: TenantInfo;
   rooms?: Room[];
   reviews?: Review[];
-  latitude?: number | string 
-  longitude?: number | string 
-  reviews_avg_rating?: number
-  reviews_count?: number 
-  images?: { id: string, url: string }[] 
+  reviews_avg_rating?: number;
+  reviews_count?: number;
+  images?: PropertyImage[]; // Menggunakan interface PropertyImage yang sudah diperbaiki
+  // latitude & longitude dihapus dari sini karena sudah dipindahkan ke dalam City
 }
 
-// --- PERBAIKAN 1: Tambahkan tipe PropertyFilters ---
 export interface PropertyFilters {
   priceRange?: [number, number];
   categories?: string[];
   guestCount?: string;
 }
 
-// Tipe data untuk User yang sedang login
 export interface User {
   id: string;
   role: UserRole;
@@ -125,8 +128,10 @@ export interface UserOrder {
   orderId: string;
   invoiceNumber: string;
   property: {
-      id: any; name: string; mainImage: string;
-};
+    id: any;
+    name: string;
+    mainImage: string;
+  };
   checkIn: string;
   checkOut: string;
   totalPrice: number;
