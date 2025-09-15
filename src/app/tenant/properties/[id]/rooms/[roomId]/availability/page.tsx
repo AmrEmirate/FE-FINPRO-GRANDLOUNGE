@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { ArrowLeft, Plus } from "lucide-react";
-import { AvailabilityDialog } from "@/components/tenant/AvailabilityDialog";
 import { DateRange } from "react-day-picker";
 
 export default function ManageAvailabilityPage() {
@@ -22,13 +21,13 @@ export default function ManageAvailabilityPage() {
   const propertyId = params.id as string;
   const roomId = params.roomId as string;
   const { toast } = useToast();
-
-  // --- PERBAIKAN 1: Ambil 'room' bukan 'roomName' ---
-  const { room, availability, peakSeasons, isLoading, error, refetch } = useRoomAvailability(roomId);
+  
+  const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
+  
+  const { room, availability, peakSeasons, isLoading, error, refetch } = useRoomAvailability(propertyId, roomId, currentMonth);
   
   const [isPeakSeasonDialogOpen, setIsPeakSeasonDialogOpen] = useState(false);
   const [editingSeason, setEditingSeason] = useState<PeakSeason | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
 
   if (isLoading) return <div>Memuat data...</div>;
   if (error) return <div>Error: {error.message}</div>;
@@ -39,7 +38,6 @@ export default function ManageAvailabilityPage() {
       return;
     }
     try {
-      // Endpoint ini mungkin perlu disesuaikan dengan BE Anda
       await api.post(`/properties/my-properties/${propertyId}/rooms/${roomId}/availability`, {
         startDate: format(range.from, "yyyy-MM-dd"),
         endDate: format(range.to || range.from, "yyyy-MM-dd"),
@@ -97,13 +95,11 @@ export default function ManageAvailabilityPage() {
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
             <div>
               <CardTitle>Manajemen Ketersediaan & Harga Harian</CardTitle>
-              {/* --- PERBAIKAN 2: Gunakan room.name --- */}
               <CardDescription>Kamar: <strong>{room?.name || "Memuat..."}</strong></CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {/* --- PERBAIKAN 3: Kirim props yang benar ke Kalender --- */}
           <AvailabilityCalendar
             basePrice={room?.basePrice || 0}
             availabilityData={availability}
