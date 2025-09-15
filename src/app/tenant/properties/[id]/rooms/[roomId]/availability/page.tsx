@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { format, startOfMonth } from "date-fns";
 import { AvailabilityCalendar } from "@/components/tenant/availability-calendar";
 import { PeakSeasonDialog, PeakSeason, PeakSeasonPayload } from "@/components/tenant/PeakSeasonDialog";
+import { AvailabilityDialog } from "@/components/tenant/AvailabilityDialog";
 import { PeakSeasonList } from "@/components/tenant/PeakSeasonList";
 import { useRoomAvailability } from "@/hooks/use-room-availability";
 import api from "@/utils/api";
@@ -13,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, CalendarCog } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 export default function ManageAvailabilityPage() {
@@ -27,6 +28,7 @@ export default function ManageAvailabilityPage() {
   const { room, availability, peakSeasons, isLoading, error, refetch } = useRoomAvailability(propertyId, roomId, currentMonth);
   
   const [isPeakSeasonDialogOpen, setIsPeakSeasonDialogOpen] = useState(false);
+  const [isAvailabilityDialogOpen, setIsAvailabilityDialogOpen] = useState(false);
   const [editingSeason, setEditingSeason] = useState<PeakSeason | null>(null);
 
   if (isLoading) return <div>Memuat data...</div>;
@@ -97,6 +99,10 @@ export default function ManageAvailabilityPage() {
               <CardTitle>Manajemen Ketersediaan & Harga Harian</CardTitle>
               <CardDescription>Kamar: <strong>{room?.name || "Memuat..."}</strong></CardDescription>
             </div>
+            <Button onClick={() => setIsAvailabilityDialogOpen(true)}>
+                <CalendarCog className="mr-2 h-4 w-4" />
+                Atur Ketersediaan
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -130,6 +136,13 @@ export default function ManageAvailabilityPage() {
           initialData={editingSeason} 
           roomId={roomId} 
           onSuccess={refetch} 
+      />
+      <AvailabilityDialog
+        isOpen={isAvailabilityDialogOpen}
+        onClose={() => setIsAvailabilityDialogOpen(false)}
+        onSave={handleSaveAvailability}
+        roomId={roomId}
+        onSuccess={refetch}
       />
     </div>
   );

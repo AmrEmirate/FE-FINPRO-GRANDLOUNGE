@@ -16,8 +16,8 @@ interface AvailabilityDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (dateRange: DateRange, isAvailable: boolean) => void;
-  roomId: string; // Tambahkan ini
-  onSuccess: () => void; // Tambahkan ini
+  roomId: string; 
+  onSuccess: () => void; 
 }
 
 export function AvailabilityDialog({ isOpen, onClose, onSave }: AvailabilityDialogProps) {
