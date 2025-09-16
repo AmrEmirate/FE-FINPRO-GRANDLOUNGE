@@ -20,11 +20,8 @@ interface PaginatedPropertiesResponse {
 async function getProperties(searchParams: { [key: string]: string | string[] | undefined }): Promise<PaginatedPropertiesResponse> {
     const params = new URLSearchParams();
     
-    // Loop melalui semua searchParams dan menambahkannya ke URL
     Object.entries(searchParams).forEach(([key, value]) => {
         if (value) {
-            // --- PERBAIKAN UTAMA DI SINI ---
-            // Jika key dari URL adalah 'q', ubah menjadi 'search' saat dikirim ke API
             if (key === 'q') {
                 params.append('search', String(value));
             } else {
