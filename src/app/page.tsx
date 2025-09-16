@@ -1,3 +1,5 @@
+// src/app/page.tsx
+
 "use client";
 
 import { useState } from 'react';
@@ -12,18 +14,34 @@ import { AboutValues } from '@/components/about/about-values';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { MessageSquare } from 'lucide-react';
-// 1. Impor komponen peta split-screen yang baru
-import SplitScreenMap from '@/components/home/split-screen-map'; 
+import SplitScreenMap from '@/components/home/split-screen-map';
+import Navbar from '@/components/Navbar'; // Impor Navbar
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState<SearchQuery | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>(''); // State baru untuk filter kategori
   const [isHovered, setIsHovered] = useState(false);
+
+  // Fungsi untuk menangani klik kategori dari Navbar
+  const handleCategorySelect = (category: string) => {
+    // Jika kategori yang sama diklik lagi, reset filter
+    if (categoryFilter === category) {
+      setCategoryFilter('');
+    } else {
+      setCategoryFilter(category);
+    }
+  };
 
   return (
     <div className="min-h-screen">
+      {/* Berikan fungsi handleCategorySelect ke Navbar */}
+      <Navbar onCategorySelect={handleCategorySelect} /> 
+      
       <HeroSection />
       <SearchForm onSearch={setSearchQuery} />
-      <FeaturedProperties filter={searchQuery} />
+      
+      {/* Berikan state categoryFilter ke FeaturedProperties */}
+      <FeaturedProperties filter={searchQuery} categoryFilter={categoryFilter} />
 
       <SplitScreenMap />
 
@@ -36,7 +54,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ... sisa kode (tombol contact dan footer) biarkan sama ... */}
       <Link href="/contact" passHref>
         <Button
           className="fixed bottom-8 right-8 bg-black hover:bg-black/80 text-white rounded-full p-4 transition-all duration-300 ease-in-out shadow-lg"

@@ -18,7 +18,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function Navbar() {
+interface NavbarProps {
+  onCategorySelect?: (category: string) => void;
+}
+
+export default function Navbar({ onCategorySelect }: NavbarProps) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
@@ -27,7 +31,7 @@ export default function Navbar() {
     const [isFocused, setIsFocused] = useState(false);
     const [value, setValue] = useState("");
 
-    const placeholders = ["Cari Hotel...", "Cari Villa...", "Cari Apartemen..."];
+    const placeholders = ["Cari Hotel...", "Cari Vila...", "Cari Apartemen..."];
     const [index, setIndex] = useState(0);
     useEffect(() => {
         const interval = setInterval(() => {
@@ -50,11 +54,8 @@ export default function Navbar() {
     const isHome = pathname === "/";
 
     const navbarBg = isHome ? "bg-transparent" : "bg-gray-900 shadow-md border-b border-gray-800";
-
     const textColor = "text-white";
-
     const navbarPosition = isHome ? "absolute" : "fixed";
-
 
     const userMenuItems = [
         { label: "Akun", href: "/dashboard/akun_user/profile" },
@@ -114,10 +115,20 @@ export default function Navbar() {
                 )}
 
                 <div className={`hidden lg:flex gap-6 ${isDashboardPage ? 'ml-auto' : ''}`}>
-                    <Link href="/properties">Properti</Link>
-                    <Link href="/properties?category=Hotel">Hotel</Link>
-                    <Link href="/properties?category=Villa">Villa</Link>
-                    <Link href="/properties?category=Apartemen">Apartemen</Link>
+                    <Link href="/properties" className="cursor-pointer">Properti</Link>
+                    {onCategorySelect ? (
+                        <>
+                            <button onClick={() => onCategorySelect('Hotel')} className="cursor-pointer">Hotel</button>
+                            <button onClick={() => onCategorySelect('Vila')} className="cursor-pointer">Vila</button>
+                            <button onClick={() => onCategorySelect('Apartemen')} className="cursor-pointer">Apartemen</button>
+                        </>
+                    ) : (
+                        <>
+                            <Link href="/properties?category=Hotel">Hotel</Link>
+                            <Link href="/properties?category=Vila">Vila</Link>
+                            <Link href="/properties?category=Apartemen">Apartemen</Link>
+                        </>
+                    )}
                 </div>
 
                 <div className="ml-auto hidden lg:flex gap-3 items-center">
