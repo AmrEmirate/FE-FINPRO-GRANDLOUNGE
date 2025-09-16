@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import api from '@/lib/apiHelper';
 import Link from 'next/link';
@@ -15,7 +9,6 @@ import { Button } from '../ui/button';
 import { Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Tipe data untuk ulasan
 interface Review {
     id: string;
     rating: number;
@@ -31,13 +24,12 @@ export function RecentReviewsWidget() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchReviews = async () => {
+        const fetchDashboardData = async () => {
             setIsLoading(true);
             try {
-                const response = await api.get('/reviews/tenant', {
-                    params: { limit: 3, sortBy: 'createdAt', sortOrder: 'desc' },
-                });
-                setReviews(response.data.data.reviews || []);
+                // 1. Mengambil data dari endpoint baru yang aman
+                const response = await api.get('/report/widgets');
+                setReviews(response.data.data.recentReviews || []);
             } catch (error) {
                 console.error('Gagal mengambil ulasan terbaru', error);
                 setReviews([]);
@@ -45,17 +37,15 @@ export function RecentReviewsWidget() {
                 setIsLoading(false);
             }
         };
-
-        fetchReviews();
+        fetchDashboardData();
     }, []);
 
+    // Sisa kode JSX di bawah ini tidak perlu diubah
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Ulasan Terbaru</CardTitle>
-                <CardDescription>
-                    3 ulasan terakhir untuk properti Anda.
-                </CardDescription>
+                <CardDescription>3 ulasan terakhir untuk properti Anda.</CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
