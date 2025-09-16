@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import api from '@/lib/apiHelper';
 import { useEffect, useState } from 'react';
 import { formatPrice } from '@/lib/utils/format';
-import { subDays, format } from 'date-fns';
 
 interface SalesData {
     date: string;
@@ -17,20 +16,15 @@ export function SalesChartWidget() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchSalesData = async () => {
+        const fetchDashboardData = async () => {
+            setIsLoading(true);
             try {
-                const to = new Date();
-                const from = subDays(to, 6);
+                // 1. Mengambil data dari endpoint baru yang aman
+                const response = await api.get('/report/widgets');
 
-                const response = await api.get('/report/sales', {
-                    params: {
-                        from: format(from, 'yyyy-MM-dd'),
-                        to: format(to, 'yyyy-MM-dd'),
-                        groupBy: 'day',
-                    },
-                });
+                const salesDataFromApi = response.data.data.dailySales || [];
 
-                const salesDataFromApi = response.data.data || [];
+                // 2. Format data untuk chart
                 const formattedData = salesDataFromApi.map((item: any) => ({
                     date: new Date(item.date).toLocaleDateString('id-ID', { weekday: 'short' }),
                     total: Number(item._sum.totalPrice) || 0,
@@ -38,15 +32,16 @@ export function SalesChartWidget() {
                 setData(formattedData);
 
             } catch (error) {
-                console.error('Gagal mengambil data penjualan', error);
-                setData([]); // Set data ke array kosong jika gagal
+                console.error('Gagal mengambil data penjualan dashboard', error);
+                setData([]);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchSalesData();
+        fetchDashboardData();
     }, []);
-    
+
+    // Sisa kode JSX di bawah ini tidak perlu diubah
     return (
         <Card>
             <CardHeader>
