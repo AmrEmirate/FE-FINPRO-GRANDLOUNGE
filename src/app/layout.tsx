@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar'
 import { AuthProvider } from '@/context/AuthContext'
 import { usePathname } from 'next/navigation'
 import Template from "./template";
-
+import Script from "next/script";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -42,6 +42,11 @@ export default function RootLayout({
         <meta name="description" content="Find and book premium accommodations for your perfect stay" />
         <link rel="icon" href="/favicon.ico" />
       </head>
+      <Script
+        type="text/javascript"
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+      />
       <body className={`${roboto.variable} font-sans`}>
         <AuthProvider>
           <MainLayout>

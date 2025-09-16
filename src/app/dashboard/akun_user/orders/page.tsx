@@ -17,11 +17,17 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { CountdownTimer } from '@/components/bookings/CountdownTimer';
 import WriteReviewDialog from '@/components/orders/WriteReviewDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Image from 'next/image'; // <-- TAMBAHKAN BARIS INI
+import Image from 'next/image';
 import Link from 'next/link';
+import { createMidtransTransaction } from "@/lib/apiHelper";
 
-// Komponen Card untuk setiap pesanan
-const OrderCard = ({ order, onCancel, onComplete, onUploadSuccess }: { order: UserOrder, onCancel: (invoice: string) => void, onComplete: (id: string) => void, onUploadSuccess: () => void }) => {
+declare global {
+    interface Window {
+        snap: any;
+    }
+}
+
+const OrderCard = ({ order, onCancel, onComplete, onUploadSuccess, onPayWithMidtrans, isPaying }: { order: UserOrder, onCancel: (invoice: string) => void, onComplete: (id: string) => void, onUploadSuccess: () => void, onPayWithMidtrans: (invoice: string) => void, isPaying: boolean }) => {
 
     const getStatusVariant = (status: UserOrder['status']) => {
         switch (status) {
@@ -93,6 +99,14 @@ const OrderCard = ({ order, onCancel, onComplete, onUploadSuccess }: { order: Us
 
                     {order.status === 'MENUNGGU_PEMBAYARAN' && (
                         <div className="flex gap-2 w-full">
+                            <Button
+                                onClick={() => onPayWithMidtrans(order.invoiceNumber)}
+                                disabled={isPaying} // <-- Disable tombol saat loading
+                                size="sm"
+                                className="flex-grow"
+                            >
+                                {isPaying ? "Memproses..." : "Bayar Online"}
+                            </Button>
                             <UploadPaymentDialog invoiceNumber={order.invoiceNumber} onUploadSuccess={onUploadSuccess} />
                             <AlertDialog>
                                 <AlertDialogTrigger asChild><Button variant="destructive" size="sm" className="flex-grow">Batalkan</Button></AlertDialogTrigger>
@@ -116,6 +130,7 @@ function OrdersContent() {
     const [allOrders, setAllOrders] = useState<UserOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
+    const [isPaying, setIsPaying] = useState<string | null>(null);
 
     const fetchOrders = useCallback(async () => {
         setIsLoading(true);
@@ -133,15 +148,42 @@ function OrdersContent() {
         fetchOrders();
     }, [fetchOrders]);
 
-    // Fungsi handleCancelOrder dan handleCompleteOrder perlu didefinisikan atau di-pass sebagai props jika ada
+    const handlePayWithMidtrans = async (invoiceNumber: string) => {
+        setIsPaying(invoiceNumber); 
+        try {
+            const response = await createMidtransTransaction(invoiceNumber);
+            const midtransToken = response.data.token;
+
+            if (midtransToken && window.snap) {
+                window.snap.pay(midtransToken, {
+                    onSuccess: function (result: any) {
+                        toast({ title: "Pembayaran Berhasil!", description: "Status pesanan Anda akan segera diperbarui." });
+                        fetchOrders();
+                    },
+                    onPending: function (result: any) {
+                        toast({ title: "Menunggu Pembayaran", description: "Selesaikan pembayaran Anda." });
+                    },
+                    onError: function (result: any) {
+                        toast({ title: "Pembayaran Gagal", description: "Terjadi kesalahan, silakan coba lagi.", variant: "destructive" });
+                    },
+                    onClose: function () {
+                        console.log('Popup pembayaran ditutup oleh pengguna.');
+                    }
+                });
+            }
+        } catch (err: any) {
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+        } finally {
+            setIsPaying(null);
+        }
+    };
+
     const handleCancelOrder = (invoice: string) => {
         console.log('Cancelling order:', invoice);
-        // Implementasi logika pembatalan di sini
     };
 
     const handleCompleteOrder = (id: string) => {
         console.log('Completing order:', id);
-        // Implementasi logika penyelesaian di sini
     };
 
     if (isLoading) {
@@ -186,7 +228,15 @@ function OrdersContent() {
                     <TabsContent key={tab.value} value={tab.value} className="space-y-4">
                         {filterOrders(tab.value).length > 0 ? (
                             filterOrders(tab.value).map(order => (
-                                <OrderCard key={order.id} order={order} onCancel={handleCancelOrder} onComplete={handleCompleteOrder} onUploadSuccess={fetchOrders} />
+                                <OrderCard
+                                    key={order.id}
+                                    order={order}
+                                    onCancel={handleCancelOrder}
+                                    onComplete={handleCompleteOrder}
+                                    onUploadSuccess={fetchOrders}
+                                    onPayWithMidtrans={handlePayWithMidtrans}
+                                    isPaying={isPaying === order.invoiceNumber}
+                                />
                             ))
                         ) : (
                             <div className="text-center py-16 bg-gray-50 rounded-lg">
@@ -207,4 +257,3 @@ export default function UserOrdersPage() {
         </ProtectedRoute>
     );
 }
-//kelebihan 
