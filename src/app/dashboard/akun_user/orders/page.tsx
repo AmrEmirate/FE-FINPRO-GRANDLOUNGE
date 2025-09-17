@@ -19,16 +19,10 @@ import WriteReviewDialog from '@/components/orders/WriteReviewDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
 import Link from 'next/link';
-import { createMidtransTransaction } from "@/lib/apiHelper";
 
-declare global {
-    interface Window {
-        snap: any;
-    }
-}
+const OrderCard = ({ order, onCancel, onComplete, onUploadSuccess }: { order: UserOrder, onCancel: (invoice: string) => void, onComplete: (id: string) => void, onUploadSuccess: () => void }) => {
 
-const OrderCard = ({ order, onCancel, onComplete, onUploadSuccess, onPayWithMidtrans, isPaying }: { order: UserOrder, onCancel: (invoice: string) => void, onComplete: (id: string) => void, onUploadSuccess: () => void, onPayWithMidtrans: (invoice: string) => void, isPaying: boolean }) => {
-
+    const canReview = new Date() >= new Date(order.checkOut);
     const getStatusVariant = (status: UserOrder['status']) => {
         switch (status) {
             case 'SELESAI': return 'success';
@@ -99,14 +93,6 @@ const OrderCard = ({ order, onCancel, onComplete, onUploadSuccess, onPayWithMidt
 
                     {order.status === 'MENUNGGU_PEMBAYARAN' && (
                         <div className="flex gap-2 w-full">
-                            <Button
-                                onClick={() => onPayWithMidtrans(order.invoiceNumber)}
-                                disabled={isPaying} // <-- Disable tombol saat loading
-                                size="sm"
-                                className="flex-grow"
-                            >
-                                {isPaying ? "Memproses..." : "Bayar Online"}
-                            </Button>
                             <UploadPaymentDialog invoiceNumber={order.invoiceNumber} onUploadSuccess={onUploadSuccess} />
                             <AlertDialog>
                                 <AlertDialogTrigger asChild><Button variant="destructive" size="sm" className="flex-grow">Batalkan</Button></AlertDialogTrigger>
@@ -118,7 +104,7 @@ const OrderCard = ({ order, onCancel, onComplete, onUploadSuccess, onPayWithMidt
                         </div>
                     )}
                     {order.status === 'DIPROSES' && <Button size="sm" onClick={() => onComplete(order.id)}>Selesaikan Pesanan</Button>}
-                    {order.status === 'SELESAI' && !order.review && <WriteReviewDialog bookingId={order.id} propertyId={order.property.id} onReviewSubmit={onUploadSuccess} />}
+                    {order.status === 'SELESAI' && !order.review && <WriteReviewDialog bookingId={order.id} propertyId={order.property.id} onReviewSubmit={onUploadSuccess}  disabled={!canReview} />}
                 </div>
             </CardContent>
         </Card>
@@ -130,7 +116,6 @@ function OrdersContent() {
     const [allOrders, setAllOrders] = useState<UserOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
-    const [isPaying, setIsPaying] = useState<string | null>(null);
 
     const fetchOrders = useCallback(async () => {
         setIsLoading(true);
@@ -148,42 +133,42 @@ function OrdersContent() {
         fetchOrders();
     }, [fetchOrders]);
 
-    const handlePayWithMidtrans = async (invoiceNumber: string) => {
-        setIsPaying(invoiceNumber); 
+    // --- LOGIKA PEMBATALAN PESANAN ---
+    const handleCancelOrder = async (invoice: string) => {
         try {
-            const response = await createMidtransTransaction(invoiceNumber);
-            const midtransToken = response.data.token;
-
-            if (midtransToken && window.snap) {
-                window.snap.pay(midtransToken, {
-                    onSuccess: function (result: any) {
-                        toast({ title: "Pembayaran Berhasil!", description: "Status pesanan Anda akan segera diperbarui." });
-                        fetchOrders();
-                    },
-                    onPending: function (result: any) {
-                        toast({ title: "Menunggu Pembayaran", description: "Selesaikan pembayaran Anda." });
-                    },
-                    onError: function (result: any) {
-                        toast({ title: "Pembayaran Gagal", description: "Terjadi kesalahan, silakan coba lagi.", variant: "destructive" });
-                    },
-                    onClose: function () {
-                        console.log('Popup pembayaran ditutup oleh pengguna.');
-                    }
-                });
-            }
-        } catch (err: any) {
-            toast({ title: "Error", description: err.message, variant: "destructive" });
-        } finally {
-            setIsPaying(null);
+            await api.patch(`/order-cancel/user/cancel/invoice/${invoice}`);
+            toast({
+                title: 'Berhasil',
+                description: 'Pesanan Anda telah berhasil dibatalkan.',
+            });
+            fetchOrders(); // Muat ulang data pesanan
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || 'Gagal membatalkan pesanan.';
+            toast({
+                variant: 'destructive',
+                title: 'Gagal',
+                description: errorMessage,
+            });
         }
     };
 
-    const handleCancelOrder = (invoice: string) => {
-        console.log('Cancelling order:', invoice);
-    };
-
-    const handleCompleteOrder = (id: string) => {
-        console.log('Completing order:', id);
+    // --- LOGIKA MENYELESAIKAN PESANAN ---
+    const handleCompleteOrder = async (id: string) => {
+        try {
+            await api.patch(`/orders/complete/${id}`);
+            toast({
+                title: 'Berhasil',
+                description: 'Pesanan telah ditandai sebagai selesai.',
+            });
+            fetchOrders(); // Muat ulang data pesanan
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || 'Gagal menyelesaikan pesanan.';
+            toast({
+                variant: 'destructive',
+                title: 'Gagal',
+                description: errorMessage,
+            });
+        }
     };
 
     if (isLoading) {
@@ -234,8 +219,6 @@ function OrdersContent() {
                                     onCancel={handleCancelOrder}
                                     onComplete={handleCompleteOrder}
                                     onUploadSuccess={fetchOrders}
-                                    onPayWithMidtrans={handlePayWithMidtrans}
-                                    isPaying={isPaying === order.invoiceNumber}
                                 />
                             ))
                         ) : (

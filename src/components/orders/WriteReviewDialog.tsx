@@ -12,10 +12,11 @@ import { useToast } from '@/components/ui/use-toast';
 interface WriteReviewDialogProps {
     bookingId: string;
     propertyId: string;
-    onReviewSubmit: () => void; // Callback untuk refresh data
+    onReviewSubmit: () => void; 
+    disabled?: boolean;
 }
 
-export default function WriteReviewDialog({ bookingId, propertyId, onReviewSubmit }: WriteReviewDialogProps) {
+export default function WriteReviewDialog({ bookingId, propertyId, onReviewSubmit, disabled }: WriteReviewDialogProps) {
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState('');
@@ -61,7 +62,9 @@ export default function WriteReviewDialog({ bookingId, propertyId, onReviewSubmi
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="sm">Tulis Ulasan</Button>
+                <Button size="sm" disabled={disabled}>
+                    Tulis Ulasan
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
