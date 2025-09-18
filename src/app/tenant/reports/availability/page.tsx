@@ -297,4 +297,6 @@ export default function AvailabilityReportPage() {
             </Card>
         </div>
     );
+
 }
+

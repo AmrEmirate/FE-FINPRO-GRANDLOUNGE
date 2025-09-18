@@ -129,6 +129,7 @@ export interface UserOrder {
   id: string;
   orderId: string;
   invoiceNumber: string;
+  reservationId: string;
   property: {
     id: any;
     name: string;
