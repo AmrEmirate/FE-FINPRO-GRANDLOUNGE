@@ -8,6 +8,7 @@ import { AuthProvider } from '@/context/AuthContext'
 import { usePathname } from 'next/navigation'
 import Template from "./template";
 import Script from "next/script";
+import Providers from '@/components/providers';
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -49,10 +50,12 @@ export default function RootLayout({
       />
       <body className={`${roboto.variable} font-sans`}>
         <AuthProvider>
-          <MainLayout>
-            <Template>{children}</Template>
-          </MainLayout>
-          <Toaster />
+          <Providers>
+            <MainLayout>
+              <Template>{children}</Template>
+            </MainLayout>
+            <Toaster />
+          </Providers>
         </AuthProvider>
       </body>
     </html>
