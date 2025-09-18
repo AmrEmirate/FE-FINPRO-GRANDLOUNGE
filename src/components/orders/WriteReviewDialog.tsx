@@ -1,34 +1,50 @@
+// amremirate/fe-finpro-grandlounge/FE-FINPRO-GRANDLOUNGE-1b5195a7f61778c5ef007ba51f4204746b0e65d7/src/components/orders/WriteReviewDialog.tsx
+
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Star } from 'lucide-react';
-import api from '@/utils/api';
 import { useToast } from '@/components/ui/use-toast';
+import api from '@/utils/api';
+import { Star } from 'lucide-react';
 
 interface WriteReviewDialogProps {
     bookingId: string;
     propertyId: string;
-    onReviewSubmit: () => void; // Callback untuk refresh data
+    onReviewSubmit: () => void;
+    disabled?: boolean; // Tambahkan properti disabled di sini
 }
 
-export default function WriteReviewDialog({ bookingId, propertyId, onReviewSubmit }: WriteReviewDialogProps) {
+const WriteReviewDialog = ({
+    bookingId,
+    propertyId,
+    onReviewSubmit,
+    disabled = false, // Beri nilai default
+}: WriteReviewDialogProps) => {
     const [rating, setRating] = useState(0);
-    const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [open, setOpen] = useState(false);
     const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleSubmit = async () => {
         if (rating === 0) {
             toast({
-                title: 'Rating diperlukan',
-                description: 'Silakan pilih setidaknya satu bintang.',
                 variant: 'destructive',
+                title: 'Rating Diperlukan',
+                description: 'Silakan berikan rating bintang.',
             });
             return;
         }
@@ -36,22 +52,24 @@ export default function WriteReviewDialog({ bookingId, propertyId, onReviewSubmi
         setIsSubmitting(true);
         try {
             await api.post('/reviews', {
-                bookingId,
                 propertyId,
+                bookingId,
                 rating,
                 comment,
             });
             toast({
-                title: 'Ulasan Terkirim',
-                description: 'Terima kasih atas ulasan Anda!',
+                title: 'Berhasil',
+                description: 'Ulasan Anda telah berhasil dikirim.',
             });
-            onReviewSubmit(); // Panggil callback
-            setOpen(false); // Tutup dialog
+            onReviewSubmit();
+            setIsOpen(false); // Tutup dialog setelah berhasil
         } catch (error: any) {
+            const errorMessage =
+                error.response?.data?.message || 'Gagal mengirim ulasan.';
             toast({
-                title: 'Gagal Mengirim Ulasan',
-                description: error.response?.data?.message || 'Terjadi kesalahan.',
                 variant: 'destructive',
+                title: 'Gagal',
+                description: errorMessage,
             });
         } finally {
             setIsSubmitting(false);
@@ -59,49 +77,47 @@ export default function WriteReviewDialog({ bookingId, propertyId, onReviewSubmi
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button size="sm">Tulis Ulasan</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Bagaimana pengalaman Anda?</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="space-y-2">
-                        <Label>Rating Anda</Label>
-                        <div className="flex items-center gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                    key={star}
-                                    className={`h-7 w-7 cursor-pointer transition-colors ${(hoverRating || rating) >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                                        }`}
-                                    onClick={() => setRating(star)}
-                                    onMouseEnter={() => setHoverRating(star)}
-                                    onMouseLeave={() => setHoverRating(0)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="comment">Komentar (Opsional)</Label>
-                        <Textarea
-                            id="comment"
-                            placeholder="Ceritakan lebih lanjut tentang pengalaman menginap Anda..."
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+            <AlertDialogTrigger asChild>
+                <Button size="sm" disabled={disabled}>
+                    Beri Ulasan
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Bagaimana pengalaman menginap Anda?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Beri rating dan ulasan untuk membantu kami menjadi lebih baik.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <div className="flex items-center justify-center space-x-1 my-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                            key={star}
+                            className={`cursor-pointer ${rating >= star ? 'text-yellow-400' : 'text-gray-300'
+                                }`}
+                            fill={rating >= star ? 'currentColor' : 'none'}
+                            onClick={() => setRating(star)}
                         />
-                    </div>
+                    ))}
                 </div>
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button variant="outline">Batal</Button>
-                    </DialogClose>
+
+                <Textarea
+                    placeholder="Tulis ulasan Anda di sini..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                />
+
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
                     <Button onClick={handleSubmit} disabled={isSubmitting}>
                         {isSubmitting ? 'Mengirim...' : 'Kirim Ulasan'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
-}
+};
+
+export default WriteReviewDialog;

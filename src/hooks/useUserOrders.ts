@@ -3,53 +3,58 @@ import api from '@/utils/api';
 import { useToast } from '@/components/ui/use-toast';
 import { UserOrder } from '@/lib/types';
 
-// Custom hook untuk mengelola semua logika terkait order
 export function useUserOrders() {
     const [orders, setOrders] = useState<UserOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
-    const fetchOrders = useCallback(async (filters: { orderId?: string; date?: string } = {}) => {
+    // State untuk semua filter
+    const [searchFilter, setSearchFilter] = useState('');
+    const [propertyFilter, setPropertyFilter] = useState('');
+    const [dateFilter, setDateFilter] = useState<Date | undefined>();
+
+    const fetchOrders = useCallback(async () => {
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
-            if (filters.orderId) {
-                params.append('orderId', filters.orderId);
-            }
-            if (filters.date) {
-                params.append('date', filters.date);
-            }
+            // Kirim sebagai 'searchQuery'
+            if (searchFilter) params.append('searchQuery', searchFilter);
+            if (propertyFilter) params.append('propertyName', propertyFilter);
+            if (dateFilter) params.append('checkIn', dateFilter.toISOString().split('T')[0]);
 
             const response = await api.get(`/orders/order-list?${params.toString()}`);
-
-            if (Array.isArray(response.data.data)) {
-                setOrders(response.data.data);
-            } else {
-                setOrders([]);
-            }
+            setOrders(Array.isArray(response.data.data) ? response.data.data : []);
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'Gagal memuat daftar pesanan.' });
         } finally {
             setIsLoading(false);
         }
-    }, [toast]);
-
-    return { orders, isLoading, fetchOrders };
-}
-
-// Custom hook untuk debouncing
-export function useDebounce(value: string, delay: number) {
-    const [debouncedValue, setDebouncedValue] = useState(value);
+    }, [toast, searchFilter, propertyFilter, dateFilter]);
 
     useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
+        fetchOrders();
+    }, [fetchOrders]);
 
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
+    const handleResetFilters = () => {
+        setSearchFilter('');
+        setPropertyFilter('');
+        setDateFilter(undefined);
+    };
 
-    return debouncedValue;
+    return {
+        orders,
+        isLoading,
+        filters: {
+            search: searchFilter,
+            property: propertyFilter,
+            date: dateFilter,
+        },
+        setFilters: {
+            setSearch: setSearchFilter,
+            setProperty: setPropertyFilter,
+            setDate: setDateFilter,
+        },
+        fetchOrders,
+        handleResetFilters,
+    };
 }

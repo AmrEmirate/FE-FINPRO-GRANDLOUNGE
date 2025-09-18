@@ -31,9 +31,6 @@ interface PeakSeason {
 }
 
 export default function AvailabilityReportPage() {
-    // ====================================================================
-    // SEMUA LOGIKA ASLI ANDA DIpertahankan DI SINI, TANPA PERUBAHAN
-    // ====================================================================
     const { properties: allProperties, isLoading: isLoadingProperties } = useTenantProperties();
     const { toast } = useToast();
 
@@ -209,9 +206,6 @@ export default function AvailabilityReportPage() {
         );
     };
 
-    // ====================================================================
-    // INI ADALAH BAGIAN UI YANG BARU (BLOK JSX RETURN)
-    // ====================================================================
     return (
         <div className="space-y-6">
             <div>
@@ -295,4 +289,3 @@ export default function AvailabilityReportPage() {
         </div>
     );
 }
-//kelebihan
