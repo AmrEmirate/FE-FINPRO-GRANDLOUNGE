@@ -140,6 +140,11 @@ export interface UserOrder {
   totalPrice: number;
   status: 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'DIBATALKAN' | 'SELESAI';
   paymentDeadline: string;
+  paymentProof?: string | null;
+  user: {
+    profilePicture: string;
+    fullName: string;
+  };
 }
 
 export interface TenantTransaction {
@@ -155,3 +160,4 @@ export interface TenantTransaction {
   status: 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'DIBATALKAN' | 'SELESAI';
   paymentProof?: string;
 }
+
