@@ -1,13 +1,13 @@
 "use client";
 
-// Hapus semua import yang tidak perlu seperti useState atau tipe data lama
 import { DashboardStats } from '@/components/tenant/dashboard-stats';
 import { RecentReviewsWidget } from '@/components/tenant/recent-reviews-widget';
 import { SalesChartWidget } from '@/components/tenant/sales-chart-widget';
 import { Separator } from '@/components/ui/separator';
+// 🛠️ 1. Impor komponen baru
+import { PendingConfirmationWidget } from '@/components/tenant/pending-confirmation-widget';
 
 export default function TenantDashboardPage() {
-  // Pastikan tidak ada data statis atau useState di sini
 
   return (
     <div className="space-y-6">
@@ -19,8 +19,10 @@ export default function TenantDashboardPage() {
       </div>
       <Separator />
 
-      {/* Panggil komponen langsung tanpa props. Ini cara yang benar. */}
       <DashboardStats />
+
+      {/* 🛠️ 2. Panggil komponen baru di sini */}
+      <PendingConfirmationWidget />
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-7">
         <div className="lg:col-span-4">

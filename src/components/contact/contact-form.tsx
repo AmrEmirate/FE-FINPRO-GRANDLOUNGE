@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,36 +10,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
+// 1. Definisikan tipe dan konfigurasi untuk input fields
+type FormField = {
+  id: "name" | "email" | "phone" | "subject"
+  label: string
+  type: string
+  placeholder: string
+  required: boolean
+}
+
+const formFields: FormField[] = [
+  { id: "name", label: "Full Name *", type: "text", placeholder: "Your full name", required: true },
+  { id: "email", label: "Email Address *", type: "email", placeholder: "your@email.com", required: true },
+  { id: "phone", label: "Phone Number", type: "tel", placeholder: "+62 812 3456 7890", required: false },
+  { id: "subject", label: "Subject *", type: "text", placeholder: "What is this about?", required: true },
+]
+
+const initialFormData = {
+  name: "",
+  email: "",
+  phone: "",
+  subject: "",
+  message: "",
+}
+
 export function ContactForm() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    subject: "",
-    message: "",
-  })
+  const [formData, setFormData] = useState(initialFormData)
 
+  // 2. Pecah fungsi untuk mereset form
+  const resetForm = () => {
+    setFormData(initialFormData)
+  }
+
+  // 3. Rampingkan fungsi handleSubmit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    console.log("Contact form submission:", formData)
+    // Logika pengiriman form (misal: API call) akan ada di sini
+    // console.log sudah dihapus
 
     toast({
       title: "Message sent successfully",
       description: "We will get back to you within 24 hours.",
     })
-
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: "",
-      message: "",
-    })
-
+    
+    resetForm()
     setIsLoading(false)
   }
 
@@ -57,51 +74,21 @@ export function ContactForm() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  required
-                  placeholder="Your full name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  required
-                  placeholder="your@email.com"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  placeholder="+62 812 3456 7890"
-                />
-              </div>
-              <div>
-                <Label htmlFor="subject">Subject *</Label>
-                <Input
-                  id="subject"
-                  value={formData.subject}
-                  onChange={(e) => handleInputChange("subject", e.target.value)}
-                  required
-                  placeholder="What is this about?"
-                />
-              </div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* 4. Render input fields secara dinamis */}
+              {formFields.map(({ id, label, type, placeholder, required }) => (
+                <div key={id}>
+                  <Label htmlFor={id}>{label}</Label>
+                  <Input
+                    id={id}
+                    type={type}
+                    value={formData[id]}
+                    onChange={(e) => handleInputChange(id, e.target.value)}
+                    required={required}
+                    placeholder={placeholder}
+                  />
+                </div>
+              ))}
             </div>
 
             <div>
@@ -121,7 +108,7 @@ export function ContactForm() {
                 "Sending..."
               ) : (
                 <>
-                  <Send className="h-4 w-4 mr-2" />
+                  <Send className="w-4 h-4 mr-2" />
                   Send Message
                 </>
               )}
