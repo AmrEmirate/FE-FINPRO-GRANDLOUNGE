@@ -18,6 +18,7 @@ export interface TenantTransaction {
     status: Exclude<TransactionStatus, 'Semua'>;
     user: {
         fullName: string;
+        profilePicture: string;
     } | null;
     property: {
         id: string;

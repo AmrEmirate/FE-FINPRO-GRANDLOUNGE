@@ -57,12 +57,12 @@ export const TransactionFilters = ({
                 </PopoverContent>
             </Popover>
 
-            <Button onClick={onSearch}>
+            <Button onClick={onSearch} className='bg-gray-900'>
                 <Search className="mr-2 h-4 w-4" />
                 Cari
             </Button>
-            <Button onClick={onReset} variant="ghost">
-                <X className="mr-2 h-4 w-4" />
+            <Button onClick={onReset} variant="ghost" className='bg-red-500 text-white hover:bg-red-700 hover:text-white'>
+                <X className="mr-2 h-4 w-4 text-white" />
                 Reset
             </Button>
         </div>

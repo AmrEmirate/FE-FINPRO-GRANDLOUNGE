@@ -1,20 +1,15 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TransactionsContent } from '@/components/tenant/transactions-table';
+import { OngoingTransactionsSection } from '@/components/tenant/ongoing-transactions-section';
 
 export default function TenantTransactionsPage() {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-3xl">Daftar Transaksi</CardTitle>
-                <CardDescription>
-                    Kelola dan konfirmasi semua transaksi yang masuk untuk properti Anda.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <TransactionsContent />
-            </CardContent>
-        </Card>
+        <div className="space-y-6">
+            <h1 className="text-3xl font-bold">Pusat Komando Transaksi</h1>
+
+            <OngoingTransactionsSection />
+            <TransactionsContent />
+        </div>
     );
 }
