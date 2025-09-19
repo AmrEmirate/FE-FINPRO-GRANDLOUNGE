@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useTenantTransactions, TenantTransaction, TransactionStatus } from '@/hooks/useTenantTransactions';
+import { useState, useMemo } from 'react'; // Impor useMemo
+import { useTenantTransactions, TenantTransaction, TransactionStatus, TransactionFiltersState } from '@/hooks/useTenantTransactions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '../ui/skeleton';
@@ -13,9 +13,12 @@ import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns'; 
 import { id } from 'date-fns/locale';
 import { Eye, Check, X, Clock, User, CalendarDays, Wallet, Building, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { TransactionFilters } from './TransactionFilters';
+import { useTenantTransactionAnalytics } from '@/hooks/useTenantTransactionAnalytics';
+import { TransactionBusinessSnapshot } from './TransactionBusinessSnapshot';
 
 const statusConfig = {
     MENUNGGU_PEMBAYARAN: { text: 'Menunggu Pembayaran', variant: 'secondary' as const, icon: Clock, color: 'text-yellow-600' },
@@ -26,9 +29,60 @@ const statusConfig = {
 };
 
 export const TransactionsContent = () => {
-    const [statusFilter, setStatusFilter] = useState<TransactionStatus>('Semua');
-    const { transactions, isLoading, refetch } = useTenantTransactions(statusFilter);
+    const [filterInputs, setFilterInputs] = useState({
+        searchQuery: '',
+        checkInDate: undefined as Date | undefined,
+    });
+
+    const [activeFilters, setActiveFilters] = useState<TransactionFiltersState>({
+        status: 'Semua',
+        searchQuery: '',
+        checkInDate: undefined,
+    });
+
+    const { transactions: allTransactions, isLoading, refetch } = useTenantTransactions(activeFilters.status);
     const [selectedProof, setSelectedProof] = useState<string | null>(null);
+
+    const filteredTransactions = useMemo(() => {
+        let transactions = allTransactions;
+
+        if (activeFilters.searchQuery) {
+            const query = activeFilters.searchQuery.toLowerCase();
+            transactions = transactions.filter(trx =>
+                trx.user?.fullName?.toLowerCase().includes(query) ||
+                trx.property?.name?.toLowerCase().includes(query) ||
+                trx.reservationId?.toLowerCase().includes(query) ||
+                trx.invoiceNumber?.toLowerCase().includes(query)
+            );
+        }
+
+        // 2. Filter berdasarkan tanggal check-in
+        if (activeFilters.checkInDate) {
+            transactions = transactions.filter(trx =>
+                isSameDay(new Date(trx.checkIn), activeFilters.checkInDate!)
+            );
+        }
+
+        return transactions;
+    }, [allTransactions, activeFilters]);
+
+    const analyticsData = useTenantTransactionAnalytics(filteredTransactions);
+
+    const handleSearch = () => {
+        setActiveFilters(prev => ({ ...prev, ...filterInputs }));
+    };
+
+    const handleResetFilters = () => {
+        setFilterInputs({
+            searchQuery: '',
+            checkInDate: undefined,
+        });
+        setActiveFilters({
+            status: 'Semua',
+            searchQuery: '',
+            checkInDate: undefined,
+        });
+    };
 
     const handleAction = async (invoiceNumber: string, isAccepted: boolean) => {
         const action = isAccepted ? 'menyetujui' : 'menolak';
@@ -61,19 +115,22 @@ export const TransactionsContent = () => {
                             className="object-cover"
                         />
                     </div>
-
                     <div className="flex-1 flex flex-col">
                         <CardHeader className="flex-row items-start justify-between gap-4 pb-3">
                             <div>
                                 <CardTitle className="text-lg mb-1">{trx.property.name}</CardTitle>
-                                <CardDescription>INV: {trx.invoiceNumber}</CardDescription>
+                                <CardDescription className="font-bold">
+                                    No. Pesanan: {trx.reservationId?.substring(0, 6).toUpperCase() ?? 'N/A'}
+                                </CardDescription>
+                                <CardDescription>
+                                    {trx.invoiceNumber}
+                                </CardDescription>
                             </div>
                             <Badge variant={statusInfo.variant} className="flex-shrink-0 whitespace-nowrap">
                                 <Icon className={`h-3 w-3 mr-1.5 ${statusInfo.color}`} />
                                 {statusInfo.text}
                             </Badge>
                         </CardHeader>
-
                         <CardContent className="flex-grow space-y-4 px-6 pb-4">
                             <Separator />
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
@@ -107,10 +164,9 @@ export const TransactionsContent = () => {
                                 </div>
                             </div>
                         </CardContent>
-
                         {trx.status === 'MENUNGGU_KONFIRMASI' && (
                             <CardFooter className="bg-gray-50/50 px-6 py-3 flex justify-end items-center w-full gap-2">
-                                <Button variant="outline" size="sm" onClick={() => trx.paymentProof && setSelectedProof(trx.paymentProof)} disabled={!trx.paymentProof} >
+                                <Button variant="outline" size="sm" onClick={() => trx.paymentProof && setSelectedProof(trx.paymentProof)} disabled={!trx.paymentProof}>
                                     <Eye className="h-4 w-4 mr-2" /> Lihat Bukti
                                 </Button>
                                 <AlertDialog>
@@ -145,11 +201,23 @@ export const TransactionsContent = () => {
                 </div>
             </Card>
         );
-    }
+    };
 
     return (
         <>
-            <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as TransactionStatus)}>
+            <TransactionBusinessSnapshot {...analyticsData} />
+            <TransactionFilters
+                searchQuery={filterInputs.searchQuery}
+                setSearchQuery={(value) => setFilterInputs(prev => ({ ...prev, searchQuery: value }))}
+                checkInDate={filterInputs.checkInDate}
+                setCheckInDate={(date) => setFilterInputs(prev => ({ ...prev, checkInDate: date }))}
+                onSearch={handleSearch}
+                onReset={handleResetFilters}
+            />
+            <Tabs
+                value={activeFilters.status}
+                onValueChange={(value) => setActiveFilters(prev => ({ ...prev, status: value as TransactionStatus }))}
+            >
                 <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 mb-4">
                     <TabsTrigger value="Semua">Semua</TabsTrigger>
                     <TabsTrigger value="MENUNGGU_PEMBAYARAN">Menunggu Bayar</TabsTrigger>
@@ -159,18 +227,16 @@ export const TransactionsContent = () => {
                     <TabsTrigger value="DIBATALKAN">Dibatalkan</TabsTrigger>
                 </TabsList>
             </Tabs>
-
             {isLoading ? (
                 <div className="space-y-4 mt-4"><Skeleton className="h-48 w-full" /><Skeleton className="h-48 w-full" /></div>
-            ) : !transactions || transactions.length === 0 ? (
+            ) : filteredTransactions.length === 0 ? (
                 <div className="text-center py-16">
                     <h3 className="text-xl font-semibold">Tidak Ada Transaksi</h3>
-                    <p className="text-gray-500 mt-2">Tidak ada transaksi untuk kategori ini.</p>
+                    <p className="text-gray-500 mt-2">Coba ubah filter atau reset pencarian Anda.</p>
                 </div>
             ) : (
-                <div className="space-y-6 mt-6">{transactions.map(trx => renderTransactionCard(trx))}</div>
+                <div className="space-y-6 mt-6">{filteredTransactions.map(renderTransactionCard)}</div>
             )}
-
             <Dialog open={!!selectedProof} onOpenChange={(isOpen) => !isOpen && setSelectedProof(null)}>
                 <DialogContent>
                     <DialogHeader><DialogTitle>Bukti Pembayaran</DialogTitle></DialogHeader>
