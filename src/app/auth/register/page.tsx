@@ -8,35 +8,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Building2 } from "lucide-react";
 import { RegisterForm } from "@/components/auth/register-form";
 import { SocialLogin } from "@/components/auth/social-login";
-import { useRegistration } from "@/hooks/use-registration"; // Import hook
+import { useRegistration } from "@/hooks/use-registration";
 
 function RegisterContent() {
     const searchParams = useSearchParams();
     const userType = searchParams.get("type") || "user";
 
-    // Gunakan custom hook untuk semua state dan logika
     const { formData, isLoading, handleInputChange, handleSubmit } = useRegistration(userType);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-            <div className="max-w-md w-full space-y-8">
-                <div className="text-center">
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+            <div className="max-w-md w-full">
+                <div className="text-center mb-8">
                     <div className="flex items-center justify-center space-x-2 mb-4">
-                        <Building2 className="h-8 w-8 text-amber-600" />
-                        <span className="text-2xl font-bold">Grand Lodge</span>
+                        <Building2 className="h-10 w-10 text-amber-600" />
+                        <span className="text-3xl font-bold text-gray-800">Grand Lodge</span>
                     </div>
-                    <h2 className="text-3xl font-bold">
-                        {userType === "tenant" ? "Become a Property Owner" : "Create Account"}
+                    <h2 className="text-2xl font-semibold text-gray-700">
+                        {userType === "tenant" ? "Become a Property Owner" : "Create an Account"}
                     </h2>
                 </div>
 
-                <Card>
+                <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Sign Up</CardTitle>
-                        <CardDescription>Create your account to get started</CardDescription>
+                        <CardDescription>Fill out the form to get started</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <SocialLogin type="register" />
+                        {userType !== 'tenant' && <SocialLogin type="register" />}
                         <RegisterForm
                             userType={userType}
                             formData={formData}
@@ -45,9 +44,9 @@ function RegisterContent() {
                             onChange={handleInputChange}
                         />
                         <div className="mt-6 text-center">
-                            <p className="text-sm">
+                            <p className="text-sm text-gray-600">
                                 Already have an account?{" "}
-                                <Link href={`/auth/login?type=${userType}`} className="font-medium text-amber-600">
+                                <Link href={`/auth/login?type=${userType}`} className="font-medium text-amber-600 hover:underline">
                                     Sign in here
                                 </Link>
                             </p>
@@ -59,10 +58,9 @@ function RegisterContent() {
     );
 }
 
-// Komponen RegisterPage (wrapper Suspense) tidak berubah
 export default function RegisterPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
             <RegisterContent />
         </Suspense>
     );

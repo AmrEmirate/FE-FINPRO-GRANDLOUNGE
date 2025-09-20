@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/apiHelper";
 import { useToast } from "@/hooks/use-toast";
 
-// Definisikan tipe untuk form data agar lebih jelas
 type FormData = {
     fullName: string;
     email: string;
@@ -41,7 +40,13 @@ export function useRegistration(userType: string) {
         try {
             const response = await api.post(endpoint, payload);
             toast({ title: "Registrasi Berhasil", description: response.data.message });
-            router.push("/auth/verify-email");
+            
+            // Pengalihan berdasarkan userType
+            if (isTenant) {
+                router.push("/auth/login?type=tenant");
+            } else {
+                router.push("/auth/login?type=user");
+            }
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || "Terjadi kesalahan.";
             toast({ variant: "destructive", title: "Registrasi Gagal", description: errorMessage });
