@@ -33,7 +33,7 @@ const MapView = () => {
   const map = useMap();
   const { toast } = useToast();
   const { userLocation, properties, isLoading, error } = useNearbyProperties(map);
-  
+
   // Tampilkan notifikasi jika ada error
   useEffect(() => {
     if (error) {
@@ -49,17 +49,22 @@ const MapView = () => {
         </div>
       )}
       {userLocation && <Marker position={userLocation} icon={userIcon} />}
-      {properties.map((prop) => (
-        <Marker
-          key={prop.id}
-          position={[Number(prop.latitude), Number(prop.longitude)]}
-          icon={propertyIcon}
-        >
-          <Popup>
-            <PropertyPopup property={prop} />
-          </Popup>
-        </Marker>
-      ))}
+      {properties
+        .filter(
+          (prop): prop is Property & { latitude: number; longitude: number } =>
+            prop.latitude != null && prop.longitude != null
+        )
+        .map((prop) => (
+          <Marker
+            key={prop.id}
+            position={[prop.latitude, prop.longitude]}
+            icon={propertyIcon}
+          >
+            <Popup>
+              <PropertyPopup property={prop} />
+            </Popup>
+          </Marker>
+        ))}
     </>
   );
 };
@@ -67,6 +72,7 @@ const MapView = () => {
 // Komponen Utama (hampir tidak berubah)
 export default function SplitScreenMap() {
   const jakartaPosition: [number, number] = [-6.2088, 106.8456];
+
 
   return (
     <section className="h-[70vh] w-full flex flex-col lg:flex-row border-t border-b">
