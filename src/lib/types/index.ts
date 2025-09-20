@@ -147,6 +147,16 @@ export interface UserOrder {
   };
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export interface TenantTransaction {
   id: string;
   invoiceNumber: string;
