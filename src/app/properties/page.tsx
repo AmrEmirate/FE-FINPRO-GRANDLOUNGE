@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { PropertyFilters } from "@/components/properties/property-filters";
 import { SearchHeader } from "@/components/properties/search-header";
 import { PropertiesGrid } from "@/components/properties/properties-grid";
-import { getProperties } from "@/services/propertyService"; // Import dari service
+import { getProperties } from "@/services/propertyService"; 
 import PropertiesLoading from "./loading";
 
 // Komponen untuk me-render konten utama
