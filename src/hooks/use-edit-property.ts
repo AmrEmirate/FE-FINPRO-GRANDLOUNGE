@@ -32,20 +32,28 @@ export const propertyFormSchema = z.object({
   longitude: z.number().optional(),
 })
 
-// Fungsi helper untuk membuat FormData
+// --- PERBAIKAN DI FUNGSI INI ---
 const createPropertyFormData = (values: z.infer<typeof propertyFormSchema>, deletedImageIds: string[]) => {
   const formData = new FormData()
+  // Menambahkan semua field dari form
   formData.append('name', values.name)
   formData.append('description', values.description)
-  // ... (tambahkan semua field lain)
+  formData.append('categoryId', values.categoryId)
+  formData.append('cityId', values.cityId)
+  formData.append('zipCode', values.zipCode)
+  
   if (values.latitude) formData.append('latitude', values.latitude.toString())
   if (values.longitude) formData.append('longitude', values.longitude.toString())
+  
   values.amenityIds?.forEach(id => formData.append('amenityIds', id))
   deletedImageIds?.forEach(id => formData.append('deletedImageIds', id))
+  
   if (values.mainImage) formData.append('mainImage', values.mainImage)
   values.galleryImages?.forEach(file => formData.append('galleryImages', file))
+  
   return formData
 }
+// --- AKHIR PERBAIKAN ---
 
 export function useEditProperty(propertyId: string) {
   const router = useRouter()
