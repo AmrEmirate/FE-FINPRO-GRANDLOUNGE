@@ -1,71 +1,93 @@
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import apiHelper from "@/lib/apiHelper";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import apiHelper from "@/lib/apiHelper";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ShieldAlert, ShieldCheck } from "lucide-react";
 
+// Komponen untuk menampilkan status verifikasi dan tombol aksi
 export function VerificationStatus() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!user) return null;
-
+  // Fungsi untuk menangani pengiriman ulang email verifikasi
   const handleResendVerification = async () => {
-    setIsLoading(true);
-    try {
-      // --- PERBAIKAN DI SINI ---
-      // Sekarang kita mengirimkan alamat email pengguna saat ini (yang mungkin sudah baru)
-      // ke backend, sesuai yang dibutuhkan oleh API.
-      await apiHelper.post("/auth/resend-verification-email", { email: user.email });
-      
-      toast({
-        title: "Email Terkirim",
-        description: `Tautan verifikasi baru telah dikirim ke ${user.email}.`,
-      });
-    } catch (error: any) {
+    if (!user?.email) {
       toast({
         variant: "destructive",
-        title: "Gagal Mengirim",
-        description: error.response?.data?.message || "Terjadi kesalahan.",
+        title: "Gagal",
+        description: "Email pengguna tidak ditemukan.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // --- PERBAIKAN ---
+      // Kirim email pengguna di dalam body permintaan POST
+      await apiHelper.post('/auth/resend-verification', { email: user.email });
+      // -----------------
+      
+      toast({
+        title: 'Email Terkirim',
+        description: 'Email verifikasi telah dikirim ke alamat email Anda.',
+      });
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Gagal mengirim email verifikasi.';
+      toast({
+        variant: 'destructive',
+        title: 'Gagal',
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Jika data user belum ada, jangan render apa-apa
+  if (!user) {
+    return null;
+  }
+
   return (
-    <div>
-      {user.verified ? (
-        <Alert variant="default" className="bg-green-50 border-green-200">
-          <ShieldCheck className="h-4 w-4 text-green-600" />
-          <AlertTitle className="text-green-800">Email Terverifikasi</AlertTitle>
-          <AlertDescription className="text-green-700">
-            Akun Anda sudah terverifikasi dan aman.
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert variant="destructive">
-          <ShieldAlert className="h-4 w-4" />
-          <AlertTitle>Email Belum Terverifikasi</AlertTitle>
-          <AlertDescription>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <p className="mb-2 sm:mb-0">
-                    Untuk keamanan akun, silakan verifikasi alamat email Anda.
-                </p>
-                <Button onClick={handleResendVerification} disabled={isLoading} size="sm">
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Kirim Ulang Verifikasi
-                </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Status Verifikasi Akun</CardTitle>
+        <CardDescription>
+          Berikut adalah status verifikasi email Anda saat ini.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center space-x-4">
+          <span className="font-medium">Status:</span>
+          {user.verified ? (
+            <Badge variant="success">Terverifikasi</Badge>
+          ) : (
+            <Badge variant="destructive">Belum Terverifikasi</Badge>
+          )}
+        </div>
+        
+        {!user.verified && (
+          <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+            <p className="text-sm text-yellow-800">
+              Akun Anda belum terverifikasi. Silakan verifikasi email Anda untuk mendapatkan akses penuh ke semua fitur.
+            </p>
+            <Button
+              className="mt-3"
+              onClick={handleResendVerification}
+              disabled={isLoading}
+            >
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Kirim Ulang Email Verifikasi
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
