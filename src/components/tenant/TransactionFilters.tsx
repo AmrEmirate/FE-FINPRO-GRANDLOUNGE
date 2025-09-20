@@ -1,4 +1,3 @@
-// src/components/tenant/TransactionFilters.tsx
 'use client';
 
 import { Input } from '@/components/ui/input';

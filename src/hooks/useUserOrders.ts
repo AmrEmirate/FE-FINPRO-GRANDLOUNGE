@@ -17,7 +17,6 @@ export function useUserOrders() {
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
-            // Kirim sebagai 'searchQuery'
             if (searchFilter) params.append('searchQuery', searchFilter);
             if (propertyFilter) params.append('propertyName', propertyFilter);
             if (dateFilter) params.append('checkIn', dateFilter.toISOString().split('T')[0]);
@@ -29,7 +28,7 @@ export function useUserOrders() {
         } finally {
             setIsLoading(false);
         }
-    }, [toast, searchFilter, propertyFilter, dateFilter]);
+    }, [searchFilter, propertyFilter, dateFilter]);
 
     useEffect(() => {
         fetchOrders();

@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic'; // 1. Impor 'dynamic' dari next/dynamic
 import { HeroSection } from '@/components/home/hero-section';
 import { SearchForm, SearchQuery } from '@/components/home/search-form';
 import { FeaturedProperties } from '@/components/home/featured-properties';
@@ -14,17 +15,21 @@ import { AboutValues } from '@/components/about/about-values';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { MessageSquare } from 'lucide-react';
-import SplitScreenMap from '@/components/home/split-screen-map';
-import Navbar from '@/components/Navbar'; // Impor Navbar
+import Navbar from '@/components/Navbar';
+
+// 2. Muat SplitScreenMap secara dinamis dan nonaktifkan SSR
+const SplitScreenMap = dynamic(() => import('@/components/home/split-screen-map'), {
+  ssr: false,
+  loading: () => <div className="h-[70vh] w-full bg-gray-200 animate-pulse flex items-center justify-center"><p>Loading map...</p></div>
+});
+
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState<SearchQuery | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<string>(''); // State baru untuk filter kategori
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [isHovered, setIsHovered] = useState(false);
 
-  // Fungsi untuk menangani klik kategori dari Navbar
   const handleCategorySelect = (category: string) => {
-    // Jika kategori yang sama diklik lagi, reset filter
     if (categoryFilter === category) {
       setCategoryFilter('');
     } else {
@@ -34,13 +39,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Berikan fungsi handleCategorySelect ke Navbar */}
       <Navbar onCategorySelect={handleCategorySelect} /> 
       
       <HeroSection />
       <SearchForm onSearch={setSearchQuery} />
       
-      {/* Berikan state categoryFilter ke FeaturedProperties */}
       <FeaturedProperties filter={searchQuery} categoryFilter={categoryFilter} />
 
       <SplitScreenMap />
