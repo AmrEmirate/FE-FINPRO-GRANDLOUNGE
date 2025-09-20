@@ -6,10 +6,15 @@ import { PropertyInfo } from "@/components/property/property-info";
 import PropertyReviews from "@/components/property/PropertyReviews";
 import { getPropertyById } from "@/services/propertyService";
 import { PropertyClientComponent } from "@/components/property/PropertyClientComponent";
+import { notFound } from "next/navigation";
 
 
-export default async function name({ params }: { params: { id: string } }) {
+export default async function PropertyDetailPage({ params }: { params: { id: string } }) {
   const property = await getPropertyById(params.id);
+
+   if (!property) {
+    notFound(); 
+  }
 
   const galleryImages = [
     property.mainImage,

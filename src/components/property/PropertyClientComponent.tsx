@@ -10,6 +10,7 @@ import apiHelper from "@/lib/apiHelper";
 import { RoomSelection } from "./room-selection";
 import { BookingSidebar } from "./booking-sidebar";
 import { PropertyAvailabilityCalendar } from "./property-availability-calendar";
+import { SkeletonLoader } from "@/components/ui/skeleton-loader";
 
 const PropertyMap = dynamic(
     () => import('./property-map').then(mod => mod.PropertyMap),
@@ -20,7 +21,7 @@ const PropertyMap = dynamic(
 );
 
 interface PropertyClientComponentProps {
-    property: Property; 
+    property: Property;
 }
 
 export function PropertyClientComponent({ property }: PropertyClientComponentProps) {
@@ -75,11 +76,15 @@ export function PropertyClientComponent({ property }: PropertyClientComponentPro
                     onSelectRange={setSelectedRange}
                 />
                 {isCheckingAvailability && (
-                    <div className="flex items-center justify-center p-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                        <p className="ml-4">Mengecek ketersediaan kamar...</p>
+                    <div className="space-y-4 p-4 mt-8 rounded-lg bg-gray-50">
+                        <div className="flex justify-between items-center">
+                            <SkeletonLoader className="h-6 w-1/3" />
+                            <SkeletonLoader className="h-6 w-1/4" />
+                        </div>
+                        <SkeletonLoader className="h-5 w-full" />
                     </div>
                 )}
+
                 {!isCheckingAvailability && (
                     <RoomSelection
                         rooms={availableRooms}

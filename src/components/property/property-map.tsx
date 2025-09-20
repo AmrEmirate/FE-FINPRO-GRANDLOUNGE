@@ -32,10 +32,10 @@ interface PropertyMapProps {
 
 export function PropertyMap({ latitude, longitude, propertyName }: PropertyMapProps) {
   // Pemeriksaan ini sekarang aman karena komponen hanya akan dirender di client.
-  if (!latitude || !longitude) {
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') {
     return (
-        <div className="h-96 w-full bg-gray-200 flex items-center justify-center rounded-lg">
-            <p className="text-gray-500">Koordinat lokasi tidak tersedia.</p>
+        <div className="h-96 w-full bg-gray-200 rounded-lg flex items-center justify-center">
+            <p className="text-gray-500">Lokasi peta tidak tersedia.</p>
         </div>
     );
   }
