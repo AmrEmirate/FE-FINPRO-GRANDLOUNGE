@@ -1,61 +1,64 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useTenantTransactions } from '@/hooks/useTenantTransactions';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserOrder } from '@/lib/types';
-import api from '@/utils/api';
-import { useToast } from '../ui/use-toast';
 import Link from 'next/link';
+import api from '@/utils/api';
+import { toast } from 'sonner';
+import { Skeleton } from '../ui/skeleton';
+import { ArrowRight, Check, X } from 'lucide-react';
 
 export function PendingConfirmationWidget() {
-    const [orders, setOrders] = useState<UserOrder[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const { toast } = useToast();
+    // 1. Menggunakan hook yang sudah ada untuk mengambil data
+    const { transactions, isLoading, refetch } = useTenantTransactions('MENUNGGU_KONFIRMASI');
 
-    const fetchPendingOrders = async () => {
-        setIsLoading(true);
+    // 2. Fungsi untuk menangani aksi konfirmasi atau tolak
+    const handleAction = async (invoiceNumber: string, isAccepted: boolean) => {
+        const action = isAccepted ? 'menyetujui' : 'menolak';
+        const toastId = toast.loading(`Sedang ${action} pembayaran...`);
+
         try {
-            // Panggil endpoint baru yang sudah kita buat di backend
-            const response = await api.get('/orders/tenant-transactions/pending');
-            setOrders(response.data.data || []);
-        } catch (error) {
-            console.error("Gagal mengambil pesanan menunggu konfirmasi:", error);
-            toast({ variant: "destructive", title: "Error", description: "Gagal memuat pesanan." });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchPendingOrders();
-    }, []);
-
-    const handleUpdateStatus = async (bookingId: string, status: 'DIPROSES' | 'DIBATALKAN') => {
-        try {
-            await api.patch(`/orders/confirm-payment/${bookingId}`, { status });
-            toast({ title: "Sukses", description: `Pesanan telah berhasil diubah menjadi ${status}.` });
-            // Ambil ulang data setelah berhasil update
-            fetchPendingOrders();
-        } catch (error) {
-            toast({ variant: "destructive", title: "Error", description: "Gagal memperbarui status pesanan." });
+            await api.patch(`/payment-confirm/confirm/${invoiceNumber}`, { isAccepted });
+            toast.success(`Pembayaran berhasil ${isAccepted ? 'disetujui' : 'ditolak'}.`, { id: toastId });
+            refetch(); // Ambil ulang data untuk memperbarui daftar
+        } catch (error: any) {
+            toast.error(`Gagal ${action} pembayaran`, {
+                id: toastId,
+                description: error.response?.data?.message || 'Terjadi kesalahan.',
+            });
         }
     };
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Menunggu Konfirmasi</CardTitle>
-                <CardDescription>
-                    Anda memiliki {orders.length} pesanan yang menunggu konfirmasi pembayaran.
-                </CardDescription>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Perlu Dikonfirmasi</CardTitle>
+                        <CardDescription>
+                            Anda memiliki {transactions.length} pesanan yang menunggu konfirmasi.
+                        </CardDescription>
+                    </div>
+                    <Link href="/tenant/transactions">
+                        <Button variant="outline" size="sm">
+                            Lihat Semua
+                            <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
+                    </Link>
+                </div>
             </CardHeader>
             <CardContent className="space-y-4">
                 {isLoading ? (
-                    <p>Memuat...</p>
-                ) : orders.length > 0 ? (
-                    orders.map((order) => (
+                    // 3. Tampilan loading yang lebih baik
+                    <div className="space-y-4">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                ) : transactions.length > 0 ? (
+                    // 4. Batasi hanya menampilkan 3 transaksi terbaru di widget
+                    transactions.slice(0, 3).map((order) => (
                         <div key={order.id} className="flex items-center gap-4">
                             <Avatar className="hidden h-9 w-9 sm:flex">
                                 <AvatarImage src={order.user?.profilePicture || '/placeholder-user.jpg'} alt="Avatar" />
@@ -65,23 +68,24 @@ export function PendingConfirmationWidget() {
                                 <p className="text-sm font-medium leading-none">{order.user?.fullName || 'Tamu'}</p>
                                 <p className="text-sm text-muted-foreground">{order.property?.name || 'Properti'}</p>
                             </div>
-                            <div className="flex flex-col items-end">
-                                <p className="font-medium text-sm">+Rp {order.totalPrice.toLocaleString('id-ID')}</p>
-                                {order.paymentProof && (
-                                    <Link href={order.paymentProof} target="_blank" rel="noopener noreferrer">
-                                        <Button variant="link" className="h-auto p-0 text-xs">Lihat Bukti</Button>
-                                    </Link>
-                                )}
-                            </div>
+                            {order.paymentProof && (
+                                <Link href={order.paymentProof} target="_blank" rel="noopener noreferrer">
+                                    <Button variant="link" className="h-auto p-0 text-xs">Lihat Bukti</Button>
+                                </Link>
+                            )}
                             <div className="flex gap-2">
-                                <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'DIPROSES')}>Konfirmasi</Button>
-                                <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(order.id, 'DIBATALKAN')}>Tolak</Button>
+                                <Button size="icon" className="h-8 w-8 bg-green-600 hover:bg-green-700" onClick={() => handleAction(order.invoiceNumber, true)}>
+                                    <Check className="h-4 w-4" />
+                                </Button>
+                                <Button size="icon" className="h-8 w-8" variant="destructive" onClick={() => handleAction(order.invoiceNumber, false)}>
+                                    <X className="h-4 w-4" />
+                                </Button>
                             </div>
                         </div>
                     ))
                 ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                        Tidak ada pesanan yang menunggu konfirmasi saat ini.
+                        Tidak ada pesanan yang menunggu konfirmasi.
                     </p>
                 )}
             </CardContent>

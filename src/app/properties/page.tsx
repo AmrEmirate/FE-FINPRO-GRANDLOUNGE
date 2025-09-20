@@ -1,4 +1,3 @@
-// src/app/properties/page.tsx
 
 import { Suspense } from "react";
 import { PropertyFilters } from "@/components/properties/property-filters";

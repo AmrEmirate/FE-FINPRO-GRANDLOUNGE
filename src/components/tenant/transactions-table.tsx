@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react'; // Impor useMemo
+import { useState, useMemo } from 'react';
 import { useTenantTransactions, TenantTransaction, TransactionStatus, TransactionFiltersState } from '@/hooks/useTenantTransactions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import api from '@/utils/api';
 import { toast } from 'sonner';
-import { format, isSameDay } from 'date-fns'; 
+import { format, isSameDay } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Eye, Check, X, Clock, User, CalendarDays, Wallet, Building, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { TransactionFilters } from './TransactionFilters';
@@ -33,61 +33,33 @@ export const TransactionsContent = () => {
         searchQuery: '',
         checkInDate: undefined as Date | undefined,
     });
-
     const [activeFilters, setActiveFilters] = useState<TransactionFiltersState>({
         status: 'Semua',
         searchQuery: '',
         checkInDate: undefined,
     });
-
     const { transactions: allTransactions, isLoading, refetch } = useTenantTransactions(activeFilters.status);
     const [selectedProof, setSelectedProof] = useState<string | null>(null);
 
     const filteredTransactions = useMemo(() => {
-        let transactions = allTransactions;
-
-        if (activeFilters.searchQuery) {
+        return allTransactions.filter(trx => {
             const query = activeFilters.searchQuery.toLowerCase();
-            transactions = transactions.filter(trx =>
+            const matchesQuery = !query ||
                 trx.user?.fullName?.toLowerCase().includes(query) ||
                 trx.property?.name?.toLowerCase().includes(query) ||
                 trx.reservationId?.toLowerCase().includes(query) ||
-                trx.invoiceNumber?.toLowerCase().includes(query)
-            );
-        }
-
-        // 2. Filter berdasarkan tanggal check-in
-        if (activeFilters.checkInDate) {
-            transactions = transactions.filter(trx =>
-                isSameDay(new Date(trx.checkIn), activeFilters.checkInDate!)
-            );
-        }
-
-        return transactions;
+                trx.invoiceNumber?.toLowerCase().includes(query);
+            const matchesDate = !activeFilters.checkInDate ||
+                isSameDay(new Date(trx.checkIn), activeFilters.checkInDate);
+            return matchesQuery && matchesDate;
+        });
     }, [allTransactions, activeFilters]);
 
     const analyticsData = useTenantTransactionAnalytics(filteredTransactions);
 
-    const handleSearch = () => {
-        setActiveFilters(prev => ({ ...prev, ...filterInputs }));
-    };
-
-    const handleResetFilters = () => {
-        setFilterInputs({
-            searchQuery: '',
-            checkInDate: undefined,
-        });
-        setActiveFilters({
-            status: 'Semua',
-            searchQuery: '',
-            checkInDate: undefined,
-        });
-    };
-
     const handleAction = async (invoiceNumber: string, isAccepted: boolean) => {
         const action = isAccepted ? 'menyetujui' : 'menolak';
         const toastId = toast.loading(`Sedang ${action} pembayaran...`);
-
         try {
             await api.patch(`/payment-confirm/confirm/${invoiceNumber}`, { isAccepted });
             toast.success(`Pembayaran berhasil ${isAccepted ? 'disetujui' : 'ditolak'}.`, { id: toastId });
@@ -100,6 +72,26 @@ export const TransactionsContent = () => {
         }
     };
 
+    // Fungsi pembantu untuk merender tombol aksi
+    const renderActionButton = (label: string, icon: React.ReactNode, isAccepted: boolean, variant: 'default' | 'destructive' | 'outline', invoiceNumber: string) => (
+        <AlertDialog key={label}>
+            <AlertDialogTrigger asChild>
+                <Button size="sm" variant={variant} className={isAccepted ? 'bg-green-600 hover:bg-green-700' : ''}>
+                    {icon} {label}
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>Konfirmasi {label}</AlertDialogTitle></AlertDialogHeader>
+                <AlertDialogDescription>Yakin ingin <strong>{label.toLowerCase()}</strong> pembayaran ini?</AlertDialogDescription>
+                <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => handleAction(invoiceNumber, isAccepted)} className={isAccepted ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}>Ya, {label}</AlertDialogAction>
+                    <AlertDialogCancel>Tutup</AlertDialogCancel>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+
+    // Fungsi pembantu untuk merender kartu transaksi
     const renderTransactionCard = (trx: TenantTransaction) => {
         const statusInfo = statusConfig[trx.status] || { text: trx.status.replace(/_/g, ' '), variant: 'outline' as const, icon: AlertCircle, color: 'text-gray-600' };
         const Icon = statusInfo.icon;
@@ -108,23 +100,14 @@ export const TransactionsContent = () => {
             <Card key={trx.id} className="overflow-hidden transition-shadow hover:shadow-lg">
                 <div className="flex flex-col md:flex-row">
                     <div className="md:w-1/4 relative h-48 md:h-auto flex-shrink-0">
-                        <Image
-                            src={trx.property?.mainImage || '/placeholder.jpg'}
-                            alt={trx.property?.name || 'Property Image'}
-                            fill
-                            className="object-cover"
-                        />
+                        <Image src={trx.property?.mainImage || '/placeholder.jpg'} alt={trx.property?.name || 'Property Image'} fill className="object-cover" />
                     </div>
                     <div className="flex-1 flex flex-col">
                         <CardHeader className="flex-row items-start justify-between gap-4 pb-3">
                             <div>
                                 <CardTitle className="text-lg mb-1">{trx.property.name}</CardTitle>
-                                <CardDescription className="font-bold">
-                                    No. Pesanan: {trx.reservationId?.substring(0, 6).toUpperCase() ?? 'N/A'}
-                                </CardDescription>
-                                <CardDescription>
-                                    {trx.invoiceNumber}
-                                </CardDescription>
+                                <CardDescription className="font-bold">No. Pesanan: {trx.reservationId?.substring(0, 6).toUpperCase() ?? 'N/A'}</CardDescription>
+                                <CardDescription>{trx.invoiceNumber}</CardDescription>
                             </div>
                             <Badge variant={statusInfo.variant} className="flex-shrink-0 whitespace-nowrap">
                                 <Icon className={`h-3 w-3 mr-1.5 ${statusInfo.color}`} />
@@ -136,31 +119,19 @@ export const TransactionsContent = () => {
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
                                 <div className="flex items-center gap-2 col-span-full">
                                     <User className="h-4 w-4 text-gray-500" />
-                                    <div>
-                                        <p className="font-semibold">Nama Pemesan</p>
-                                        <p className="text-gray-600">{trx.user?.fullName || 'Tidak ada nama'}</p>
-                                    </div>
+                                    <div><p className="font-semibold">Nama Pemesan</p><p className="text-gray-600">{trx.user?.fullName || 'Tidak ada nama'}</p></div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <CalendarDays className="h-4 w-4 text-gray-500" />
-                                    <div>
-                                        <p className="font-semibold">Check-in</p>
-                                        <p className="text-gray-600">{format(new Date(trx.checkIn), 'd MMM yyyy', { locale: id })}</p>
-                                    </div>
+                                    <div><p className="font-semibold">Check-in</p><p className="text-gray-600">{format(new Date(trx.checkIn), 'd MMM yyyy', { locale: id })}</p></div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <CalendarDays className="h-4 w-4 text-gray-500" />
-                                    <div>
-                                        <p className="font-semibold">Check-out</p>
-                                        <p className="text-gray-600">{format(new Date(trx.checkOut), 'd MMM yyyy', { locale: id })}</p>
-                                    </div>
+                                    <div><p className="font-semibold">Check-out</p><p className="text-gray-600">{format(new Date(trx.checkOut), 'd MMM yyyy', { locale: id })}</p></div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Wallet className="h-4 w-4 text-gray-500" />
-                                    <div>
-                                        <p className="font-semibold">Total Harga</p>
-                                        <p className="text-gray-600 font-medium">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(trx.totalPrice)}</p>
-                                    </div>
+                                    <div><p className="font-semibold">Total Harga</p><p className="text-gray-600 font-medium">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(trx.totalPrice)}</p></div>
                                 </div>
                             </div>
                         </CardContent>
@@ -169,32 +140,8 @@ export const TransactionsContent = () => {
                                 <Button variant="outline" size="sm" onClick={() => trx.paymentProof && setSelectedProof(trx.paymentProof)} disabled={!trx.paymentProof}>
                                     <Eye className="h-4 w-4 mr-2" /> Lihat Bukti
                                 </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button size="sm" className="bg-green-600 hover:bg-green-700"><Check className="h-4 w-4 mr-2" /> Setuju</Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader><AlertDialogTitle>Konfirmasi Persetujuan</AlertDialogTitle></AlertDialogHeader>
-                                        <AlertDialogDescription>Yakin ingin <strong>menyetujui</strong> pembayaran ini?</AlertDialogDescription>
-                                        <AlertDialogFooter>
-                                            <AlertDialogAction onClick={() => handleAction(trx.invoiceNumber, true)} className="bg-green-600 hover:bg-green-700">Ya, Setujui</AlertDialogAction>
-                                            <AlertDialogCancel>Tutup</AlertDialogCancel>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="sm"><X className="h-4 w-4 mr-2" /> Tolak</Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader><AlertDialogTitle>Konfirmasi Penolakan</AlertDialogTitle></AlertDialogHeader>
-                                        <AlertDialogDescription>Yakin ingin <strong>menolak</strong> pembayaran ini?</AlertDialogDescription>
-                                        <AlertDialogFooter>
-                                            <AlertDialogAction onClick={() => handleAction(trx.invoiceNumber, false)} className="bg-red-600 hover:bg-red-700">Ya, Tolak</AlertDialogAction>
-                                            <AlertDialogCancel>Tutup</AlertDialogCancel>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                {renderActionButton('Setuju', <Check className="h-4 w-4 mr-2" />, true, 'default', trx.invoiceNumber)}
+                                {renderActionButton('Tolak', <X className="h-4 w-4 mr-2" />, false, 'destructive', trx.invoiceNumber)}
                             </CardFooter>
                         )}
                     </div>
@@ -211,13 +158,14 @@ export const TransactionsContent = () => {
                 setSearchQuery={(value) => setFilterInputs(prev => ({ ...prev, searchQuery: value }))}
                 checkInDate={filterInputs.checkInDate}
                 setCheckInDate={(date) => setFilterInputs(prev => ({ ...prev, checkInDate: date }))}
-                onSearch={handleSearch}
-                onReset={handleResetFilters}
+                onSearch={() => setActiveFilters(prev => ({ ...prev, ...filterInputs }))}
+                onReset={() => {
+                    const resetState = { searchQuery: '', checkInDate: undefined };
+                    setFilterInputs(resetState);
+                    setActiveFilters(prev => ({ ...prev, ...resetState }));
+                }}
             />
-            <Tabs
-                value={activeFilters.status}
-                onValueChange={(value) => setActiveFilters(prev => ({ ...prev, status: value as TransactionStatus }))}
-            >
+            <Tabs value={activeFilters.status} onValueChange={(value) => setActiveFilters(prev => ({ ...prev, status: value as TransactionStatus }))}>
                 <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 mb-4">
                     <TabsTrigger value="Semua">Semua</TabsTrigger>
                     <TabsTrigger value="MENUNGGU_PEMBAYARAN">Menunggu Bayar</TabsTrigger>
