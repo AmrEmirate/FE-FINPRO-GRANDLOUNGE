@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { SocialLogin } from "@/components/auth/social-login";
 
-// Definisikan tipe untuk props agar lebih aman
+// Define the type for the props for better type safety
 type LoginFormProps = {
     userType: string;
     formData: { email: string; password: string };
@@ -35,21 +35,43 @@ export function LoginForm({
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Input Email */}
+                    {/* Email Input */}
                     <div>
                         <Label htmlFor="email">Email Address</Label>
                         <div className="relative mt-1">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input id="email" name="email" type="email" required value={formData.email} onChange={handleInputChange} className="pl-10" placeholder="Enter your email" />
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                required
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                className="pl-10"
+                                placeholder="Enter your email"
+                            />
                         </div>
                     </div>
-                    {/* Input Password */}
+                    {/* Password Input */}
                     <div>
                         <Label htmlFor="password">Password</Label>
                         <div className="relative mt-1">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input id="password" name="password" type={showPassword ? "text" : "password"} required value={formData.password} onChange={handleInputChange} className="pl-10 pr-10" placeholder="Enter your password" />
-                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <Input
+                                id="password"
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                required
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                className="pl-10 pr-10"
+                                placeholder="Enter your password"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2"
+                            >
                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
                         </div>
@@ -63,7 +85,10 @@ export function LoginForm({
                         {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
                 </form>
-                <SocialLogin type="login" />
+
+                {/* Conditionally render SocialLogin based on userType */}
+                {userType !== 'tenant' && <SocialLogin type="login" />}
+
                 <div className="mt-6 text-center">
                     <p className="text-sm text-gray-600">
                         Don't have an account?{" "}
