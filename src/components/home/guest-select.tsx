@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface GuestSelectProps {
   value: string
   onChange: (value: string) => void
+  className?: string;
 }
 
 export function GuestSelect({ value, onChange }: GuestSelectProps) {

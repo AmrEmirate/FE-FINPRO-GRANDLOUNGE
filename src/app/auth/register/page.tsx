@@ -1,4 +1,3 @@
-// src/app/auth/register/page.tsx
 "use client";
 
 import { Suspense } from "react";
@@ -17,18 +16,8 @@ function RegisterContent() {
     const { formData, isLoading, handleInputChange, handleSubmit } = useRegistration(userType);
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-blue- flex items-center justify-center p-4 bg-blue-200">
             <div className="max-w-md w-full">
-                <div className="text-center mb-8">
-                    <div className="flex items-center justify-center space-x-2 mb-4">
-                        <Building2 className="h-10 w-10 text-amber-600" />
-                        <span className="text-3xl font-bold text-gray-800">Grand Lodge</span>
-                    </div>
-                    <h2 className="text-2xl font-semibold text-gray-700">
-                        {userType === "tenant" ? "Become a Property Owner" : "Create an Account"}
-                    </h2>
-                </div>
-
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Sign Up</CardTitle>
