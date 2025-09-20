@@ -1,4 +1,3 @@
-// src/components/tenant/PeakSeasonDialog.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,7 +21,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "../ui/use-toast";
 
-// Interface ini akan kita gunakan di seluruh aplikasi
 export interface PeakSeason {
   id: string;
   name: string;
@@ -32,18 +30,18 @@ export interface PeakSeason {
   adjustmentValue: number;
 }
 
-export type PeakSeasonPayload = Omit<PeakSeason, 'id'> & { id?: string };
+export type PeakSeasonPayload = Omit<PeakSeason, 'id'> & { id?: string; roomId: string };
 
 interface PeakSeasonDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (season: PeakSeasonPayload) => void;
   initialData?: PeakSeason | null;
-  roomId: string; // Tambahkan ini
-  onSuccess: () => void; // Tambahkan ini
+  roomId: string;
+  onSuccess?: () => void;
 }
 
-export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakSeasonDialogProps) {
+export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData, roomId }: PeakSeasonDialogProps) {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -58,7 +56,6 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
         setAdjustmentType(initialData.adjustmentType);
         setAdjustmentValue(initialData.adjustmentValue);
       } else {
-        // Reset form saat dialog dibuka untuk data baru
         setName("");
         setDateRange(undefined);
         setAdjustmentType('PERCENTAGE');
@@ -84,6 +81,7 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
       endDate: dateRange.to,
       adjustmentType,
       adjustmentValue,
+      roomId: roomId,
     };
     onSave(payload);
   };
@@ -98,13 +96,11 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          {/* Input Name */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" placeholder="e.g., Lebaran Holiday" />
           </div>
 
-          {/* Date Range Picker */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Date Range</Label>
             <Popover>
@@ -138,7 +134,6 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
             </Popover>
           </div>
 
-          {/* Adjustment Type Radio Group */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Adjustment</Label>
             <RadioGroup value={adjustmentType} onValueChange={(value) => setAdjustmentType(value as any)} className="col-span-3 flex items-center space-x-4">
@@ -153,11 +148,9 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
             </RadioGroup>
           </div>
 
-          {/* PERBAIKAN PADA VALUE INPUT */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="value" className="text-right">Value</Label>
             <div className="col-span-3 relative">
-              {/* Simbol ditempatkan di dalam div, bukan di dalam input */}
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
                 {adjustmentType === 'NOMINAL' ? 'Rp' : ''}
               </span>
@@ -166,7 +159,6 @@ export function PeakSeasonDialog({ isOpen, onClose, onSave, initialData }: PeakS
                 type="number"
                 value={adjustmentValue || ''}
                 onChange={(e) => setAdjustmentValue(Number(e.target.value))}
-                // Padding kiri ditambahkan jika tipenya nominal agar tidak tumpang tindih
                 className={cn(adjustmentType === 'NOMINAL' && "pl-8")}
                 placeholder={adjustmentType === 'PERCENTAGE' ? "e.g., 20" : "e.g., 50000"}
               />

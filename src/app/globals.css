@@ -87,8 +87,13 @@
   body {
     @apply bg-background text-foreground;
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif; 
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif;
   }
 
   /* ======================================= */
@@ -113,7 +118,7 @@
   .rdp-nav_button_next {
     display: none;
   }
-  
+
   .rdp-day {
     display: flex;
     align-items: center;
@@ -123,7 +128,7 @@
     border-radius: var(--rdp-border-radius);
     transition: background-color 0.1s ease-in-out;
   }
-  
+
   .rdp-day_selected,
   .rdp-day_range_start,
   .rdp-day_range_end {
@@ -131,7 +136,7 @@
     color: hsl(var(--primary-foreground)) !important;
     font-weight: 500;
   }
-  
+
   .rdp-day_range_middle {
     background-color: hsl(var(--accent)) !important;
     color: hsl(var(--accent-foreground)) !important;
@@ -142,45 +147,51 @@
     background-color: hsl(var(--accent));
     color: hsl(var(--accent-foreground));
   }
-  
+
   .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
     background-color: hsl(var(--accent));
   }
 
   .rdp-button:focus-visible:not([disabled]) {
-     outline: 2px solid hsl(var(--primary));
-     outline-offset: 1px;
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 1px;
   }
 
   .rdp-day_outside {
     color: hsl(var(--muted-foreground));
   }
-  
+
   .rdp-day_disabled {
     opacity: 0.5;
   }
 
   /* MODIFIER KUSTOM ANDA */
   .rdp-day_booked {
-      background-color: hsl(var(--destructive) / 0.1);
-      color: hsl(var(--destructive));
-      text-decoration: line-through;
+    background-color: hsl(var(--destructive) / 0.1);
+    color: hsl(var(--destructive));
+    text-decoration: line-through;
   }
   .rdp-day_booked:hover {
-      background-color: hsl(var(--destructive) / 0.2) !important;
+    background-color: hsl(var(--destructive) / 0.2) !important;
   }
 
   .rdp-day_available {
-      background-color: hsl(var(--chart-2) / 0.1);
-      color: hsl(var(--chart-2));
-      font-weight: 500;
+    background-color: hsl(var(--chart-2) / 0.1);
+    color: hsl(var(--chart-2));
+    font-weight: 500;
   }
   .rdp-day_available:hover {
-      background-color: hsl(var(--chart-2) / 0.2) !important;
+    background-color: hsl(var(--chart-2) / 0.2) !important;
   }
 
   .rdp-day_peak {
-      font-weight: 700;
-      border: 1px solid hsl(var(--primary));
+    font-weight: 700;
+    border: 1px solid hsl(var(--primary));
   }
+}
+
+/* Penyesuaian untuk z-index peta */
+main {
+  position: relative;
+  z-index: 1;
 }
