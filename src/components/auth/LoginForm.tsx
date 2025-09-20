@@ -31,7 +31,6 @@ export function LoginForm({
         <Card>
             <CardHeader>
                 <CardTitle>Sign In</CardTitle>
-                <CardDescription>Enter credentials to access your account</CardDescription>
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -81,7 +80,7 @@ export function LoginForm({
                             Forgot password?
                         </Link>
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-400" disabled={isLoading}>
                         {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
                 </form>

@@ -42,7 +42,6 @@ export function HeroSection() {
               <div className="text-center text-white max-w-4xl mx-auto px-4">
                 <h1 className="text-4xl md:text-6xl font-bold mb-6">{slide.title}</h1>
                 <p className="text-xl md:text-2xl mb-8 opacity-90">{slide.subtitle}</p>
-                {/* Removed the blue "Book Now" button as requested */}
               </div>
             </div>
           </div>
@@ -68,7 +67,6 @@ export function HeroSection() {
         <ChevronRight className="h-6 w-6" />
       </Button>
 
-      {/* Slide Indicators */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
         {heroSlides.map((_, index) => (
           <button

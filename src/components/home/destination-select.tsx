@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import apiHelper from "@/lib/apiHelper";
+import { cn } from "@/lib/utils";
 
 interface City {
     id: string;
@@ -12,6 +13,7 @@ interface City {
 interface DestinationSelectProps {
   value: string
   onChange: (value: string) => void
+  className?: string;
 }
 
 export function DestinationSelect({ value, onChange }: DestinationSelectProps) {

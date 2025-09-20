@@ -171,7 +171,6 @@ export default function Navbar({ onCategorySelect }: NavbarProps) {
                     <button onClick={() => setIsOpen(!isOpen)}>{isOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}</button>
                 </div>
             </nav>
-
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
