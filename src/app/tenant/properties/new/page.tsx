@@ -14,10 +14,19 @@ import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { ImageUpload } from "@/components/tenant/image-upload"
-import { LocationPicker } from "@/components/tenant/LocationPicker"
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import apiHelper from "@/lib/apiHelper";
+import dynamic from "next/dynamic";
+
+// --- PERBAIKAN DI SINI ---
+const LocationPicker = dynamic(
+  () => import("@/components/tenant/LocationPicker").then((mod) => mod.LocationPicker),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 w-full flex items-center justify-center bg-gray-100 rounded-md"><p>Loading map...</p></div>,
+  }
+);
 
 interface City { 
   id: string; 
@@ -86,8 +95,7 @@ export default function NewPropertyPage() {
     values.galleryImages?.forEach(file => formData.append('galleryImages', file));
     
     try {
-      // --- PERBAIKAN DI BARIS INI ---
-      await apiHelper.post('/properties', formData, { // URL diubah dari '/properties/my-properties' menjadi '/properties'
+      await apiHelper.post('/properties', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast({ title: "Success!", description: "Your property has been created." });

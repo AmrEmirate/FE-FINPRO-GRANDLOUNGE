@@ -31,6 +31,8 @@ const createMockProperty = (
   createdAt: new Date().toISOString(),
   // updatedAt DIHAPUS DARI SINI
   
+  address, // Add the address property here
+  
   city: {
     id: `city-${id}`, // Example city ID
     name: address,
