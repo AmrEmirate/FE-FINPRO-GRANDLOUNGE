@@ -1,9 +1,3 @@
-// src/lib/types/index.ts
-
-// =============================================
-// ENUMS (Sesuai dengan Prisma Schema di Backend)
-// =============================================
-
 export enum UserRole {
   TENANT = "TENANT",
   USER = "USER",
@@ -26,17 +20,16 @@ export enum TokenPurpose {
   PASSWORD_RESET = "PASSWORD_RESET",
 }
 
-// =============================================
-// INTERFACES (Sesuai dengan Respons API)
-// =============================================
+export interface Amenity {
+  id: string;
+  name: string;
+}
 
 export interface Category {
   id: string;
   name: string;
 }
 
-// --- PERBAIKAN ---
-// latitude & longitude sekarang menjadi bagian dari City
 export interface City {
   id: string;
   name: string;
@@ -45,11 +38,9 @@ export interface City {
   longitude?: number | string;
 }
 
-// --- PERBAIKAN ---
-// Interface untuk gambar properti
 export interface PropertyImage {
   id: string;
-  imageUrl: string; // Menggunakan imageUrl agar konsisten
+  imageUrl: string;
 }
 
 export interface Room {
@@ -84,26 +75,26 @@ export interface TenantInfo {
   createdAt: string;
 }
 
-// --- PERBAIKAN UTAMA DI SINI ---
 export interface Property {
   id: string;
   tenantId: string;
   name: string;
   description: string;
+  address: string | null; 
   mainImage?: string;
   latitude?: number;
   longitude?: number;
   deletedAt?: string;
   createdAt: string;
   category: Category;
-  city: City; // Objek City sekarang berisi data geolokasi
+  city: City;
   tenant: TenantInfo;
   rooms?: Room[];
   reviews?: Review[];
   reviews_avg_rating?: number;
   reviews_count?: number;
-  images?: PropertyImage[]; // Menggunakan interface PropertyImage yang sudah diperbaiki
-  // latitude & longitude dihapus dari sini karena sudah dipindahkan ke dalam City
+  images?: PropertyImage[];
+  amenities?: Amenity[];
 }
 
 export interface PropertyFilters {
@@ -170,4 +161,3 @@ export interface TenantTransaction {
   status: 'MENUNGGU_PEMBAYARAN' | 'MENUNGGU_KONFIRMASI' | 'DIPROSES' | 'DIBATALKAN' | 'SELESAI';
   paymentProof?: string;
 }
-

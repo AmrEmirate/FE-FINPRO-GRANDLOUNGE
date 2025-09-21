@@ -7,12 +7,11 @@ import { Button } from '@/components/ui/button';
 import type { Property } from '@/lib/types';
 import { formatPrice } from '@/lib/utils/format';
 import Link from 'next/link';
-import { useNearbyProperties } from '@/hooks/use-nearby-properties'; // Import hook baru
-import { userIcon, propertyIcon } from '@/lib/map-icons'; // Import ikon baru
+import { useNearbyProperties } from '@/hooks/use-nearby-properties';
+import { userIcon, propertyIcon } from '@/lib/map-icons';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
 
-// Komponen kecil untuk Popup agar lebih bersih
 const PropertyPopup = ({ property }: { property: Property }) => (
   <div className="w-48">
     <h3 className="font-bold text-base mb-1">{property.name}</h3>
@@ -28,13 +27,13 @@ const PropertyPopup = ({ property }: { property: Property }) => (
   </div>
 );
 
-// Komponen Peta Internal yang sudah ramping
 const MapView = () => {
   const map = useMap();
   const { toast } = useToast();
-  const { userLocation, properties, isLoading, error } = useNearbyProperties(map);
+  
+  // --- PERBAIKAN DI BARIS INI ---
+  const { userLocation, properties, isLoading, error } = useNearbyProperties({ map });
 
-  // Tampilkan notifikasi jika ada error
   useEffect(() => {
     if (error) {
       toast({ title: "Error", description: error, variant: "destructive" });
@@ -69,10 +68,8 @@ const MapView = () => {
   );
 };
 
-// Komponen Utama (hampir tidak berubah)
 export default function SplitScreenMap() {
   const jakartaPosition: [number, number] = [-6.2088, 106.8456];
-
 
   return (
     <section className="h-[70vh] w-full flex flex-col lg:flex-row border-t border-b">
