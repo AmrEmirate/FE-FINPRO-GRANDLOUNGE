@@ -13,14 +13,21 @@ export function useUserOrders() {
     const [propertyFilter, setPropertyFilter] = useState('');
     const [dateFilter, setDateFilter] = useState<Date | undefined>();
 
+    const formatDateForAPI = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     const fetchOrders = useCallback(async () => {
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
             if (searchFilter) params.append('searchQuery', searchFilter);
             if (propertyFilter) params.append('propertyName', propertyFilter);
-            if (dateFilter) params.append('checkIn', dateFilter.toISOString().split('T')[0]);
-
+            if (dateFilter) params.append('checkIn', formatDateForAPI(dateFilter));
+            
             const response = await api.get(`/orders/order-list?${params.toString()}`);
             setOrders(Array.isArray(response.data.data) ? response.data.data : []);
         } catch (error) {

@@ -36,7 +36,7 @@ export const PropertyAvailabilityCalendar: React.FC<CalendarProps> = ({ property
     }
 
     function Day(props: DayProps) {
-        const date = props.date;
+        const date = props.day.date;
 
         if (date.getMonth() !== month.getMonth()) {
             return <div />;

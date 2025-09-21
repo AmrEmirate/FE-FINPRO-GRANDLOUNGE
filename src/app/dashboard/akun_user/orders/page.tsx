@@ -25,7 +25,7 @@ function OrdersContent() {
         try {
             await api.patch(`/order-cancel/user/cancel/invoice/${invoice}`);
             toast({ title: 'Berhasil', description: 'Pesanan Anda telah berhasil dibatalkan.' });
-            fetchOrders(); // Panggil fetchOrders dari hook untuk refresh
+            fetchOrders();
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'Gagal membatalkan pesanan.';
             toast({ variant: 'destructive', title: 'Gagal', description: errorMessage });
@@ -36,7 +36,7 @@ function OrdersContent() {
         try {
             await api.patch(`/orders/complete/${id}`);
             toast({ title: 'Berhasil', description: 'Pesanan telah ditandai sebagai selesai.' });
-            fetchOrders(); // Panggil fetchOrders dari hook untuk refresh
+            fetchOrders(); 
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'Gagal menyelesaikan pesanan.';
             toast({ variant: 'destructive', title: 'Gagal', description: errorMessage });
