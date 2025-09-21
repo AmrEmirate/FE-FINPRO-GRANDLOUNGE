@@ -161,8 +161,8 @@ export default function Navbar({ onCategorySelect }: NavbarProps) {
                         </DropdownMenu>
                     ) : (
                         <>
-                            <Link href="/auth/login"><Button className="px-6 py-2 rounded-lg bg-white text-black font-medium shadow hover:bg-gray-100 transition">Masuk</Button></Link>
-                            <Link href="/auth/register"><Button className="px-6 py-2 rounded-lg bg-black text-white font-medium shadow hover:bg-gray-500 transition">Daftar</Button></Link>
+                            <Link href="/auth/login"><Button className="px-6 py-2 rounded-lg bg-white text-black font-medium shadow hover:bg-gray-300 transition">Masuk</Button></Link>
+                            <Link href="/auth/register"><Button className="px-6 py-2 rounded-lg bg-gray-900 text-white font-medium shadow hover:bg-gray-500 transition">Daftar</Button></Link>
                         </>
                     )}
                 </div>
