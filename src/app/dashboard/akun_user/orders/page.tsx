@@ -32,9 +32,9 @@ function OrdersContent() {
         }
     };
 
-    const handleCompleteOrder = async (id: string) => {
+    const handleCompleteOrder = async (bookingId: string) => {
         try {
-            await api.patch(`/orders/complete/${id}`);
+            await api.patch(`/orders/${bookingId}/complete`); 
             toast({ title: 'Berhasil', description: 'Pesanan telah ditandai sebagai selesai.' });
             fetchOrders(); 
         } catch (error: any) {

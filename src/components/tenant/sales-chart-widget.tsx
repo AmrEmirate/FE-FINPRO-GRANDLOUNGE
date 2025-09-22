@@ -19,15 +19,13 @@ export function SalesChartWidget() {
         const fetchDashboardData = async () => {
             setIsLoading(true);
             try {
-                // 1. Mengambil data dari endpoint baru yang aman
                 const response = await api.get('/report/widgets');
 
                 const salesDataFromApi = response.data.data.dailySales || [];
 
-                // 2. Format data untuk chart
                 const formattedData = salesDataFromApi.map((item: any) => ({
                     date: new Date(item.date).toLocaleDateString('id-ID', { weekday: 'short' }),
-                    total: Number(item._sum.totalPrice) || 0,
+                    total: Number(item._sum?.totalPrice) || 0,
                 }));
                 setData(formattedData);
 
@@ -41,7 +39,6 @@ export function SalesChartWidget() {
         fetchDashboardData();
     }, []);
 
-    // Sisa kode JSX di bawah ini tidak perlu diubah
     return (
         <Card>
             <CardHeader>
