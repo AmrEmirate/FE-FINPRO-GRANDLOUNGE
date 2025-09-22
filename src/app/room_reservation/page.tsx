@@ -11,19 +11,15 @@ import { useAuth } from '@/context/AuthContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import api from '@/utils/api'; // Gunakan satu instance API saja
+import api from '@/utils/api'; 
 
 function ReservationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
-  // Ambil juga 'loading' dari useAuth untuk menunggu data user siap
   const { user, loading } = useAuth();
-
   const [paymentMethod, setPaymentMethod] = useState('manual');
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Ambil semua parameter dari URL
   const propertyId = searchParams.get('propertyId');
   const roomId = searchParams.get('roomId');
   const roomName = searchParams.get('roomName');
@@ -32,22 +28,18 @@ function ReservationContent() {
   const nights = searchParams.get('nights');
   const totalPrice = searchParams.get('totalPrice');
 
-  // Cek status login setelah loading selesai
   useEffect(() => {
-    // Jika proses loading auth selesai dan ternyata user tidak ada (belum login)
     if (!loading && !user) {
       toast({
         title: 'Sesi Tidak Ditemukan',
         description: 'Anda harus login untuk melanjutkan reservasi.',
         variant: 'destructive',
       });
-      // Arahkan ke halaman login
       router.push('/auth/login');
     }
   }, [user, loading, router, toast]);
 
   const handleCreateReservation = async () => {
-    // Validasi yang lebih kuat, pastikan user sudah termuat
     if (loading || !user) {
       toast({
         title: 'Harap Tunggu',
@@ -71,6 +63,7 @@ function ReservationContent() {
     try {
       const payload = {
         propertyId,
+        roomId,
         roomName,
         checkIn: new Date(checkIn).toISOString(),
         checkOut: new Date(checkOut).toISOString(),
@@ -81,9 +74,7 @@ function ReservationContent() {
         },
       };
 
-      const response = await api.post('/reservations/by-room-name', payload);
-
-      
+      const response = await api.post("/reservations/by-room-name", payload);
         toast({
           title: 'Reservasi Berhasil Dibuat',
           description: 'Silakan unggah bukti pembayaran Anda di halaman pesanan.',
