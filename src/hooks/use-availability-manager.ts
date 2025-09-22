@@ -1,4 +1,3 @@
-// src/hooks/use-availability-manager.ts
 import { useState } from "react";
 import { format, startOfMonth } from "date-fns";
 import { useRoomAvailability } from "@/hooks/use-room-availability";
@@ -7,7 +6,12 @@ import api from "@/utils/api";
 import { DateRange } from "react-day-picker";
 import { PeakSeasonPayload } from "@/components/tenant/PeakSeasonDialog";
 
-// Fungsi helper untuk memisahkan logika API
+export interface Availability {
+  date: string;
+  status: 'AVAILABLE' | 'BOOKED' | 'PENDING' | 'UNAVAILABLE';
+  price?: number;
+}
+
 const availabilityService = {
   saveAvailability: (propertyId: string, roomId: string, range: DateRange, isAvailable: boolean, price?: number) => {
     const payload = {
