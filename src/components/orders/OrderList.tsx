@@ -9,6 +9,8 @@ interface OrderListProps {
     onCancel: (invoice: string) => void;
     onComplete: (id: string) => void;
     onActionSuccess: () => void;
+    completingId: string | null;
+    cancellingId: string | null;
 }
 
 const TABS = [
@@ -20,7 +22,7 @@ const TABS = [
     { value: "DIBATALKAN", label: "Di Batalkan" },
 ];
 
-export default function OrderList({ orders, onCancel, onComplete, onActionSuccess }: OrderListProps) {
+export default function OrderList({ orders, onCancel, onComplete, onActionSuccess, completingId, cancellingId   }: OrderListProps) {
     const filterOrdersByStatus = (status: string) => {
         if (status === 'semua') return orders;
         return orders.filter(order => order.status === status);
@@ -44,6 +46,8 @@ export default function OrderList({ orders, onCancel, onComplete, onActionSucces
                                 onCancel={onCancel}
                                 onComplete={onComplete}
                                 onUploadSuccess={onActionSuccess}
+                                completingId={completingId}
+                                cancellingId={cancellingId}
                             />
                         ))
                     ) : (

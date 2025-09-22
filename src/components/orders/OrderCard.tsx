@@ -13,16 +13,22 @@ import UploadPaymentDialog from "./upload-payment-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import WriteReviewDialog from "./WriteReviewDialog";
 import { CountdownTimer } from "../bookings/CountdownTimer";
+import { Loader2 } from 'lucide-react';
 
 interface OrderCardProps {
     order: UserOrder,
     onCancel: (invoice: string) => void,
     onComplete: (id: string) => void,
     onUploadSuccess: () => void
+    completingId: string | null;
+    cancellingId: string | null;
 }
 
-export default function OrderCard({ order, onCancel, onComplete, onUploadSuccess }: OrderCardProps) {
+export default function OrderCard({ order, onCancel, onComplete, onUploadSuccess, completingId, cancellingId }: OrderCardProps) {
     const canReview = new Date() >= new Date(order.checkOut);
+
+    const isCompleting = completingId === order.id;
+    const isCancelling = cancellingId === order.invoiceNumber;
 
     const getStatusVariant = (status: UserOrder['status']) => {
         switch (status) {
@@ -73,15 +79,61 @@ export default function OrderCard({ order, onCancel, onComplete, onUploadSuccess
                         <div className="flex gap-2 w-full">
                             <UploadPaymentDialog invoiceNumber={order.invoiceNumber} onUploadSuccess={onUploadSuccess} />
                             <AlertDialog>
-                                <AlertDialogTrigger asChild><Button variant="destructive" size="sm" className="flex-grow">Batalkan</Button></AlertDialogTrigger>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        className="flex-grow bg-red-500"
+                                        disabled={isCancelling} 
+                                    >
+                                        {isCancelling ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Harap Tunggu...
+                                            </>
+                                        ) : (
+                                            'Batalkan'
+                                        )}
+                                    </Button>
+                                </AlertDialogTrigger>
                                 <AlertDialogContent>
-                                    <AlertDialogHeader><AlertDialogTitle>Anda yakin?</AlertDialogTitle><AlertDialogDescription>Tindakan ini akan membatalkan pesanan Anda.</AlertDialogDescription></AlertDialogHeader>
-                                    <AlertDialogFooter><AlertDialogCancel>Tidak</AlertDialogCancel><AlertDialogAction onClick={() => onCancel(order.invoiceNumber)}>Ya, Batalkan</AlertDialogAction></AlertDialogFooter>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
+                                        <AlertDialogDescription>Tindakan ini akan membatalkan pesanan Anda.</AlertDialogDescription></AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Tidak</AlertDialogCancel>
+                                        <AlertDialogAction className="bg-red-500" onClick={() => onCancel(order.invoiceNumber)} disabled={isCancelling}>
+                                            {isCancelling ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Membatalkan...
+                                                </>
+                                            ) : (
+                                                'Ya, Batalkan'
+                                            )}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
                         </div>
                     )}
-                    {order.status === 'DIPROSES' && <Button size="sm" onClick={() => onComplete(order.id)}>Selesaikan Pesanan</Button>}
+                    {order.status === 'DIPROSES' && (
+                        <Button
+                            size="sm"
+                            onClick={() => onComplete(order.id)}
+                            disabled={isCompleting} 
+                            className="bg-green-500"
+                        >
+                            {isCompleting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Menyelesaikan...
+                                </>
+                            ) : (
+                                'Selesaikan Pesanan'
+                            )}
+                        </Button>
+                    )}
                     {order.status === 'SELESAI' && !order.review && <WriteReviewDialog bookingId={order.id} propertyId={order.property.id} onReviewSubmit={onUploadSuccess} disabled={!canReview} />}
                 </div>
             </CardContent>

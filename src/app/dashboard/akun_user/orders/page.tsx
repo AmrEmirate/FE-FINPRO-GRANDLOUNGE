@@ -7,6 +7,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/utils/api';
 import { useToast } from '@/components/ui/use-toast';
+import { useState } from 'react';
 
 function OrdersContent() {
     const { toast } = useToast();
@@ -19,9 +20,11 @@ function OrdersContent() {
         handleResetFilters,
     } = useUserOrders();
     
+    const [completingId, setCompletingId] = useState<string | null>(null);
+    const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-    // Handler untuk aksi-aksi sekarang berada di sini, tapi logikanya dipanggil dari hook
     const handleCancelOrder = async (invoice: string) => {
+        setCancellingId(invoice);
         try {
             await api.patch(`/order-cancel/user/cancel/invoice/${invoice}`);
             toast({ title: 'Berhasil', description: 'Pesanan Anda telah berhasil dibatalkan.' });
@@ -29,10 +32,13 @@ function OrdersContent() {
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'Gagal membatalkan pesanan.';
             toast({ variant: 'destructive', title: 'Gagal', description: errorMessage });
+        } finally {
+            setCancellingId(null); 
         }
     };
 
     const handleCompleteOrder = async (bookingId: string) => {
+        setCompletingId(bookingId);
         try {
             await api.patch(`/orders/${bookingId}/complete`); 
             toast({ title: 'Berhasil', description: 'Pesanan telah ditandai sebagai selesai.' });
@@ -40,6 +46,8 @@ function OrdersContent() {
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'Gagal menyelesaikan pesanan.';
             toast({ variant: 'destructive', title: 'Gagal', description: errorMessage });
+        } finally {
+            setCompletingId(null); 
         }
     };
 
@@ -68,6 +76,8 @@ function OrdersContent() {
                     onCancel={handleCancelOrder}
                     onComplete={handleCompleteOrder}
                     onActionSuccess={fetchOrders}
+                    completingId={completingId}
+                    cancellingId={cancellingId}
                 />
             )}
         </div>
