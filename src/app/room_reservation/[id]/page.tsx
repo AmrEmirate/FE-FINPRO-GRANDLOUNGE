@@ -19,9 +19,8 @@ export default function BookingDetailPage() {
     const [booking, setBooking] = useState<Booking | null>(null);
 
     useEffect(() => {
-        // Fetch booking detail dari BE
         const fetchBooking = async () => {
-            const res = await fetch(`/api/bookings/${id}`); // ganti dengan endpoint BE kamu
+            const res = await fetch(`/api/bookings/${id}`); 
             const data = await res.json();
             setBooking(data);
         };

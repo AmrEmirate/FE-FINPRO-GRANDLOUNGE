@@ -48,7 +48,7 @@ export default function UploadPaymentDialog({ invoiceNumber, onUploadSuccess }: 
 
             toast({ title: 'Sukses', description: 'Bukti pembayaran berhasil diunggah.' });
             onUploadSuccess();
-            setOpen(false); // Tutup dialog setelah berhasil
+            setOpen(false); 
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error', description: 'Gagal mengunggah bukti pembayaran.' });
         } finally {
@@ -59,7 +59,7 @@ export default function UploadPaymentDialog({ invoiceNumber, onUploadSuccess }: 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="sm">Unggah Bukti Bayar</Button>
+                <Button className='bg-blue-500' size="sm">Unggah Bukti Bayar</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -77,7 +77,7 @@ export default function UploadPaymentDialog({ invoiceNumber, onUploadSuccess }: 
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleSubmit} disabled={!file || isLoading}>
+                    <Button className='bg-blue-500' onClick={handleSubmit} disabled={!file || isLoading}>
                         {isLoading ? 'Mengunggah...' : 'Submit'}
                     </Button>
                 </DialogFooter>
