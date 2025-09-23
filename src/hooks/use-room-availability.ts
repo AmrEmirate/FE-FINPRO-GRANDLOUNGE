@@ -1,65 +1,81 @@
-import { useQuery } from '@tanstack/react-query';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/utils/api';
-import { Room } from '@/lib/types';
-import { PeakSeason } from '@/components/tenant/PeakSeasonDialog';
+import { toast } from 'sonner';
+import type { Room } from '@/lib/types';
 
-export interface Availability {
+interface Availability {
   date: string;
-  status: 'AVAILABLE' | 'BOOKED' | 'PENDING' | 'UNAVAILABLE';
+  isAvailable: boolean;
   price?: number;
 }
 
-const fetchRoomAvailabilityReport = async (propertyId: string, roomId: string, month: Date): Promise<Availability[]> => {
-  const startDate = startOfMonth(month);
-  const endDate = endOfMonth(month);
+interface PeakSeasonFromApi {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  adjustmentType: 'PERCENTAGE' | 'NOMINAL';
+  adjustmentValue: number;
+}
 
-  const params = {
-    startDate: format(startDate, 'yyyy-MM-dd'),
-    endDate: format(endDate, 'yyyy-MM-dd'),
-  };
-
-  const response = await api.get(`/reports/availability/${propertyId}/${roomId}`, { params });
-
-  const availabilityData = response.data.data;
-  return Object.entries(availabilityData).map(([date, data]: [string, any]) => ({
-    date,
-    status: data.status,
-    price: data.price,
-  }));
-};
-
-const fetchRoomDetails = async (propertyId: string, roomId: string) => {
-  const roomPromise = api.get(`/properties/my-properties/${propertyId}/rooms/${roomId}`);
-
-  const peakSeasonsPromise = api.get(`/peak-seasons/by-room/${roomId}`);
-  
-  const [roomRes, peakSeasonsRes] = await Promise.all([roomPromise, peakSeasonsPromise]);
-  return {
-    room: roomRes.data.data as Room,
-    peakSeasons: peakSeasonsRes.data as PeakSeason[],
-  };
-};
+export interface PeakSeason {
+  id: string;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  adjustmentType: 'PERCENTAGE' | 'NOMINAL';
+  adjustmentValue: number;
+}
 
 export const useRoomAvailability = (propertyId: string, roomId: string, month: Date) => {
-  const { data: detailsData, isLoading: isLoadingDetails, error: detailsError } = useQuery({
-    queryKey: ['roomDetails', propertyId, roomId],
-    queryFn: () => fetchRoomDetails(propertyId, roomId),
-    enabled: !!propertyId && !!roomId,
-  });
+  const [room, setRoom] = useState<Room | null>(null);
+  const [availability, setAvailability] = useState<Availability[]>([]);
+  const [peakSeasons, setPeakSeasons] = useState<PeakSeason[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const { data: availabilityData, isLoading: isLoadingAvailability, error: availabilityError, refetch } = useQuery({
-    queryKey: ['roomAvailabilityReport', propertyId, roomId, format(month, 'yyyy-MM')],
-    queryFn: () => fetchRoomAvailabilityReport(propertyId, roomId, month),
-    enabled: !!propertyId && !!roomId,
-  });
+  const fetchData = useCallback(async () => {
+    if (!roomId || !propertyId) {
+      setIsLoading(false);
+      return;
+    }
 
-  return {
-    room: detailsData?.room,
-    availability: availabilityData || [], 
-    peakSeasons: detailsData?.peakSeasons || [],
-    isLoading: isLoadingDetails || isLoadingAvailability,
-    error: detailsError || availabilityError,
-    refetch,
-  };
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const [roomDetailsRes, availabilityRes, peakSeasonsRes] = await Promise.all([
+        api.get(`/properties/my-properties/${propertyId}/rooms/${roomId}`),
+        api.get(`/properties/my-properties/${propertyId}/rooms/${roomId}/availability-by-month`, {
+          params: { month: month.getMonth() + 1, year: month.getFullYear() }
+        }),
+        api.get(`/peak-seasons/by-room/${roomId}`),
+      ]);
+
+      setRoom(roomDetailsRes.data.data || null);
+      setAvailability(availabilityRes.data.data || []);
+      
+      const processedPeakSeasons = (peakSeasonsRes.data.data || []).map((season: PeakSeasonFromApi) => ({
+        ...season,
+        startDate: new Date(season.startDate),
+        endDate: new Date(season.endDate),
+      }));
+      setPeakSeasons(processedPeakSeasons);
+
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || (err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(new Error(errorMessage));
+      toast.error("Gagal memuat data ketersediaan", { description: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [roomId, propertyId, month]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const refetch = () => fetchData();
+
+  return { room, availability, peakSeasons, isLoading, error, refetch };
 };
