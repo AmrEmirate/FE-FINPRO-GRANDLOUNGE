@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiHelper = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://be-finpro-grandlounge-e8h4.vercel.app/api',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:2020/api',
   headers: {
     'Content-Type': 'application/json',
   },
