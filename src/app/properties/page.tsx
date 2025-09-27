@@ -6,7 +6,6 @@ import { PropertiesGrid } from "@/components/properties/properties-grid";
 import { getProperties } from "@/services/propertyService"; 
 import PropertiesLoading from "./loading";
 
-// Komponen untuk me-render konten utama
 async function PropertiesContent({ searchParams }: { searchParams: { [key:string]: any }}) {
   const { data: properties, meta } = await getProperties(searchParams);
 
@@ -38,7 +37,6 @@ async function PropertiesContent({ searchParams }: { searchParams: { [key:string
   );
 }
 
-// Komponen Halaman Utama, sekarang sangat ringkas!
 export default function PropertiesPage({ searchParams }: { searchParams: { [key: string]: any }}) {
   return (
     <div className="min-h-screen bg-gray-50">
