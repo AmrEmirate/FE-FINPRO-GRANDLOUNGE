@@ -21,7 +21,7 @@ import { useAuth } from "@/context/AuthContext"
 export function BookingSidebar({
   selectedRange,
   onDateChange,
-  selectedRoom, // Hapus prop 'price'
+  selectedRoom,
   propertyId,
 }: {
   selectedRange: DateRange | undefined
@@ -32,10 +32,6 @@ export function BookingSidebar({
   const router = useRouter()
   const { user } = useAuth()
 
-  // --- PERBAIKAN UTAMA DI SINI ---
-  // Ambil harga langsung dari kamar yang dipilih. Jika tidak ada, harga 0.
-  const pricePerNight = selectedRoom?.basePrice || 0;
-
   const nights = useMemo(() => {
     if (selectedRange?.from && selectedRange?.to) {
       const diff = differenceInCalendarDays(selectedRange.to, selectedRange.from);
@@ -44,9 +40,12 @@ export function BookingSidebar({
     return 0
   }, [selectedRange])
 
-  const totalPrice = useMemo(() => {
-    return nights * pricePerNight
-  }, [nights, pricePerNight])
+  const pricePerNight = useMemo(() => {
+    if (selectedRoom?.totalPrice && nights > 0) {
+      return selectedRoom.totalPrice / nights;
+    }
+    return selectedRoom?.basePrice || 0;
+  }, [selectedRoom, nights]);
 
   const handleReserve = () => {
     if (!user) {
@@ -55,31 +54,30 @@ export function BookingSidebar({
       return
     }
     if (nights > 0 && selectedRoom) {
-        const query = new URLSearchParams({
-            propertyId,
-            roomId: selectedRoom.id,
-            roomName: selectedRoom.name,
-            checkIn: format(selectedRange!.from!, 'yyyy-MM-dd'),
-            checkOut: format(selectedRange!.to!, 'yyyy-MM-dd'),
-            guests: "1",
-            totalPrice: String(totalPrice),
-            nights: String(nights),
-        }).toString();
+      const query = new URLSearchParams({
+        propertyId,
+        roomId: selectedRoom.id,
+        roomName: selectedRoom.name,
+        checkIn: format(selectedRange!.from!, 'yyyy-MM-dd'),
+        checkOut: format(selectedRange!.to!, 'yyyy-MM-dd'),
+        guests: "1",
+        totalPrice: String(selectedRoom.totalPrice),
+        nights: String(nights),
+      }).toString();
       
-        router.push(`/room_reservation?${query}`)
+      router.push(`/room_reservation?${query}`)
     } else {
-        toast.error("Please select a valid date range and a room.")
+      toast.error("Please select a valid date range and a room.")
     }
   }
 
-  // Tampilkan pesan jika belum ada tanggal atau kamar yang dipilih
   if (!selectedRange?.from || !selectedRoom) {
     return (
         <div className="bg-white rounded-lg shadow-lg p-6 sticky top-24">
-            <h3 className="font-bold">Pilih tanggal dan kamar</h3>
-            <p className="text-sm text-gray-600 mt-2">
-                Silakan pilih tanggal menginap dan jenis kamar untuk melihat rincian harga.
-            </p>
+          <h3 className="font-bold">Pilih tanggal dan kamar</h3>
+          <p className="text-sm text-gray-600 mt-2">
+            Silakan pilih tanggal menginap dan jenis kamar untuk melihat rincian harga.
+          </p>
         </div>
     );
   }
@@ -98,7 +96,6 @@ export function BookingSidebar({
       </div>
 
       <div className="mt-4 grid gap-4">
-        {/* Komponen kalender tidak berubah */}
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -137,7 +134,7 @@ export function BookingSidebar({
         </Popover>
       </div>
       
-      {nights > 0 && (
+      {nights > 0 && selectedRoom?.totalPrice !== undefined && (
         <>
           <div className="mt-6 pt-4 border-t">
             <div className="flex justify-between items-center text-gray-700">
@@ -154,7 +151,7 @@ export function BookingSidebar({
                   style: "currency",
                   currency: "IDR",
                   minimumFractionDigits: 0,
-                }).format(totalPrice)}
+                }).format(selectedRoom.totalPrice)}
               </p>
             </div>
             {selectedRoom && (
@@ -171,7 +168,7 @@ export function BookingSidebar({
                 style: "currency",
                 currency: "IDR",
                 minimumFractionDigits: 0,
-              }).format(totalPrice)}
+              }).format(selectedRoom.totalPrice)}
             </p>
           </div>
         </>
