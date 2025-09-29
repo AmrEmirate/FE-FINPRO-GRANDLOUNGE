@@ -53,6 +53,9 @@ export interface Room {
   capacity: number;
   basePrice: number;
   roomNumber?: string;
+  // Tambahkan properti baru dari backend
+  totalPrice?: number;
+  dailyPrices?: { date: string; price: number }[];
 }
 
 export interface Review {

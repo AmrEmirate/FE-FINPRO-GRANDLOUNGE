@@ -43,7 +43,7 @@ export function AvailabilityDialog({ isOpen, onClose, onSave }: AvailabilityDial
         <DialogHeader>
           <DialogTitle>Set Room Availability</DialogTitle>
           <DialogDescription>
-            Select a date or a date range to mark as available or unavailable.
+            Peringatan: Tanggal yang akan disimpan kurang 1 hari dari tanggal yang di tentukan karena masalah zona waktu.
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-center py-4">
