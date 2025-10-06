@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:2020/api",
+  baseURL: "https://grand-lounge-api.vercel.app/api",
   withCredentials: true, 
 });
 
